@@ -2,3 +2,6 @@
 .vscode/
 .DS_Store
 compiler
+.vagrant/
+*.log
+

@@ -11,3 +11,5 @@ exit_code() {
 }
 
 exit_code 2
+exit_code 22
+exit_code 127
