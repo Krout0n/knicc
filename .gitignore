@@ -4,4 +4,4 @@
 compiler
 .vagrant/
 *.log
-
+*.s
