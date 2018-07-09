@@ -45,7 +45,7 @@ Token lex(Lexer *l) {
         t.literal[1] = '\0';
         t.token_type = SUB;
         l->index += 1;
-    } else if (isblank(c)) { // TODO: なんか空白を認識してくれない
+    } else if (isblank(c)) {
         l->index += 1;
         return lex(l);
     } else {
