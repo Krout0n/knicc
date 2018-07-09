@@ -7,6 +7,7 @@
 typedef enum {
     INT,
     ADD,
+    SUB,
     _EOF,
     ERR // unused
 } TokenKind;
@@ -39,6 +40,11 @@ Token lex(Lexer *l) {
         t.literal[1] = '\0';
         t.token_type = ADD;
         l->index += 1;
+    } else if (c == '-') {
+        t.literal[0] = '-';
+        t.literal[1] = '\0';
+        t.token_type = SUB;
+        l->index += 1;
     } else if (isblank(c)) { // TODO: なんか空白を認識してくれない
         l->index += 1;
         return lex(l);
@@ -64,6 +70,12 @@ void codegen(Token t) {
             printf("  add %%rdx, %%rax\n");
             printf("  push %%rax\n");
             break;
+        case SUB:
+            printf("  pop %%rdx\n");
+            printf("  pop %%rax\n");
+            printf("  sub %%rdx, %%rax\n");
+            printf("  push %%rax\n");
+            break;
         case _EOF:
             perror("y");
             break;
@@ -83,6 +95,7 @@ void generate(int len) {
                 codegen(t);
                 break;
             case ADD:
+            case SUB:
                 codegen(tokens[tokens_index+1]);
                 codegen(t);
                 tokens_index += 1;
@@ -112,6 +125,9 @@ void debug_token(Token t) {
             break;
         case ADD:
             s = "ADD";
+            break;
+        case SUB:
+            s = "SUB";
             break;
         case _EOF:
             s = "EOF";
