@@ -1,7 +1,8 @@
 exit_code() {
-  expected=$1
+  expr=$1
+  expected=$2
   gcc -o compiler main.c
-  echo $expected | ./compiler > test.s
+  echo $expr | ./compiler > test.s
   gcc test.s -o test
   ./test
   exit_code=$?
@@ -13,6 +14,7 @@ exit_code() {
   rm -rf test.s test
 }
 
-exit_code 2
-exit_code 22
-exit_code 127
+exit_code '1+2' 3
+exit_code '12+34' 46
+exit_code '1+2+3' 6
+exit_code '11+22+33' 66
