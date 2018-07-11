@@ -1,76 +1,8 @@
-#include <stdio.h> /* printf, fgets, stdin */
 #include <stdlib.h> /* atoi */
 #include <ctype.h> /* isdigit, isblank */
 #include <string.h> /* strcmp */
 #include <stdbool.h> /* bool */
-
-typedef enum {
-    INT,
-    IDENT,
-    ADD,
-    SUB,
-    ASSIGN,
-    _EOF,
-    ERR // unused
-} TokenKind;
-
-typedef struct {
-    char literal[256];
-    TokenKind token_type;
-} Token;
-
-typedef struct {
-    char src[1000];
-    int index;
-} Lexer;
-
-Token lex(Lexer *l) {
-    Token t;
-    int i = 0;
-    char c = l->src[l->index];
-    if (isdigit(c)) {
-        while(isdigit(c)) {
-            t.literal[i] = c;
-            i++;
-            l->index += 1;
-            c = l->src[l->index];
-        }
-        t.literal[i] = '\0';
-        t.token_type = INT;
-    } else if (isalpha(c)) {
-        while(isdigit(c) || isalpha(c) || c == '_') {
-            t.literal[i] = c;
-            i++;
-            l->index += 1;
-            c = l->src[l->index];
-        }
-        t.literal[i] = '\0';
-        t.token_type = IDENT;
-    } else if (c == '=') {
-        t.literal[0] = '=';
-        t.literal[1] = '\0';
-        t.token_type = ASSIGN;
-        l->index += 1;   
-    }else if (c == '+') {
-        t.literal[0] = '+';
-        t.literal[1] = '\0';
-        t.token_type = ADD;
-        l->index += 1;
-    } else if (c == '-') {
-        t.literal[0] = '-';
-        t.literal[1] = '\0';
-        t.token_type = SUB;
-        l->index += 1;
-    } else if (isblank(c)) {
-        l->index += 1;
-        return lex(l);
-    } else {
-        t.literal[0] = '\0';
-        t.token_type = _EOF;
-    }
-    return t;
-}
-
+#include "lexer.h"
 
 Token tokens[256];
 int tokens_index = 0;
@@ -116,6 +48,9 @@ void generate(int len) {
                 codegen(t);
                 tokens_index += 1;
                 break;
+            case IDENT:
+                // int esp_index = lookup(t.literal, m);
+                break;
             case _EOF:
                 printf("  pop %%rax\n");
                 printf("  ret\n");
@@ -126,39 +61,6 @@ void generate(int len) {
         }
         tokens_index += 1;
     }
-}
-
-Lexer init_lexer() {
-    Lexer l =  {"", 0};
-    return l;
-}
-
-void debug_token(Token t) {
-    char *s;
-    switch(t.token_type) {
-        case INT:
-            s = "INT";
-            break;
-        case IDENT:
-            s = "IDENT";
-            break;
-        case ADD:
-            s = "ADD";
-            break;
-        case SUB:
-            s = "SUB";
-            break;
-        case ASSIGN:
-            s = "ASSIGN";
-            break;
-        case _EOF:
-            s = "EOF";
-            break;
-        default:
-            s = "UNEXPECTED TOKEN";
-            break;
-    }
-    printf("Token.type: %s literal: %s\n", s, t.literal);
 }
 
 int main(int argc, char **argv) {
