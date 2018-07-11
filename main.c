@@ -6,8 +6,10 @@
 
 typedef enum {
     INT,
+    IDENT,
     ADD,
     SUB,
+    ASSIGN,
     _EOF,
     ERR // unused
 } TokenKind;
@@ -35,7 +37,21 @@ Token lex(Lexer *l) {
         }
         t.literal[i] = '\0';
         t.token_type = INT;
-    } else if (c == '+') {
+    } else if (isalpha(c)) {
+        while(isdigit(c) || isalpha(c) || c == '_') {
+            t.literal[i] = c;
+            i++;
+            l->index += 1;
+            c = l->src[l->index];
+        }
+        t.literal[i] = '\0';
+        t.token_type = IDENT;
+    } else if (c == '=') {
+        t.literal[0] = '=';
+        t.literal[1] = '\0';
+        t.token_type = ASSIGN;
+        l->index += 1;   
+    }else if (c == '+') {
         t.literal[0] = '+';
         t.literal[1] = '\0';
         t.token_type = ADD;
@@ -123,11 +139,17 @@ void debug_token(Token t) {
         case INT:
             s = "INT";
             break;
+        case IDENT:
+            s = "IDENT";
+            break;
         case ADD:
             s = "ADD";
             break;
         case SUB:
             s = "SUB";
+            break;
+        case ASSIGN:
+            s = "ASSIGN";
             break;
         case _EOF:
             s = "EOF";
