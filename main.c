@@ -2,66 +2,16 @@
 #include <ctype.h> /* isdigit, isblank */
 #include <string.h> /* strcmp */
 #include <stdbool.h> /* bool */
+
+#ifndef LEXER_H
 #include "lexer.h"
+#endif
 
-Token tokens[256];
-int tokens_index = 0;
+#ifndef NODE_H
+#include "node.h"
+#endif
 
-void codegen(Token t) {
-    switch(t.token_type) {
-        case INT:
-            printf("  push $%d\n", atoi(t.literal));
-            break;
-        case ADD:
-            printf("  pop %%rax\n");
-            printf("  pop %%rdx\n");
-            printf("  add %%rdx, %%rax\n");
-            printf("  push %%rax\n");
-            break;
-        case SUB:
-            printf("  pop %%rdx\n");
-            printf("  pop %%rax\n");
-            printf("  sub %%rdx, %%rax\n");
-            printf("  push %%rax\n");
-            break;
-        case _EOF:
-            perror("y");
-            break;
-        case ERR:
-            printf("ERR: %s \n", t.literal);
-            break;
-    }
-}
-
-void generate(int len) {
-    printf(".global main\n");
-    printf("main:\n");
-    while (tokens_index <= len) {
-        Token t = tokens[tokens_index];
-        switch(t.token_type) {
-            case INT:
-                codegen(t);
-                break;
-            case ADD:
-            case SUB:
-                codegen(tokens[tokens_index+1]);
-                codegen(t);
-                tokens_index += 1;
-                break;
-            case IDENT:
-                // int esp_index = lookup(t.literal, m);
-                break;
-            case _EOF:
-                printf("  pop %%rax\n");
-                printf("  ret\n");
-                break;
-            case ERR:
-                printf("ERR: %s \n", t.literal);
-                break;
-        }
-        tokens_index += 1;
-    }
-}
+#include "code.h"
 
 int main(int argc, char **argv) {
     bool debug_flag = false;
@@ -70,13 +20,18 @@ int main(int argc, char **argv) {
     }
     Lexer l = init_lexer();
     fgets(l.src, 1000, stdin);
-    int i = 0;
+    Token t;
     while(1) {
-        tokens[i] = lex(&l);
-        if (debug_flag) debug_token(tokens[i]);
-        if (tokens[i].token_type == _EOF) break;
-        i++;
+        t = lex(&l);
+        store_token(&l, t);
+        if (t.token_type == _EOF) break;
     }
-    generate(i);
+    l.token_index = 0;
+    Node *n = read_expr(&l);
+    printf(".global main\n");
+    printf("main:\n");
+    emit_code(n);
+    printf("  pop %%rax\n");
+    printf("  ret\n");
     return 0;
 }

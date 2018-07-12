@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <string.h>
+
+#define TOKEN_H
 
 typedef enum {
     INT,
@@ -41,4 +44,11 @@ void debug_token(Token t) {
             break;
     }
     printf("Token.type: %s literal: %s\n", s, t.literal);
+}
+
+Token new_token(char *literal, TokenKind kind) {
+    Token t;
+    strcpy(t.literal, literal);
+    t.token_type = kind;
+    return t;
 }

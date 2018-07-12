@@ -1,9 +1,17 @@
-#include "token.h"
 #include <ctype.h> /* isalpha, isblank, isdigit */
+
+#ifndef TOKEN_H
+#include "token.h"
+#endif
+
+#ifndef LEXER_H
+#define LEXER_H
 
 typedef struct {
     char src[1000];
     int index;
+    Token tokens[1000];
+    int token_index;
 } Lexer;
 
 Token lex(Lexer *l) {
@@ -53,7 +61,26 @@ Token lex(Lexer *l) {
     return t;
 }
 
+void store_token(Lexer *l, Token t) {
+    l->tokens[l->token_index] = t;
+    l->token_index += 1;
+}
+
 Lexer init_lexer() {
-    Lexer l =  {"", 0};
+    Lexer l;
+    l.index = 0;
+    l.token_index = 0;
     return l;
 }
+
+Token get_token(Lexer *l) {
+    Token t = l->tokens[l->token_index];
+    l->token_index += 1;
+    return t;
+}
+
+Token peek_token(Lexer *l) {
+    return l->tokens[l->token_index];
+}
+
+#endif
