@@ -1,7 +1,7 @@
 exit_code() {
   expr=$1
   expected=$2
-  gcc -o compiler main.c
+  gcc -o compiler main.c -w
   echo $expr | ./compiler > test.s
   gcc test.s -o test
   ./test
