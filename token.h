@@ -8,6 +8,7 @@ typedef enum {
     IDENT,
     ADD,
     SUB,
+    MULTI,
     ASSIGN,
     _EOF,
     ERR // unused
@@ -32,6 +33,9 @@ void debug_token(Token t) {
             break;
         case SUB:
             s = "SUB";
+            break;
+        case MULTI:
+            s = "MULTI";
             break;
         case ASSIGN:
             s = "ASSIGN";

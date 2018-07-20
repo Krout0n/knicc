@@ -1,5 +1,4 @@
 #ifndef NODE_H
-
 #include "node.h"
 #endif
 
@@ -20,6 +19,11 @@ void codegen(Node *n) {
             printf("  sub %%rdx, %%rax\n");
             printf("  push %%rax\n");
             break;
+        case MULTI:
+            printf("  pop %%rdx\n");
+            printf("  pop %%rax\n");
+            printf("  mul %%rdx, %%rax\n");
+            printf("  push %%rax\n");
         case _EOF:
             printf("  pop %%rax\n");
             printf("  ret\n");
