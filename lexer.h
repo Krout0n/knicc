@@ -12,6 +12,7 @@ typedef struct {
     int index;
     Token tokens[1000];
     int token_index;
+    int length;
 } Lexer;
 
 Token lex(Lexer *l) {
@@ -67,24 +68,36 @@ Token lex(Lexer *l) {
 }
 
 void store_token(Lexer *l, Token t) {
-    l->tokens[l->token_index] = t;
-    l->token_index += 1;
+    l->tokens[l->length] = t;
+    l->length += 1;
 }
 
 Lexer init_lexer() {
     Lexer l;
     l.index = 0;
     l.token_index = 0;
+    l.length = 0;
     return l;
 }
 
+void debug_lexer(Lexer *l) {
+    printf("LEXER current: %d, length: %d\n", l->token_index, l->index);
+}
+
 Token get_token(Lexer *l) {
+    if (l->length <= l->token_index) {
+        perror("get_token: LENGTH OVER");
+    }
     Token t = l->tokens[l->token_index];
     l->token_index += 1;
     return t;
 }
 
 Token peek_token(Lexer *l) {
+    if (l->length <= l->token_index) {
+        perror("peek_token: LENGTH OVER");
+    }
+    Token t = l->tokens[l->token_index];
     return l->tokens[l->token_index];
 }
 

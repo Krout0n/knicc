@@ -2,6 +2,11 @@
 #include "node.h"
 #endif
 
+#ifndef TOKEN_H
+#include "token.h"
+#endif
+
+
 void codegen(Node *n) {
     switch(n->type) {
         case INT:
@@ -22,24 +27,46 @@ void codegen(Node *n) {
         case MULTI:
             printf("  pop %%rdx\n");
             printf("  pop %%rax\n");
-            printf("  mul %%rdx, %%rax\n");
+            printf("  imul %%rdx, %%rax\n");
             printf("  push %%rax\n");
-        case _EOF:
-            printf("  pop %%rax\n");
-            printf("  ret\n");
             break;
-        case ERR:
-            printf("ERR\n");
-            break;
+        default:
+            debug_token(new_token("", n->type));
+            return;
     }
 }
 
 void emit_code(Node *n) {
     if (n->left != NULL) {
         emit_code(n->left);
-    } 
+    }
+
     if (n->right != NULL) {
         emit_code(n->right);
     }
     codegen(n);
+}
+
+void print_ast(Node *node) {
+    switch (node->type) {
+        case ADD:
+            printf("(+ ");
+            goto print_op;
+        case SUB:
+            printf("(- ");
+            goto print_op;
+        case MULTI:
+            printf("(* ");
+            print_op:
+            print_ast(node->left);
+            printf(" ");
+            print_ast(node->right);
+            printf(")");
+            break;
+        case INT:
+            printf("%d", node->value);
+            break;
+        default:
+            perror("should not reach here");
+    }
 }

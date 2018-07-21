@@ -25,3 +25,7 @@ exit_code '3-2' 1
 exit_code '3-2+1' 2
 exit_code '40-20+11' 31
 exit_code '99-21-37' 41
+exit_code '1*2' 2
+exit_code '1*2*3' 6
+exit_code '1+2*3' 7
+exit_code '1*2+3*4' 14

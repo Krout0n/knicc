@@ -26,8 +26,15 @@ int main(int argc, char **argv) {
         store_token(&l, t);
         if (t.token_type == _EOF) break;
     }
-    l.token_index = 0;
-    Node *n = read_expr(&l);
+    // store_token(&l ,new_token("1", INT));
+    // store_token(&l ,new_token("+", ADD));
+    // store_token(&l ,new_token("2", INT));
+    // store_token(&l ,new_token("*", MULTI));
+    // store_token(&l ,new_token("3", INT));
+    // store_token(&l ,new_token("", _EOF));
+    Node *n = expr(&l);
+    // print_ast(n);
+    // printf("\n");
     printf(".global main\n");
     printf("main:\n");
     emit_code(n);

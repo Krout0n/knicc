@@ -12,12 +12,15 @@
 #define NODE_H
 
 typedef struct {
-    char op;
     int type;
     int value;
     struct Node *left;
     struct Node *right;
 } Node;
+
+Node* expr(Lexer *l);
+Node* term(Lexer *l);
+Node* factor(Lexer *l);
 
 Node *make_ast_int(int val) {
     Node *n = malloc(sizeof(Node));
@@ -36,56 +39,40 @@ Node *make_ast_op(int type, Node *left, Node *right) {
     return n;
 }
 
-Node *read_prim(Lexer *l) {
-    Token token = get_token(l);
-    if (token.token_type == INT) {
-        return make_ast_int(atoi(token.literal));
-    } 
-    perror("UNEXPECTED SYNTAX WAS GIVEN !");
+Node* expr(Lexer *l) {
+    Node *left = term(l);
+    Node *right;
+    Token t = peek_token(l);
+    while (t.token_type == ADD || t.token_type == SUB) {
+        if (peek_token(l).token_type == _EOF) break;
+        t = get_token(l);
+        right = term(l);
+        left = make_ast_op(t.token_type, left, right);
+    }
+    return left;
 }
 
-Node *read_expr2(Node *left, Lexer *l) {
+Node* term(Lexer *l) {
+    Node *left = factor(l);
+    Node *right;
+    Token t = peek_token(l);
+    while (t.token_type == MULTI) {
+        if (peek_token(l).token_type == _EOF) break;
+        t = get_token(l);
+        right = factor(l);
+        left = make_ast_op(t.token_type, left, right);
+    }
+    return left;
+}
+
+Node* factor(Lexer *l) {
     Token t = get_token(l);
-    int op = 0;
-    switch (t.token_type) {
-        case ADD:
-        case SUB:
-            op = t.token_type;
-            break;
-        case _EOF: return left;
-        default:
-            debug_token(t);
-            perror("EXPECTED OPERAND BUT GOT ABOVE");
-            exit(1);
-    }
-    Node *right = read_prim(l);
-    return read_expr2(make_ast_op(op, left, right), l);
-}
-
-Node *read_expr(Lexer *l) {
-    Node *left = read_prim(l);
-    return read_expr2(left, l);
-}
-
-void print_ast(Node *node) {
-    switch (node->type) {
-        case ADD:
-            printf("(+ ");
-            goto print_op;
-        case SUB:
-            printf("(- ");
-            print_op:
-            print_ast(node->left);
-            printf(" ");
-            print_ast(node->right);
-            printf(")");
-            break;
-        case INT:
-            printf("%d", node->value);
-            break;
-        default:
-            perror("should not reach here");
+    if (t.token_type == INT) return make_ast_int(atoi(t.literal));
+    // 今の所通る予定はない
+    else if (t.token_type == _EOF) return NULL;
+    else {
+        perror("undefined");
+        return NULL;
     }
 }
-
 #endif
