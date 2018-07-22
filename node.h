@@ -44,7 +44,7 @@ Node* expr(Lexer *l) {
     Node *right;
     Token t = peek_token(l);
     while (t.token_type == ADD || t.token_type == SUB) {
-        if (peek_token(l).token_type == _EOF) break;
+        if (peek_token(l).token_type != ADD && peek_token(l).token_type != SUB) break;
         t = get_token(l);
         right = term(l);
         left = make_ast_op(t.token_type, left, right);
@@ -57,7 +57,7 @@ Node* term(Lexer *l) {
     Node *right;
     Token t = peek_token(l);
     while (t.token_type == MULTI) {
-        if (peek_token(l).token_type == _EOF) break;
+        if (peek_token(l).token_type != MULTI) break;
         t = get_token(l);
         right = factor(l);
         left = make_ast_op(t.token_type, left, right);
