@@ -24,21 +24,33 @@ int main(int argc, char **argv) {
     while(1) {
         t = lex(&l);
         store_token(&l, t);
+        // debug_token(t);
         if (t.token_type == _EOF) break;
     }
-    // store_token(&l ,new_token("1", INT));
-    // store_token(&l ,new_token("+", ADD));
-    // store_token(&l ,new_token("2", INT));
-    // store_token(&l ,new_token("*", MULTI));
-    // store_token(&l ,new_token("3", INT));
-    // store_token(&l ,new_token("", _EOF));
-    Node *n = expr(&l);
-    // print_ast(n);
-    // printf("\n");
+    Parser p = init_parser();
+    Node *n;
+    while (peek_token(&l).token_type != _EOF) {
+        n = expr(&l);
+        add_ast(&p, n);
+        if (peek_token(&l).token_type == SEMICOLON) {
+            get_token(&l);
+        }
+        // print_ast(n);
+        // printf("\n");
+    }
     printf(".global main\n");
     printf("main:\n");
-    emit_code(n);
+    int i;
+    while (i < p.length) {
+        emit_code(p.ast[i]);
+        i += 1;
+    }
     printf("  pop %%rax\n");
+    i = 0;
+    while (i < p.length - 1) {
+        printf("  pop %%rdx\n"); // rspを戻す
+        i += 1;
+    }
     printf("  ret\n");
     return 0;
 }

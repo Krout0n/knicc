@@ -6,6 +6,7 @@
 typedef enum {
     INT,
     IDENT,
+    SEMICOLON,
     ADD,
     SUB,
     MULTI,
@@ -27,6 +28,9 @@ void debug_token(Token t) {
             break;
         case IDENT:
             s = "IDENT";
+            break;
+        case SEMICOLON:
+            s = "SEMICOLON";
             break;
         case ADD:
             s = "ADD";

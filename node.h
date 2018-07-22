@@ -18,6 +18,22 @@ typedef struct Node_tag {
     struct Node_tag *right;
 } Node;
 
+typedef struct {
+    int length;
+    Node *ast[100];
+} Parser;
+
+Parser init_parser() {
+    Parser p;
+    p.length = 0;
+    return p;
+}
+
+void add_ast(Parser *p, Node *n) {
+    p->ast[p->length] = n;
+    p->length += 1;
+}
+
 Node* expr(Lexer *l);
 Node* term(Lexer *l);
 Node* factor(Lexer *l);

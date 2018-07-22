@@ -57,6 +57,11 @@ Token lex(Lexer *l) {
         t.literal[1] = '\0';
         t.token_type = MULTI;
         l->index += 1;
+    } else if (c == ';') {
+        t.literal[0] = ';';
+        t.literal[1] = '\0';
+        t.token_type = SEMICOLON;
+        l->index += 1;
     } else if (isblank(c)) {
         l->index += 1;
         return lex(l);
