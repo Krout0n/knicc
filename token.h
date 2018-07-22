@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define TOKEN_H
 
@@ -11,7 +12,10 @@ typedef enum {
     SUB,
     MULTI,
     ASSIGN,
+    LParen,
+    RParen,
     _EOF,
+    NOT_FOUND, // used for only find_type()
     ERR // unused
 } TokenType;
 
@@ -47,11 +51,30 @@ char *find_token_name(TokenType t) {
         case _EOF:
             s = "EOF";
             break;
+        case LParen:
+            s = "LParen";
+            break;
+        case RParen:
+            s = "RParen";
+            break;
         default:
             s = "UNEXPECTED TOKEN";
             break;
     }
     return s;
+}
+
+TokenType spacial_char(char c) {
+    switch (c) {
+        case ';': return SEMICOLON;
+        case '+': return ADD;
+        case '-': return SUB;
+        case '*': return MULTI;
+        case '=': return ASSIGN;
+        case '(': return LParen;
+        case ')': return RParen;
+        default: return NOT_FOUND;
+    }
 }
 
 Token new_token(char *literal, TokenType kind) {
@@ -61,12 +84,15 @@ Token new_token(char *literal, TokenType kind) {
     return t;
 }
 
-void assert_token(TokenType expected, TokenType got) {
+bool assert_token(TokenType expected, TokenType got) {
+    bool flag = false;
     if (expected != got) {
         char *e = find_token_name(expected);
         char *g = find_token_name(got);
         fprintf(stderr, "assert_token! expected=%s, got=%s", e, g);
+        return false;
     }
+    return true;
 }
 
 void debug_token(Token t) {

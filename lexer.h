@@ -37,31 +37,11 @@ Token lex(Lexer *l) {
         }
         t.literal[i] = '\0';
         t.type = IDENT;
-    } else if (c == '=') {
-        t.literal[0] = '=';
+    } else if (spacial_char(c) != NOT_FOUND) {
+        t.literal[0] = c;
         t.literal[1] = '\0';
-        t.type = ASSIGN;
-        l->index += 1;   
-    }else if (c == '+') {
-        t.literal[0] = '+';
-        t.literal[1] = '\0';
-        t.type = ADD;
-        l->index += 1;
-    } else if (c == '-') {
-        t.literal[0] = '-';
-        t.literal[1] = '\0';
-        t.type = SUB;
-        l->index += 1;
-    } else if (c == '*') {
-        t.literal[0] = '*';
-        t.literal[1] = '\0';
-        t.type = MULTI;
-        l->index += 1;
-    } else if (c == ';') {
-        t.literal[0] = ';';
-        t.literal[1] = '\0';
-        t.type = SEMICOLON;
-        l->index += 1;
+        t.type = spacial_char(c);
+        l->index += 1;    
     } else if (isblank(c)) {
         l->index += 1;
         return lex(l);
