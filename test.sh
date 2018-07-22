@@ -29,3 +29,5 @@ exit_code '1*2' 2
 exit_code '1*2*3' 6
 exit_code '1+2*3' 7
 exit_code '1*2+3*4' 14
+exit_code '1+2*3+4' 11
+exit_code '15-3*4' 3
