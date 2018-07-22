@@ -60,10 +60,10 @@ Node* expr(Lexer *l) {
     Node *right;
     Token t = peek_token(l);
     Token op;
-    while (t.token_type == ADD || t.token_type == SUB) {
+    while (t.type == ADD || t.type == SUB) {
         op = get_token(l);
         right = term(l);
-        left = make_ast_op(op.token_type, left, right);
+        left = make_ast_op(op.type, left, right);
         t = peek_token(l);
     }
     return left;
@@ -74,10 +74,10 @@ Node* term(Lexer *l) {
     Node *right;
     Token t = peek_token(l);
     Token op;
-    while (t.token_type == MULTI) {
+    while (t.type == MULTI) {
         op = get_token(l);
         right = term(l);
-        left = make_ast_op(op.token_type, left, right);
+        left = make_ast_op(op.type, left, right);
         t = peek_token(l);
     }
     return left;
@@ -85,12 +85,6 @@ Node* term(Lexer *l) {
 
 Node* factor(Lexer *l) {
     Token t = get_token(l);
-    if (t.token_type == INT) return make_ast_int(atoi(t.literal));
-    // 今の所通る予定はない
-    else if (t.token_type == _EOF) return NULL;
-    else {
-        perror("undefined");
-        return NULL;
-    }
+    if (t.type == INT) return make_ast_int(atoi(t.literal));
 }
 #endif

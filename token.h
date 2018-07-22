@@ -13,16 +13,16 @@ typedef enum {
     ASSIGN,
     _EOF,
     ERR // unused
-} TokenKind;
+} TokenType;
 
 typedef struct {
     char literal[256];
-    TokenKind token_type;
+    TokenType type;
 } Token;
 
-void debug_token(Token t) {
+char *find_token_name(TokenType t) {
     char *s;
-    switch(t.token_type) {
+    switch(t) {
         case INT:
             s = "INT";
             break;
@@ -51,12 +51,24 @@ void debug_token(Token t) {
             s = "UNEXPECTED TOKEN";
             break;
     }
-    printf("Token.type: %s literal: %s\n", s, t.literal);
+    return s;
 }
 
-Token new_token(char *literal, TokenKind kind) {
+Token new_token(char *literal, TokenType kind) {
     Token t;
     strcpy(t.literal, literal);
-    t.token_type = kind;
+    t.type = kind;
     return t;
+}
+
+void assert_token(TokenType expected, TokenType got) {
+    if (expected != got) {
+        char *e = find_token_name(expected);
+        char *g = find_token_name(got);
+        fprintf(stderr, "assert_token! expected=%s, got=%s", e, g);
+    }
+}
+
+void debug_token(Token t) {
+    printf("Token.type: %s literal: %s\n", find_token_name(t.type), t.literal);
 }

@@ -25,14 +25,14 @@ int main(int argc, char **argv) {
         t = lex(&l);
         store_token(&l, t);
         // debug_token(t);
-        if (t.token_type == _EOF) break;
+        if (t.type == _EOF) break;
     }
     Parser p = init_parser();
     Node *n;
-    while (peek_token(&l).token_type != _EOF) {
+    while (peek_token(&l).type != _EOF) {
         n = expr(&l);
         add_ast(&p, n);
-        if (peek_token(&l).token_type == SEMICOLON) {
+        if (peek_token(&l).type == SEMICOLON) {
             get_token(&l);
         }
         // print_ast(n);

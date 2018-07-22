@@ -27,7 +27,7 @@ Token lex(Lexer *l) {
             c = l->src[l->index];
         }
         t.literal[i] = '\0';
-        t.token_type = INT;
+        t.type = INT;
     } else if (isalpha(c)) {
         while(isdigit(c) || isalpha(c) || c == '_') {
             t.literal[i] = c;
@@ -36,38 +36,38 @@ Token lex(Lexer *l) {
             c = l->src[l->index];
         }
         t.literal[i] = '\0';
-        t.token_type = IDENT;
+        t.type = IDENT;
     } else if (c == '=') {
         t.literal[0] = '=';
         t.literal[1] = '\0';
-        t.token_type = ASSIGN;
+        t.type = ASSIGN;
         l->index += 1;   
     }else if (c == '+') {
         t.literal[0] = '+';
         t.literal[1] = '\0';
-        t.token_type = ADD;
+        t.type = ADD;
         l->index += 1;
     } else if (c == '-') {
         t.literal[0] = '-';
         t.literal[1] = '\0';
-        t.token_type = SUB;
+        t.type = SUB;
         l->index += 1;
     } else if (c == '*') {
         t.literal[0] = '*';
         t.literal[1] = '\0';
-        t.token_type = MULTI;
+        t.type = MULTI;
         l->index += 1;
     } else if (c == ';') {
         t.literal[0] = ';';
         t.literal[1] = '\0';
-        t.token_type = SEMICOLON;
+        t.type = SEMICOLON;
         l->index += 1;
     } else if (isblank(c)) {
         l->index += 1;
         return lex(l);
     } else {
         t.literal[0] = '\0';
-        t.token_type = _EOF;
+        t.type = _EOF;
     }
     return t;
 }
