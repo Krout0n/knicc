@@ -11,11 +11,11 @@
 #ifndef NODE_H
 #define NODE_H
 
-typedef struct {
+typedef struct Node_tag {
     int type;
     int value;
-    struct Node *left;
-    struct Node *right;
+    struct Node_tag *left;
+    struct Node_tag *right;
 } Node;
 
 Node* expr(Lexer *l);
