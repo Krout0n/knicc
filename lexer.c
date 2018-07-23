@@ -1,19 +1,7 @@
-#include <ctype.h> /* isalpha, isblank, isdigit */
+#include <stdio.h>
+#include <ctype.h>
 
-#ifndef TOKEN_H
-#include "token.h"
-#endif
-
-#ifndef LEXER_H
-#define LEXER_H
-
-typedef struct {
-    char src[1000];
-    int index;
-    Token tokens[1000];
-    int token_index;
-    int length;
-} Lexer;
+#include "knicc.h"
 
 Token lex(Lexer *l) {
     Token t;
@@ -82,8 +70,5 @@ Token peek_token(Lexer *l) {
     if (l->length <= l->token_index) {
         perror("peek_token: LENGTH OVER");
     }
-    Token t = l->tokens[l->token_index];
     return l->tokens[l->token_index];
 }
-
-#endif

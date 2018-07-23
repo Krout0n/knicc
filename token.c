@@ -2,27 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define TOKEN_H
-
-typedef enum {
-    INT,
-    IDENT,
-    SEMICOLON,
-    ADD,
-    SUB,
-    MULTI,
-    ASSIGN,
-    LParen,
-    RParen,
-    _EOF,
-    NOT_FOUND, // used for only find_type()
-    ERR // unused
-} TokenType;
-
-typedef struct {
-    char literal[256];
-    TokenType type;
-} Token;
+#include "knicc.h"
 
 char *find_token_name(TokenType t) {
     char *s;
@@ -85,7 +65,6 @@ Token new_token(char *literal, TokenType kind) {
 }
 
 bool assert_token(TokenType expected, TokenType got) {
-    bool flag = false;
     if (expected != got) {
         char *e = find_token_name(expected);
         char *g = find_token_name(got);

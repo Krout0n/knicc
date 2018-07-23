@@ -1,11 +1,6 @@
-#ifndef NODE_H
-#include "node.h"
-#endif
+#include <stdio.h>
 
-#ifndef TOKEN_H
-#include "token.h"
-#endif
-
+#include "knicc.h"
 
 void codegen(Node *n) {
     switch(n->type) {

@@ -2,10 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-	char *key;
-	int value;
-} KeyValue;
+#include "knicc.h"
 
 KeyValue *new_kv(char *key, int value) {
 	KeyValue *kv = (KeyValue *)malloc(sizeof(KeyValue));
@@ -19,12 +16,6 @@ KeyValue *new_kv(char *key, int value) {
 void debug_kv(KeyValue *kv) {
 	printf("%s: %d\n", kv->key, kv->value);
 }
-
-typedef struct {
-	size_t length;
-	size_t buf;
-	KeyValue *data;
-} Vector;
 
 Vector *init_vector() {
 	Vector *vec = (Vector *)malloc(sizeof(Vector));
@@ -64,22 +55,4 @@ KeyValue *find_by_key(Vector *vec, char *key) {
 		i += 1;
 	}
 	return NULL;
-}
-
-int main() {
-	Vector *vec = init_vector();
-	int i;
-	vec_push(vec, new_kv("hoge", 0));
-	vec_push(vec, new_kv("fuga", 1));
-	vec_push(vec, new_kv("bar", 2));
-	vec_push(vec, new_kv("bar", 2));
-	vec_push(vec, new_kv("bar", 2));
-	vec_push(vec, new_kv("baz", 15));
-	debug_kv(vec_get(vec, 0));
-	debug_kv(vec_get(vec, 1));
-	debug_kv(vec_get(vec, 2));
-	debug_kv(vec_get(vec, 4));
-	printf("vec buffer: %zu\n", vec->buf); // 8
-	debug_kv(find_by_key(vec, "baz")); // baz 15
-	return 0;
 }

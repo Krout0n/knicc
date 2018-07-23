@@ -1,17 +1,8 @@
-#include <stdlib.h> /* atoi */
-#include <ctype.h> /* isdigit, isblank */
-#include <string.h> /* strcmp */
-#include <stdbool.h> /* bool */
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 
-#ifndef LEXER_H
-#include "lexer.h"
-#endif
-
-#ifndef NODE_H
-#include "node.h"
-#endif
-
-#include "code.h"
+#include "./knicc.h"
 
 int main(int argc, char **argv) {
     bool debug_flag = false;
@@ -41,9 +32,8 @@ int main(int argc, char **argv) {
     printf(".global main\n");
     printf("main:\n");
     int i;
-    while (i < p.length) {
+    for (i = 0; i < p.length; i++) {
         emit_code(p.ast[i]);
-        i += 1;
     }
     printf("  pop %%rax\n");
     i = 0;

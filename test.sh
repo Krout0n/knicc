@@ -1,7 +1,8 @@
+gcc -o compiler *.c -Wall
+
 exit_code() {
   expr=$1
   expected=$2
-  gcc -o compiler main.c -w
   echo $expr | ./compiler > test.s
   gcc test.s -o test
   ./test
@@ -39,4 +40,3 @@ exit_code '1+(2*3)' 7
 exit_code '(1*2)+3;' 5
 exit_code '(1+2+3);' 6
 exit_code '(9-5)*10;' 40
-

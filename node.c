@@ -1,27 +1,6 @@
 #include <stdlib.h>
 
-#ifndef TOKEN_H
-#include "token.h"
-#endif
-
-#ifndef LEXER_H
-#include "lexer.h"
-#endif
-
-#ifndef NODE_H
-#define NODE_H
-
-typedef struct Node_tag {
-    int type;
-    int value;
-    struct Node_tag *left;
-    struct Node_tag *right;
-} Node;
-
-typedef struct {
-    int length;
-    Node *ast[100];
-} Parser;
+#include "knicc.h"
 
 Parser init_parser() {
     Parser p;
@@ -91,4 +70,3 @@ Node* factor(Lexer *l) {
     get_token(l); // ) なはず
     return left;
 }
-#endif
