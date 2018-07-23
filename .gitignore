@@ -5,3 +5,4 @@ compiler
 .vagrant/
 *.log
 *.s
+*.o

@@ -1,4 +1,4 @@
-gcc -o compiler *.c -Wall
+make compiler
 
 exit_code() {
   expr=$1
@@ -12,7 +12,7 @@ exit_code() {
   else
     echo "exit code test failed expected=${expected}, got=${exit_code}"
   fi
-  rm -rf test.s test
+  rm -rf test
 }
 
 exit_code 1 1
@@ -40,3 +40,5 @@ exit_code '1+(2*3)' 7
 exit_code '(1*2)+3;' 5
 exit_code '(1+2+3);' 6
 exit_code '(9-5)*10;' 40
+
+make clean
