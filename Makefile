@@ -7,7 +7,7 @@ compiler: $(OBJS)
 
 $(OBJS): knicc.h
 
-test: mycc
+test: compiler
 		./test.sh
 
 clean:
