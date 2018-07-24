@@ -10,7 +10,7 @@ exit_code() {
   if [ $exit_code -eq $expected ] ; then
     echo "exit code test succeeded, got=${expr}"
   else
-    echo "exit code test failed expected=${expected}, got=${exit_code}"
+    echo "exit code test failed, args=${expr} expected=${expected}, got=${exit_code}"
   fi
   rm -rf test
 }
@@ -40,5 +40,9 @@ exit_code '1+(2*3)' 7
 exit_code '(1*2)+3;' 5
 exit_code '(1+2+3);' 6
 exit_code '(9-5)*10;' 40
+exit_code 'a=1;' 1
+exit_code 'a=1+2;' 3
+exit_code 'a=1;b=2;' 2
+exit_code 'a=1+2+3;10+20;' 30
 
 make clean

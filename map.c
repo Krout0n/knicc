@@ -39,6 +39,15 @@ void vec_push(Vector *vec, KeyValue *item) {
 	vec->length += 1;
 }
 
+void debug_vec(Vector *vec) {
+	printf("[");
+	for (int i = 0; i < vec_size(vec); i++) {
+		KeyValue *kv = vec_get(vec, i);
+		printf("[%s, %d], ", kv->key, kv->value);
+	}
+	printf("]\n");
+}
+
 KeyValue *vec_get(Vector *vec, int index) {
 	if (vec->length < index) {
 		return NULL;

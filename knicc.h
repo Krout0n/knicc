@@ -49,6 +49,7 @@ extern Token peek_token(Lexer *l);
 typedef struct Node_tag {
     int type;
     int value;
+    char *literal;
     struct Node_tag *left;
     struct Node_tag *right;
 } Node;
@@ -58,13 +59,9 @@ typedef struct {
     Node *ast[100];
 } Parser;
 
-extern Node* expr(Lexer *l);
+extern Node* assign(Lexer *l);
 extern Parser init_parser();
 extern void add_ast(Parser *p, Node *n);
-
-// code.c
-extern void emit_code(Node *n);
-extern void print_ast(Node *n);
 
 // map.c
 typedef struct {
@@ -78,11 +75,20 @@ typedef struct {
 	KeyValue *data; // void
 } Vector;
 
+extern Vector *init_vector(void);
+extern size_t vec_size(Vector *vec);
+extern void vec_push(Vector *vec, KeyValue *item);
+extern void debug_vec(Vector *vec);
 extern KeyValue *new_kv(char *key, int value);
 extern void debug_kv(KeyValue *kv);
-size_t vec_size(Vector *vec);
-void vec_push(Vector *vec, KeyValue *item);
 KeyValue *vec_get(Vector *vec, int index);
 KeyValue *find_by_key(Vector *vec, char *key);
+
+// code.c
+extern void emit_prologue(int count);
+extern void emit_epilogue(Node *n, int length, int count);
+extern void emit_code(Node *n);
+extern void emit_lvalue_code(Vector *vec, Node *n);
+extern void print_ast(Node *n);
 
 #endif

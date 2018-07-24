@@ -11,36 +11,37 @@ int main(int argc, char **argv) {
     }
     Lexer l = init_lexer();
     fgets(l.src, 1000, stdin);
-    Token t;
     while(1) {
-        t = lex(&l);
+        Token t = lex(&l);
         store_token(&l, t);
         // debug_token(t);
         if (t.type == _EOF) break;
     }
     Parser p = init_parser();
-    Node *n;
+    Vector *vec = init_vector();
+    int count = 0;
     while (peek_token(&l).type != _EOF) {
-        n = expr(&l);
+        Node *n = assign(&l);
         add_ast(&p, n);
         if (peek_token(&l).type == SEMICOLON) {
             get_token(&l);
         }
+        if (n->left != NULL && n->left->type == IDENT) {
+            vec_push(vec, new_kv(n->left->literal, count * -4));
+            count += 1;
+            // debug_vec(vec);
+        }
         // print_ast(n);
         // printf("\n");
     }
-    printf(".global main\n");
-    printf("main:\n");
-    int i;
-    for (i = 0; i < p.length; i++) {
+    emit_prologue(count);
+    for (int i = 0; i < p.length; i++) {
+        if (p.ast[i]->type == ASSIGN) {
+            emit_lvalue_code(vec, p.ast[i]);
+            continue;
+        }
         emit_code(p.ast[i]);
     }
-    printf("  pop %%rax\n");
-    i = 0;
-    while (i < p.length - 1) {
-        printf("  pop %%rdx\n"); // rspを戻す
-        i += 1;
-    }
-    printf("  ret\n");
+    emit_epilogue(p.ast[p.length - 1], p.length, count);
     return 0;
 }
