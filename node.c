@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <assert.h>
 
 #include "knicc.h"
 
@@ -65,8 +66,8 @@ Node* term(Lexer *l) {
 Node* factor(Lexer *l) {
     Token t = get_token(l);
     if (t.type == INT) return make_ast_int(atoi(t.literal));
-    assert_token(LParen, t.type);
+    assert(t.type == LParen);
     Node *left = expr(l);
-    get_token(l); // ) なはず
+    assert(get_token(l).type == RParen);
     return left;
 }

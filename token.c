@@ -64,16 +64,6 @@ Token new_token(char *literal, TokenType kind) {
     return t;
 }
 
-bool assert_token(TokenType expected, TokenType got) {
-    if (expected != got) {
-        char *e = find_token_name(expected);
-        char *g = find_token_name(got);
-        fprintf(stderr, "assert_token! expected=%s, got=%s", e, g);
-        return false;
-    }
-    return true;
-}
-
 void debug_token(Token t) {
     printf("Token.type: %s literal: %s\n", find_token_name(t.type), t.literal);
 }
