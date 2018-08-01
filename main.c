@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
         if (peek_token(&l).type == SEMICOLON) {
             get_token(&l);
         }
-        if (n->left != NULL && n->left->type == IDENT) {
+        if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT) {
             vec_push(vec, new_kv(n->left->literal, count * -4));
             count += 1;
             // debug_vec(vec);

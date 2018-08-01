@@ -67,3 +67,15 @@ Token new_token(char *literal, TokenType kind) {
 void debug_token(Token t) {
     printf("Token.type: %s literal: %s\n", find_token_name(t.type), t.literal);
 }
+
+bool is_binop(TokenType type) {
+    switch (type) {
+        case ADD:
+        case SUB:
+        case MULTI:
+        case ASSIGN:
+            return true;
+        default:
+            return false;
+    }
+}

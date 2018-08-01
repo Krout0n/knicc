@@ -22,16 +22,12 @@ Node* factor(Lexer *l);
 Node *make_ast_int(int val) {
     Node *n = malloc(sizeof(Node));
     n->type = INT;
-    n->value = val;
-    n->literal = NULL;
-    n->left = NULL;
-    n->right = NULL;
+    n->ival = val;
     return n;
 }
 
-Node *make_ast_op(int type, char *literal, Node *left, Node *right) {
+Node *make_ast_op(int type, Node *left, Node *right) {
     Node *n = malloc(sizeof(Node));
-    n->literal = literal;
     n->type = type;
     n->left = left;
     n->right = right;
@@ -43,8 +39,6 @@ Node *make_ast_ident(char *literal) {
     n->literal = malloc(sizeof(char) * strlen(literal));
     strcpy(n->literal, literal);
     n->type = IDENT;
-    n->left = NULL;
-    n->right = NULL;
     return n;
 }
 
@@ -54,7 +48,7 @@ Node* assign(Lexer *l) {
     while (t.type == ASSIGN) {
         Token op = get_token(l);
         Node *right = expr(l);
-        left = make_ast_op(op.type, left->literal, left, right);
+        left = make_ast_op(op.type, left, right);
         t = peek_token(l);
     }
     return left;
@@ -66,7 +60,7 @@ Node* expr(Lexer *l) {
     while (t.type == ADD || t.type == SUB) {
         Token op = get_token(l);
         Node *right = term(l);
-        left = make_ast_op(op.type, NULL, left, right);
+        left = make_ast_op(op.type, left, right);
         t = peek_token(l);
     }
     return left;
@@ -78,7 +72,7 @@ Node* term(Lexer *l) {
     while (t.type == MULTI) {
         Token op = get_token(l);
         Node *right = term(l);
-        left = make_ast_op(op.type, NULL, left, right);
+        left = make_ast_op(op.type, left, right);
         t = peek_token(l);
     }
     return left;

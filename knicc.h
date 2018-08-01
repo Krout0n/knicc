@@ -29,6 +29,7 @@ extern TokenType spacial_char(char c);
 extern Token new_token(char *literal, TokenType kind);
 extern bool assert_token(TokenType expected, TokenType got);
 extern void debug_token(Token t);
+extern bool is_binop(TokenType type);
 
 // lexer.c
 typedef struct {
@@ -46,12 +47,16 @@ extern Token get_token(Lexer *l);
 extern Token peek_token(Lexer *l);
 
 // node.c
-typedef struct Node_tag {
+typedef struct Node {
     int type;
-    int value;
-    char *literal;
-    struct Node_tag *left;
-    struct Node_tag *right;
+    union {
+        int ival;
+        char *literal;
+        struct {
+            struct Node *left;
+            struct Node *right;
+        };
+    };
 } Node;
 
 typedef struct {

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "knicc.h"
 
@@ -27,7 +28,7 @@ void emit_epilogue(Node *n, int length, int count) {
 void codegen(Node *n) {
     switch(n->type) {
         case INT:
-            printf("  push $%d\n", n->value);
+            printf("  push $%d\n", n->ival);
             break;
         case ADD:
             printf("  pop %%rax\n");
@@ -57,11 +58,8 @@ void codegen(Node *n) {
 }
 
 void emit_code(Node *n) {
-    if (n->left != NULL) {
+    if (is_binop(n->type)) {
         emit_code(n->left);
-    }
-
-    if (n->right != NULL) {
         emit_code(n->right);
     }
     codegen(n);
@@ -106,7 +104,7 @@ void print_ast(Node *node) {
             printf(")");
             break;
         case INT:
-            printf("%d", node->value);
+            printf("%d", node->ival);
             break;
         default:
             perror("should not reach here");
