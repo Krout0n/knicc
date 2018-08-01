@@ -6,7 +6,7 @@
 
 char *find_token_name(TokenType t) {
     char *s;
-    switch(t) {
+    switch (t) {
         case INT:
             s = "INT";
             break;
