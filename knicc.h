@@ -17,7 +17,10 @@ typedef enum {
     RParen,
     _EOF,
     NOT_FOUND, // used for only special_char()
-    ERR // unused
+    ERR, // unused
+
+    // used only ast
+    FUNC,
 } TokenType;
 
 typedef struct {
@@ -55,6 +58,11 @@ typedef struct Node {
         struct {
             struct Node *left;
             struct Node *right;
+        };
+        struct {
+            char *func_name;
+            int argc;
+            int a;
         };
     };
 } Node;

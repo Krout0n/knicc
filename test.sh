@@ -4,15 +4,30 @@ exit_code() {
   expr=$1
   expected=$2
   echo $expr | ./compiler > test.s
-  gcc test.s -o test
-  ./test
+  gcc test.s
+  ./a.out
   exit_code=$?
   if [ $exit_code -eq $expected ] ; then
     echo "exit code test succeeded, got=${expr}"
   else
     echo "exit code test failed, args=${expr} expected=${expected}, got=${exit_code}"
   fi
-  rm -rf test
+  rm -rf a.out
+}
+
+printing_test() {
+  expr=$1
+  expected_output=$2
+  echo $expr | ./compiler > test.s
+  gcc -c test/lib.c
+  gcc test.s lib.o
+  result=`./a.out`
+  if [ $expected_output = $result ] ; then
+    echo "printing test succeeded, got=${expr}"
+  else
+    echo "printing test failed, args=${expr} expected=${expected_output}, got=${result}"
+  fi
+  rm -rf a.out
 }
 
 exit_code 1 1
@@ -44,5 +59,7 @@ exit_code 'a=1;' 1
 exit_code 'a=1+2;' 3
 exit_code 'a=1;b=2;' 2
 exit_code 'a=1+2+3;10+20;' 30
+printing_test 'print_ok();' "OK"
+printing_test '1+2; print_ok();' "OK"
 
 make clean

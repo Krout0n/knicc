@@ -12,7 +12,7 @@ void emit_prologue(int count) {
 }
 
 void emit_epilogue(Node *n, int length, int count) {
-    if (n->type != ASSIGN) {
+    if (n->type != ASSIGN && n->type != FUNC) {
         printf("  pop %%rax\n");
         length -= 1;
     }
@@ -50,6 +50,16 @@ void codegen(Node *n) {
             break;
         case IDENT:
             printf("  pop %%rax\n");
+            break;
+        case FUNC:
+            printf("  push %%rbx\n");
+            printf("  push %%rbp\n");
+            printf("  push %%rsp\n");
+            printf("  call %s\n", n->func_name);
+            printf("  pop %%rsp\n");
+            printf("  pop %%rbp\n");
+            printf("  pop %%rbx\n");
+            printf("  push %%rax\n");
             break;
         default:
             debug_token(new_token("", n->type));

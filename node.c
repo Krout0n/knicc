@@ -42,7 +42,16 @@ Node *make_ast_ident(char *literal) {
     return n;
 }
 
-Node* assign(Lexer *l) {
+Node *make_ast_func(char *func_name) {
+    Node *n = malloc(sizeof(Node));
+    n->type = FUNC;
+    n->func_name = func_name;
+    n->argc = 0;
+    n->a = 0; // 直す
+    return n;
+}
+
+Node *assign(Lexer *l) {
     Node *left = expr(l);
     Token t = peek_token(l);
     while (t.type == ASSIGN) {
@@ -54,7 +63,7 @@ Node* assign(Lexer *l) {
     return left;
 }
 
-Node* expr(Lexer *l) {
+Node *expr(Lexer *l) {
     Node *left = term(l);
     Token t = peek_token(l);
     while (t.type == ADD || t.type == SUB) {
@@ -66,7 +75,7 @@ Node* expr(Lexer *l) {
     return left;
 }
 
-Node* term(Lexer *l) {
+Node *term(Lexer *l) {
     Node *left = factor(l);
     Token t = peek_token(l);
     while (t.type == MULTI) {
@@ -78,10 +87,17 @@ Node* term(Lexer *l) {
     return left;
 }
 
-Node* factor(Lexer *l) {
+Node *factor(Lexer *l) {
     Token t = get_token(l);
     if (t.type == INT) return make_ast_int(atoi(t.literal));
-    else if (t.type == IDENT) return make_ast_ident(t.literal);
+    else if (t.type == IDENT) {
+        if (peek_token(l).type == LParen) {
+            get_token(l); // LParen
+            assert(get_token(l).type == RParen); // TODO: 後々に引数対応させたい
+            return make_ast_func(t.literal);
+        }
+        return make_ast_ident(t.literal);
+    }
     assert(t.type == LParen);
     Node *left = expr(l);
     assert(get_token(l).type == RParen);
