@@ -61,5 +61,8 @@ exit_code 'a=1;b=2;' 2
 exit_code 'a=1+2+3;10+20;' 30
 printing_test 'print_ok();' "OK"
 printing_test '1+2; print_ok();' "OK"
+printing_test 'add_one(1);' "2"
+printing_test 'add(1,2);' "3"
+printing_test 'print_all_args(1,2,3,4,5,6);' "123456"
 
 make clean

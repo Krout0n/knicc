@@ -25,6 +25,27 @@ void emit_epilogue(Node *n, int length, int count) {
     printf("  ret\n");
 }
 
+void emit_args(Node *n) {
+    if (n->argc >= 1) {
+        printf("  mov  $%d,  %%rdi\n", n->argv[0]);
+    }
+    if (n->argc >= 2) {
+        printf("  mov  $%d,  %%rsi\n", n->argv[1]);
+    }
+    if (n->argc >= 3) {
+        printf("  mov  $%d,  %%rdx\n", n->argv[2]);
+    }
+    if (n->argc >= 4) {
+        printf("  mov  $%d,  %%rcx\n", n->argv[3]);
+    }
+    if (n->argc >= 5) {
+        printf("  mov  $%d,  %%r8\n", n->argv[4]);
+    }
+    if (n->argc >= 6) {
+        printf("  mov  $%d,  %%r9\n", n->argv[5]);
+    }
+}
+
 void codegen(Node *n) {
     switch(n->type) {
         case INT:
@@ -55,6 +76,7 @@ void codegen(Node *n) {
             printf("  push %%rbx\n");
             printf("  push %%rbp\n");
             printf("  push %%rsp\n");
+            emit_args(n);
             printf("  call %s\n", n->func_name);
             printf("  pop %%rsp\n");
             printf("  pop %%rbp\n");
@@ -115,6 +137,14 @@ void print_ast(Node *node) {
             break;
         case INT:
             printf("%d", node->ival);
+            break;
+        case FUNC:
+            printf("(");
+            printf("%s", node->func_name);
+            for (int i = 0; i < node->argc; i++) {
+                printf(" %d", node->argv[i]);
+            }
+            printf(")\n");
             break;
         default:
             perror("should not reach here");

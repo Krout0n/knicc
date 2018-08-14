@@ -37,6 +37,9 @@ char *find_token_name(TokenType t) {
         case RParen:
             s = "RParen";
             break;
+        case COMMA:
+            s = ",";
+            break;
         default:
             s = "UNEXPECTED TOKEN";
             break;
@@ -53,6 +56,7 @@ TokenType spacial_char(char c) {
         case '=': return ASSIGN;
         case '(': return LParen;
         case ')': return RParen;
+        case ',': return COMMA;
         default: return NOT_FOUND;
     }
 }

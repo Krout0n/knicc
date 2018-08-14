@@ -15,6 +15,7 @@ typedef enum {
     ASSIGN,
     LParen,
     RParen,
+    COMMA,
     _EOF,
     NOT_FOUND, // used for only special_char()
     ERR, // unused
@@ -62,7 +63,7 @@ typedef struct Node {
         struct {
             char *func_name;
             int argc;
-            int a;
+            int *argv;
         };
     };
 } Node;
