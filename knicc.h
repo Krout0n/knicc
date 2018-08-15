@@ -26,6 +26,9 @@ typedef enum {
     COMMA,
     If,
 
+
+    //
+    COMPOUND_STMT,
     _EOF,
     NOT_FOUND, // used for only special_char()
     ERR, // unused
@@ -114,16 +117,10 @@ typedef struct Node {
         struct Node *expression;
         struct Node *stmt;
     } if_stmt;
+    Vector *statements;
 } Node;
 
-typedef struct CompoundStatement {
-    int length;
-    Node *ast[100];
-} CompoundStatement;
-
 extern Node *func_decl(Lexer *l);
-extern CompoundStatement init_stmt();
-extern void add_ast(CompoundStatement *p, Node *n);
 
 // code.c
 extern void emit_prologue(void);
@@ -132,6 +129,7 @@ extern void emit_func_decl(Node *n);
 extern void emit_func_ret(void);
 extern void emit_code(Node *n);
 void emit_lvalue_code(Node *n);
+void codegen(Node *n);
 extern void print_ast(Node *n);
 
 #endif

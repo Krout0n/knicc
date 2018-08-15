@@ -7,16 +7,7 @@
 Node *expression(Lexer *l);
 Node *statement(Lexer *l);
 
-CompoundStatement init_stmt() {
-    CompoundStatement stmt;
-    stmt.length = 0;
-    return stmt;
-}
-
-void add_ast(CompoundStatement *stmt, Node *n) {
-    stmt->ast[stmt->length] = n;
-    stmt->length += 1;
-}
+Lexer *l;
 
 Node *make_ast_int(int val) {
     Node *n = malloc(sizeof(Node));
@@ -58,9 +49,25 @@ Node *make_ast_func_decl(char *func_name) {
     n->type = FUNC_DECL;
     n->func_decl.func_name = malloc(sizeof(char) * strlen(func_name));
     strcpy(n->func_decl.func_name, func_name);
-    n->func_decl.stmt = malloc(sizeof(CompoundStatement));
     n->func_decl.map = init_map();
     n->func_decl.argc = 0;
+    n->statements = init_vector();
+    return n;
+}
+
+
+Node *make_ast_if_stmt(Node *expr, Node *stmt) {
+    Node *n = malloc(sizeof(Node));
+    n->type = If;
+    n->if_stmt.expression = expr;
+    n->if_stmt.stmt = stmt;
+    return n;
+}
+
+Node *make_ast_compound_statement(void) {
+    Node *n = malloc(sizeof(Node));
+    n->type = COMPOUND_STMT;
+    n->statements = init_vector();
     return n;
 }
 
@@ -145,14 +152,6 @@ Node *relational_expression(Lexer *l) {
     return left;  
 }
 
-Node *make_ast_if_stmt(Node *expr, Node *stmt) {
-    Node *n = malloc(sizeof(Node));
-    n->type = If;
-    n->if_stmt.expression = expr;
-    n->if_stmt.stmt = stmt;
-    return n;
-}
-
 Node *equality_expression(Lexer *l) {
     Node *left = relational_expression(l);
     return left;
@@ -225,18 +224,31 @@ Node *selection_statement(Lexer *l) {
     return make_ast_if_stmt(expr, stmt);
 }
 
+Node *compound_statement(Lexer *l) {
+    assert(get_token(l).type == LBrace);
+    Node *n = make_ast_compound_statement();
+    while (peek_token(l).type != RBrace) {
+        vec_push(n->statements, statement(l));
+    }
+    assert(get_token(l).type == RBrace);
+    return n;
+}
+
 Node *statement(Lexer *l) {
     Node *expr;
     Token t = peek_token(l);
     if (t.type == If) {
         expr = selection_statement(l);
+    } else if (t.type == LBrace) {
+        expr = compound_statement(l);
     } else {
         expr = expression_statement(l);
     }
     return expr;
 }
 
-Node *func_decl(Lexer *l) {
+Node *func_decl(Lexer *lexer) {
+    l = lexer;
     Token t = get_token(l);
     assert(t.type == IDENT);
     char *func_name = malloc(sizeof(char) * strlen(t.literal));
@@ -257,7 +269,7 @@ Node *func_decl(Lexer *l) {
     assert(get_token(l).type == LBrace);
     while (peek_token(l).type != RBrace) {
         Node *n = statement(l);
-        add_ast(func_ast->func_decl.stmt, n);
+        vec_push(func_ast->statements, n);
         if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT && find_by_key(map, n->left->literal) == NULL) {
             KeyValue *kv = new_kv(n->left->literal, (map->vec->length + 1) * -8);
             insert_map(map, kv);

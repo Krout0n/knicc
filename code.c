@@ -30,10 +30,10 @@ void emit_func_decl(Node *n) {
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
     map = n->func_decl.map;
-    printf("  sub $%d, %%rbp\n", 8 * vec_size(map->vec));
+    printf("  sub $%ld, %%rbp\n", 8 * vec_size(map->vec));
     emit_mov_args(n->func_decl.argc);
-    for (int i = 0; i < n->func_decl.stmt->length; i++) {
-        Node *ast = n->func_decl.stmt->ast[i];
+    for (int i = 0; i < n->statements->length; i++) {
+        Node *ast = vec_get(n->statements, i);
         if (ast->type == ASSIGN) {
             emit_lvalue_code(ast);
             continue;
@@ -44,7 +44,7 @@ void emit_func_decl(Node *n) {
 
 void emit_func_ret(void) {
     printf("  pop %%rax\n");
-    printf("  add $%d, %%rbp\n", 8 * vec_size(map->vec));
+    printf("  add $%ld, %%rbp\n", 8 * vec_size(map->vec));
     printf("  mov %%rbp, %%rsp\n");
     printf("  pop %%rbp\n");
     printf("  ret\n");
@@ -180,7 +180,7 @@ void print_ast(Node *node) {
             printf("(");
             printf("%s", node->func_call.func_name);
             for (int i = 0; i < node->func_call.argc; i++) {
-                printf(" %d", node->func_call.argv[i]);
+                printf(" %d", node->func_call.argv[i]->ival);
             }
             printf(")\n");
             break;

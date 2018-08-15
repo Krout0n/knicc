@@ -5,10 +5,6 @@
 #include "./knicc.h"
 
 int main(int argc, char **argv) {
-    bool debug_flag = false;
-    if (argc == 2 && strcmp("debug\0", argv[1]) == 0) {
-        debug_flag = true;
-    }
     Lexer l = init_lexer();
     fgets(l.src, 1000, stdin);
     while (1) {
