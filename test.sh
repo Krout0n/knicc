@@ -19,7 +19,7 @@ exit_code() {
 printing_test() {
   expr=$1
   expected_output=$2
-  echo "main(){" $expr "}" | ./compiler > test.s
+  echo $expr | ./compiler > test.s
   gcc -c test/lib.c
   gcc -g test.s lib.o
   result=`./a.out`
@@ -58,22 +58,26 @@ exit_code 'main(){(1*2)+3;}' 5
 exit_code 'main(){(1+2+3);}' 6
 exit_code 'main(){(9-5)*10;}' 40
 
-exit_code 'main() { a=1; a;}' 1
-exit_code 'main() { a=1+2; a;}' 3
-exit_code 'main() { a=1;b=2; b;}' 2
-exit_code 'main() { a=1+2+3;10+20;}' 30
-exit_code 'main() { a=3; a;}' '3'
-exit_code 'main() { a=1; b=2; a+b;}' '3'
+exit_code 'main(){ a=1; a;}' 1
+exit_code 'main(){ a=1+2; a;}' 3
+exit_code 'main(){ a=1;b=2; b;}' 2
+exit_code 'main(){ a=1+2+3;10+20;}' 30
+exit_code 'main(){ a=3; a;}' '3'
+exit_code 'main(){ a=1; b=2; a+b;}' '3'
 
-printing_test 'print_ok();' "OK"
-printing_test '1+2; print_ok();' "OK"
-printing_test 'add_one(1);' "2"
-printing_test 'add(1,2);' "3"
-printing_test 'print_all_args(1,2,3,4,5,6);' "123456"
+printing_test 'main(){ print_ok(); }' "OK"
+printing_test 'main() { 1+2; print_ok(); }' "OK"
+printing_test 'main() { add_one(1);}' "2"
+printing_test 'main() { add(1,2);}' "3"
+printing_test 'main() { print_all_args(1,2,3,4,5,6); }' "123456"
 
 exit_code 'foo() { 10; } main(){ foo(); }' "10"
 exit_code 'foo(x){ x + 1; } main(){ foo(1); }' "2"
 exit_code 'add(x,y) { x + y; } main() { add(1,2); }' '3'
-# exit_code 'add(x,y) { x + y; } main() { a=1; b=2; add(a,b);}' '3'
+exit_code 'foo(x) { x + 1;} main() { a = 3; foo(a);}' '4'
+exit_code 'add(x,y) { x + y; } main() { a=1; b=2; add(a,b);}' '3'
+exit_code 'local(x) { y = 20; x + y;} main() { a=10; local(a);}' '30'
+exit_code 'local_assign(x) { y = x; y;} main(){ local_assign(10); }' '10'
+exit_code 'local_assign(x) { y = x; y;} main(){ a=10; local_assign(a); }' '10'
 
 make clean

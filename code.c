@@ -5,17 +5,24 @@
 
 Map *map;
 
+const char *regs[6] = {
+    "rdi",
+    "rsi",
+    "rdx",
+    "rcx",
+    "r8",
+    "r9"
+};
+
 void emit_prologue(void) {
     printf(".global main\n");
 }
 
 void emit_mov_args(int argc) {
-    if (argc >= 1) printf("  movq  %%rdi, -%d(%%rbp)\n", 1 * 8);
-    if (argc >= 2) printf("  movq  %%rsi, -%d(%%rbp)\n", 2 * 8);
-    if (argc >= 3) printf("  movq  %%rdx, -%d(%%rbp)\n", 3 * 8);
-    if (argc >= 4) printf("  movq  %%rcx, -%d(%%rbp)\n", 4 * 8);
-    if (argc >= 5) printf("  movq  %%r8, -%d(%%rbp)\n",  5 * 8);
-    if (argc >= 6) printf("  movq  %%r9, -%d(%%rbp)\n",  6 * 8);
+    for (int i = 0; i < argc; i++) {
+        printf("  movq  %%%s, -%d(%%rbp)\n", regs[i], (i+1) * 8);
+    }
+    printf("\n");
 }
 
 void emit_func_decl(Node *n) {
@@ -44,23 +51,14 @@ void emit_func_ret(void) {
 }
 
 void emit_args(Node *n) {
-    if (n->func_call.argc >= 1) {
-        printf("  mov  $%d,  %%rdi\n", n->func_call.argv[0]);
-    }
-    if (n->func_call.argc >= 2) {
-        printf("  mov  $%d,  %%rsi\n", n->func_call.argv[1]);
-    }
-    if (n->func_call.argc >= 3) {
-        printf("  mov  $%d,  %%rdx\n", n->func_call.argv[2]);
-    }
-    if (n->func_call.argc >= 4) {
-        printf("  mov  $%d,  %%rcx\n", n->func_call.argv[3]);
-    }
-    if (n->func_call.argc >= 5) {
-        printf("  mov  $%d,  %%r8\n", n->func_call.argv[4]);
-    }
-    if (n->func_call.argc >= 6) {
-        printf("  mov  $%d,  %%r9\n", n->func_call.argv[5]);
+    for (int i = 0; i < n->func_call.argc; i++) {
+        if (n->func_call.argv[i]->type == INT) {
+            printf("  mov  $%d,  %%%s\n", n->func_call.argv[i]->ival, regs[i]);
+        } else if (n->func_call.argv[i]->type == IDENT) {
+            codegen(n->func_call.argv[i]); // IDENTにはいるはず
+            printf("  pop %%rax\n");
+            printf("  mov  %%rax,  %%%s\n", regs[i]);
+        }
     }
 }
 
@@ -88,19 +86,12 @@ void codegen(Node *n) {
             printf("  push %%rax\n\n");
             break;
         case IDENT:
-            printf("  mov %d(%%rbp), %%rdx\n", find_by_key(map, n->literal)->value);
-            printf("  mov %%rdx, %%rax\n");
+            printf("  mov %d(%%rbp), %%rax\n", find_by_key(map, n->literal)->value);
             printf("  pushq %%rax\n\n");
             break;
         case FUNC_CALL:
-            printf("  push %%rbx\n");
-            printf("  push %%rbp\n");
-            printf("  push %%rsp\n");
             emit_args(n);
             printf("  call %s\n", n->func_call.func_name);
-            printf("  pop %%rsp\n");
-            printf("  pop %%rbp\n");
-            printf("  pop %%rbx\n");
             printf("  push %%rax\n\n");
             break;
         default:

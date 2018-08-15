@@ -43,13 +43,13 @@ Node *make_ast_ident(char *literal) {
     return n;
 }
 
-Node *make_ast_func_call(char *func_name, int argc, int *argv) {
+Node *make_ast_func_call(char *func_name, int argc, Node **argv) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_CALL;
     n->func_call.func_name = malloc(sizeof(char) * strlen(func_name));
     strcpy(n->func_call.func_name, func_name);
     n->func_call.argc = argc;
-    n->func_call.argv = malloc(sizeof(int) * argc);
+    n->func_call.argv = malloc(sizeof(Node) * argc);
     if (n->func_call.argv == NULL) perror("malloc err");
     n->func_call.argv = argv;
     return n;
@@ -140,12 +140,15 @@ Node *factor(Lexer *l) {
     else if (t.type == IDENT) {
         if (peek_token(l).type == LParen) {
             get_token(l);
-            int argv[6];
+            Node *argv[6];
             int argc = 0;
             while (1) {
                 if (peek_token(l).type == RParen) break;
                 if (peek_token(l).type == INT) {
-                    argv[argc] = atoi(get_token(l).literal);
+                    argv[argc] = make_ast_int(atoi(get_token(l).literal));
+                    argc += 1;
+                } else if (peek_token(l).type == IDENT) {
+                    argv[argc] = make_ast_ident(get_token(l).literal);
                     argc += 1;
                 }
                 if (peek_token(l).type == COMMA) get_token(l);

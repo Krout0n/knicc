@@ -93,7 +93,7 @@ typedef struct Node {
     struct { // FUNC_CALL
         char *func_name;
         int argc;
-        int *argv;
+        struct Node **argv;
     } func_call;
     struct { // FUNC_DECL
         char *func_name;
