@@ -85,5 +85,8 @@ exit_code 'main(){ if (1) 10;}' '10'
 exit_code 'main(){ if (2 < 1) 10; 20;}' '20'
 # exit_code 'main(){ if (10 > 5) 10;}' '10'
 exit_code 'main() { if (1+2 < 4) 10;}' '10'
+# exit_code 'main() { if (1) { 10; 20;} ' '20'
+exit_code 'main() { a=1; v=1; if (a) v=20; v;}' '20'
+exit_code 'main() { a=0; v=1; if (a) v=20; v;}' '1'
 
 make clean

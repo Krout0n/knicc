@@ -90,6 +90,9 @@ void codegen(Node *n) {
             printf("  imul %%rdx, %%rax\n");
             printf("  push %%rax\n\n");
             break;
+        case ASSIGN:
+            emit_lvalue_code(n);
+            break;
         case Less:
             printf("  popq %%rdx\n");
             printf("  popq %%rax\n");
