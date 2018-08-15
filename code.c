@@ -7,12 +7,30 @@ void emit_prologue(void) {
     printf(".global main\n");
 }
 
+
+void emit_mov_args(int argc) {
+    if (argc >= 1) printf("  mov  %%rdi, -%d(%%rbp)\n", 0 * 4);
+    if (argc >= 2) printf("  mov  %%rsi, -%d(%%rbp)\n", 1 * 4);
+    if (argc >= 3) printf("  mov  %%rdx, -%d(%%rbp)\n", 2 * 4);
+    if (argc >= 4) printf("  mov  %%rcx, -%d(%%rbp)\n", 3 * 4);
+    if (argc >= 5) printf("  mov  %%r8, -%d(%%rbp)\n",  4 * 4);
+    if (argc >= 6) printf("  mov  %%r9, -%d(%%rbp)\n",  5 * 4);
+}
+
 void emit_func_decl(Node *n) {
     printf("%s:\n", n->func_decl.func_name);
     printf("  pushq %%rbp\n");
     printf("  mov %%rsp, %%rbp\n");
+
+    // 引数を渡すやつ
+    emit_mov_args(n->func_decl.argc);
+
     for (int i = 0; i < n->func_decl.stmt->length; i++) {
         Node *ast = n->func_decl.stmt->ast[i];
+        // if (ast->type == ASSIGN) {
+        //     emit_lvalue_code(n->func_decl.map, ast);
+        //     continue;
+        // }
         emit_code(ast);
     }
 }
@@ -20,20 +38,6 @@ void emit_func_decl(Node *n) {
 void emit_func_ret(void) {
     printf("  pop %%rax\n");
     printf("  mov %%rbp, %%rsp\n");
-    printf("  pop %%rbp\n");
-    printf("  ret\n");
-}
-
-void emit_epilogue(Node *n, int length, int count) {
-    if (n->type != ASSIGN && n->type != FUNC_CALL) {
-        printf("  pop %%rax\n");
-        length -= 1;
-    }
-    for(int i = 0; i < length - count; i++) {
-        printf("  pop %%rdx\n");
-    }
-
-    printf("  add $%d, %%rsp\n", count * 4);
     printf("  pop %%rbp\n");
     printf("  ret\n");
 }
@@ -83,7 +87,7 @@ void codegen(Node *n) {
             printf("  push %%rax\n");
             break;
         case IDENT:
-            printf("  pop %%rax\n");
+            printf("IDENT \n");
             break;
         case FUNC_CALL:
             printf("  push %%rbx\n");
@@ -110,9 +114,9 @@ void emit_code(Node *n) {
     codegen(n);
 }
 
-void emit_lvalue_code(Vector *vec, Node *n) {
+void emit_lvalue_code(Map *map, Node *n) {
     // aを左辺値としてコンパイル。lea命令を使うことでアドレスを取得
-    printf("  leaq -%d(%%rbp), %%rax\n", find_by_key(vec, n->left->literal)->value);
+    printf("  leaq %d(%%rbp), %%rax\n", find_by_key(map, n->left->literal)->value);
     printf("  pushq %%rax\n");
     // 3を右辺値としてコンパイル
     emit_code(n->right);

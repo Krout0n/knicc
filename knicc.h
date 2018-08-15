@@ -75,9 +75,12 @@ typedef struct {
     Vector *vec;
 } Map;
 
+extern Map *init_map(void);
 extern KeyValue *new_kv(char *key, int value);
+extern void insert_map(Map *map, KeyValue *kv);
+extern void debug_map(Map *map);
 extern void debug_kv(KeyValue *kv);
-KeyValue *find_by_key(Map *map, char *key);
+extern KeyValue *find_by_key(Map *map, char *key);
 
 // node.c
 struct CompoundStatement;
@@ -95,6 +98,8 @@ typedef struct Node {
     struct { // FUNC_DECL
         char *func_name;
         struct CompoundStatement *stmt;
+        int argc;
+        Map *map;
     } func_decl;
 } Node;
 
@@ -113,7 +118,7 @@ extern void emit_epilogue(Node *n, int length, int count);
 extern void emit_func_decl(Node *n);
 extern void emit_func_ret(void);
 extern void emit_code(Node *n);
-extern void emit_lvalue_code(Vector *vec, Node *n);
+extern void emit_lvalue_code(Map *map, Node *n);
 extern void print_ast(Node *n);
 
 #endif

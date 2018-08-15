@@ -61,6 +61,8 @@ Node *make_ast_func_decl(char *func_name) {
     n->func_decl.func_name = malloc(sizeof(char) * strlen(func_name));
     strcpy(n->func_decl.func_name, func_name);
     n->func_decl.stmt = malloc(sizeof(CompoundStatement));
+    n->func_decl.map = init_map();
+    n->func_decl.argc = 0;
     return n;
 }
 
@@ -69,16 +71,31 @@ Node *func_decl(Lexer *l) {
     assert(t.type == IDENT);
     char *func_name = malloc(sizeof(char) * strlen(t.literal));
     strcpy(func_name, t.literal);
+    Node *func_ast = make_ast_func_decl(func_name);
+    Map *map = func_ast->func_decl.map;
     assert(get_token(l).type == LParen);
+    while (peek_token(l).type != RParen) {
+        Token arg = get_token(l);
+        if (arg.type == IDENT) { // 今の所これで良い
+            KeyValue *kv = new_kv(arg.literal, map->vec->length * -4);
+            insert_map(func_ast->func_decl.map, kv);
+            func_ast->func_decl.argc += 1;
+        }
+        if (peek_token(l).type == COMMA) get_token(l);
+    }
     assert(get_token(l).type == RParen);
     assert(get_token(l).type == LBrace);
-    Node *func_ast = make_ast_func_decl(func_name);
     while (peek_token(l).type != RBrace) {
         Node *n = assign(l);
         add_ast(func_ast->func_decl.stmt, n);
         assert(get_token(l).type == SEMICOLON);
+        if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT && find_by_key(map, n->left->literal) == NULL) {
+            KeyValue *kv = new_kv(n->left->literal, map->vec->length * -4);
+            insert_map(map, kv);
+        }
     }
     assert(get_token(l).type == RBrace);
+    debug_map(map);
     return func_ast;
 }
 
@@ -135,9 +152,7 @@ Node *factor(Lexer *l) {
                 if (peek_token(l).type == COMMA) get_token(l);
             }
             assert(get_token(l).type == RParen);
-            if (peek_token(l).type == SEMICOLON) return make_ast_func_call(t.literal, argc, argv);
-            assert(get_token(l).type == LBrace);
-
+            return make_ast_func_call(t.literal, argc, argv);
         }
         return make_ast_ident(t.literal);
     }
