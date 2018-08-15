@@ -4,13 +4,14 @@ exit_code() {
   expr=$1
   expected=$2
   echo $expr | ./compiler > test.s
-  gcc test.s
+  gcc -g test.s
   ./a.out
   exit_code=$?
   if [ $exit_code -eq $expected ] ; then
     echo "exit code test succeeded, got=${expr}"
   else
     echo "exit code test failed, args=${expr} expected=${expected}, got=${exit_code}"
+    exit 1
   fi
   rm -rf a.out
 }
@@ -20,12 +21,13 @@ printing_test() {
   expected_output=$2
   echo "main(){" $expr "}" | ./compiler > test.s
   gcc -c test/lib.c
-  gcc test.s lib.o
+  gcc -g test.s lib.o
   result=`./a.out`
   if [ $expected_output = $result ] ; then
     echo "printing test succeeded, got=${expr}"
   else
     echo "printing test failed, args=${expr} expected=${expected_output}, got=${result}"
+    exit 1
   fi
   rm -rf a.out
 }
@@ -69,8 +71,9 @@ printing_test 'add_one(1);' "2"
 printing_test 'add(1,2);' "3"
 printing_test 'print_all_args(1,2,3,4,5,6);' "123456"
 
+exit_code 'foo() { 10; } main(){ foo(); }' "10"
 exit_code 'foo(x){ x + 1; } main(){ foo(1); }' "2"
 exit_code 'add(x,y) { x + y; } main() { add(1,2); }' '3'
-exit_code 'add(x,y) { x + y; } main() { a=1; b=2; add(a,b);' '3'
+# exit_code 'add(x,y) { x + y; } main() { a=1; b=2; add(a,b);}' '3'
 
 make clean

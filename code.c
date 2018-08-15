@@ -3,40 +3,41 @@
 
 #include "knicc.h"
 
+Map *map;
+
 void emit_prologue(void) {
     printf(".global main\n");
 }
 
-
 void emit_mov_args(int argc) {
-    if (argc >= 1) printf("  mov  %%rdi, -%d(%%rbp)\n", 0 * 4);
-    if (argc >= 2) printf("  mov  %%rsi, -%d(%%rbp)\n", 1 * 4);
-    if (argc >= 3) printf("  mov  %%rdx, -%d(%%rbp)\n", 2 * 4);
-    if (argc >= 4) printf("  mov  %%rcx, -%d(%%rbp)\n", 3 * 4);
-    if (argc >= 5) printf("  mov  %%r8, -%d(%%rbp)\n",  4 * 4);
-    if (argc >= 6) printf("  mov  %%r9, -%d(%%rbp)\n",  5 * 4);
+    if (argc >= 1) printf("  movq  %%rdi, -%d(%%rbp)\n", 1 * 8);
+    if (argc >= 2) printf("  movq  %%rsi, -%d(%%rbp)\n", 2 * 8);
+    if (argc >= 3) printf("  movq  %%rdx, -%d(%%rbp)\n", 3 * 8);
+    if (argc >= 4) printf("  movq  %%rcx, -%d(%%rbp)\n", 4 * 8);
+    if (argc >= 5) printf("  movq  %%r8, -%d(%%rbp)\n",  5 * 8);
+    if (argc >= 6) printf("  movq  %%r9, -%d(%%rbp)\n",  6 * 8);
 }
 
 void emit_func_decl(Node *n) {
     printf("%s:\n", n->func_decl.func_name);
     printf("  pushq %%rbp\n");
-    printf("  mov %%rsp, %%rbp\n");
-
-    // 引数を渡すやつ
+    printf("  movq %%rsp, %%rbp\n");
+    map = n->func_decl.map;
+    printf("  sub $%d, %%rbp\n", 8 * vec_size(map->vec));
     emit_mov_args(n->func_decl.argc);
-
     for (int i = 0; i < n->func_decl.stmt->length; i++) {
         Node *ast = n->func_decl.stmt->ast[i];
-        // if (ast->type == ASSIGN) {
-        //     emit_lvalue_code(n->func_decl.map, ast);
-        //     continue;
-        // }
+        if (ast->type == ASSIGN) {
+            emit_lvalue_code(ast);
+            continue;
+        }
         emit_code(ast);
     }
 }
 
 void emit_func_ret(void) {
     printf("  pop %%rax\n");
+    printf("  add $%d, %%rbp\n", 8 * vec_size(map->vec));
     printf("  mov %%rbp, %%rsp\n");
     printf("  pop %%rbp\n");
     printf("  ret\n");
@@ -66,28 +67,30 @@ void emit_args(Node *n) {
 void codegen(Node *n) {
     switch(n->type) {
         case INT:
-            printf("  push $%d\n", n->ival);
+            printf("  push $%d\n\n", n->ival);
             break;
         case ADD:
             printf("  pop %%rax\n");
             printf("  pop %%rdx\n");
             printf("  add %%rdx, %%rax\n");
-            printf("  push %%rax\n");
+            printf("  push %%rax\n\n");
             break;
         case SUB:
             printf("  pop %%rdx\n");
             printf("  pop %%rax\n");
             printf("  sub %%rdx, %%rax\n");
-            printf("  push %%rax\n");
+            printf("  push %%rax\n\n");
             break;
         case MULTI:
             printf("  pop %%rdx\n");
             printf("  pop %%rax\n");
             printf("  imul %%rdx, %%rax\n");
-            printf("  push %%rax\n");
+            printf("  push %%rax\n\n");
             break;
         case IDENT:
-            printf("IDENT \n");
+            printf("  mov %d(%%rbp), %%rdx\n", find_by_key(map, n->literal)->value);
+            printf("  mov %%rdx, %%rax\n");
+            printf("  pushq %%rax\n\n");
             break;
         case FUNC_CALL:
             printf("  push %%rbx\n");
@@ -98,7 +101,7 @@ void codegen(Node *n) {
             printf("  pop %%rsp\n");
             printf("  pop %%rbp\n");
             printf("  pop %%rbx\n");
-            printf("  push %%rax\n");
+            printf("  push %%rax\n\n");
             break;
         default:
             debug_token(new_token("", n->type));
@@ -114,17 +117,16 @@ void emit_code(Node *n) {
     codegen(n);
 }
 
-void emit_lvalue_code(Map *map, Node *n) {
+void emit_lvalue_code(Node *n) {
     // aを左辺値としてコンパイル。lea命令を使うことでアドレスを取得
     printf("  leaq %d(%%rbp), %%rax\n", find_by_key(map, n->left->literal)->value);
     printf("  pushq %%rax\n");
-    // 3を右辺値としてコンパイル
     emit_code(n->right);
 
     // 代入を実行
     printf("  pop %%rbx\n");
     printf("  pop %%rax\n");
-    printf("  mov %%rbx, %%rax\n");
+    printf("  mov %%rbx, (%%rax)\n");
 }
 
 void print_ast(Node *node) {

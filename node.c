@@ -77,7 +77,7 @@ Node *func_decl(Lexer *l) {
     while (peek_token(l).type != RParen) {
         Token arg = get_token(l);
         if (arg.type == IDENT) { // 今の所これで良い
-            KeyValue *kv = new_kv(arg.literal, map->vec->length * -4);
+            KeyValue *kv = new_kv(arg.literal, (map->vec->length + 1) * -8);
             insert_map(func_ast->func_decl.map, kv);
             func_ast->func_decl.argc += 1;
         }
@@ -90,12 +90,11 @@ Node *func_decl(Lexer *l) {
         add_ast(func_ast->func_decl.stmt, n);
         assert(get_token(l).type == SEMICOLON);
         if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT && find_by_key(map, n->left->literal) == NULL) {
-            KeyValue *kv = new_kv(n->left->literal, map->vec->length * -4);
+            KeyValue *kv = new_kv(n->left->literal, (map->vec->length + 1) * -8);
             insert_map(map, kv);
         }
     }
     assert(get_token(l).type == RBrace);
-    debug_map(map);
     return func_ast;
 }
 
