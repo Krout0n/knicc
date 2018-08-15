@@ -46,6 +46,9 @@ char *find_token_name(TokenType t) {
         case COMMA:
             s = ",";
             break;
+        case If:
+            s = "If";
+            break;
         default:
             s = "UNEXPECTED TOKEN";
             break;
@@ -67,6 +70,11 @@ TokenType spacial_char(char c) {
         case ',': return COMMA;
         default: return NOT_FOUND;
     }
+}
+
+TokenType keyword(char *s) {
+    if (strcmp("if", s) == 0) return If;
+    return IDENT;
 }
 
 Token new_token(char *literal, TokenType kind) {

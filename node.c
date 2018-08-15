@@ -4,10 +4,7 @@
 
 #include "knicc.h"
 
-Node* assign(Lexer *l);
-Node* expr(Lexer *l);
-Node* term(Lexer *l);
-Node* factor(Lexer *l);
+Node *expression(Lexer *l);
 
 CompoundStatement init_stmt() {
     CompoundStatement stmt;
@@ -66,6 +63,150 @@ Node *make_ast_func_decl(char *func_name) {
     return n;
 }
 
+Node *primary_expression(Lexer *l) {
+    Token t = get_token(l);
+    if (t.type == INT) return make_ast_int(atoi(t.literal));
+    else if (t.type == IDENT) {
+        if (peek_token(l).type == LParen) {
+            get_token(l);
+            Node *argv[6];
+            int argc = 0;
+            while (1) {
+                if (peek_token(l).type == RParen) break;
+                argv[argc] = expression(l);
+                argc += 1;
+                if (peek_token(l).type == COMMA) get_token(l);
+            }
+            assert(get_token(l).type == RParen);
+            return make_ast_func_call(t.literal, argc, argv);
+        }
+        return make_ast_ident(t.literal);
+    }
+    assert(t.type == LParen);
+    Node *left = expression(l);
+    assert(get_token(l).type == RParen);
+    return left;
+}
+
+Node *postfix_expression(Lexer *l) {
+    Node *n = primary_expression(l);
+    return n;
+}
+
+Node *unary_expression(Lexer *l) {
+    Node *n = postfix_expression(l);
+    return n;
+}
+
+Node *cast_expression(Lexer *l) {
+    Node *n = unary_expression(l);
+    return n;
+}
+
+Node *multiplicative_expression(Lexer *l) {
+    Node *left = cast_expression(l);
+    Token t = peek_token(l);
+    while (t.type == MULTI /* || t.type == DIV || t.type == MOD */) {
+        Token op = get_token(l);
+        Node *right = cast_expression(l);
+        left = make_ast_op(op.type, left, right);
+        t = peek_token(l);
+    }
+    return left;
+}
+
+Node *additive_expression(Lexer *l) {
+    Node *left = multiplicative_expression(l);
+    Token t = peek_token(l);
+    while (t.type == ADD || t.type == SUB) {
+        Token op = get_token(l);
+        Node *right = multiplicative_expression(l);
+        left = make_ast_op(op.type, left, right);
+        t = peek_token(l);
+    }
+    return left;   
+}
+
+Node *shift_expression(Lexer *l) {
+    Node *left = additive_expression(l);
+    return left;
+}
+
+Node *relational_expression(Lexer *l) {
+    Node *left = shift_expression(l);
+    Token t = peek_token(l);
+    while (t.type == Less || t.type == LessEq || t.type == More || t.type == MoreEq) {
+        Token op = get_token(l);
+        Node *right = shift_expression(l);
+        left = make_ast_op(op.type, left, right);
+        t = peek_token(l);
+    }
+    return left;  
+}
+
+Node *equality_expression(Lexer *l) {
+    Node *left = relational_expression(l);
+    return left;
+}
+
+Node *and_expression(Lexer *l) {
+    Node *left = equality_expression(l);
+    return left;
+}
+
+Node *exclusive_or_expression(Lexer *l) {
+    Node *left = and_expression(l);
+    return left;
+}
+
+Node *exclusive_and_expression(Lexer *l) {
+    Node *left = exclusive_or_expression(l);
+    return left;
+}
+
+Node *inclusive_or_expression(Lexer *l) {
+    Node *left = exclusive_and_expression(l);
+    return left;
+}
+
+Node *logical_and_expression(Lexer *l) {
+    Node *left = inclusive_or_expression(l);
+    return left;
+}
+
+Node *logical_or_expression(Lexer *l) {
+    Node *left = logical_and_expression(l);
+    return left;   
+}
+
+Node *conditional_expression(Lexer *l) {
+    Node *left = logical_or_expression(l);
+    return left;
+}
+
+Node *assignment_expression(Lexer *l) {
+    Node *left = conditional_expression(l);
+    Token t = peek_token(l);
+    while (t.type == ASSIGN) {
+        Token op = get_token(l);
+        Node *right = shift_expression(l);
+        left = make_ast_op(op.type, left, right);
+        t = peek_token(l);
+    }
+    return left;
+}
+
+// TODO
+// Node *assignment_operator(Lexer *l) {
+//     Node *n = make_ast_op();
+//     return n;
+// }
+
+Node *expression(Lexer *l) {
+    Node *left = assignment_expression(l);
+    return left;
+}
+
 Node *func_decl(Lexer *l) {
     Token t = get_token(l);
     assert(t.type == IDENT);
@@ -86,7 +227,7 @@ Node *func_decl(Lexer *l) {
     assert(get_token(l).type == RParen);
     assert(get_token(l).type == LBrace);
     while (peek_token(l).type != RBrace) {
-        Node *n = assign(l);
+        Node *n = expression(l);
         add_ast(func_ast->func_decl.stmt, n);
         assert(get_token(l).type == SEMICOLON);
         if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT && find_by_key(map, n->left->literal) == NULL) {
@@ -96,65 +237,4 @@ Node *func_decl(Lexer *l) {
     }
     assert(get_token(l).type == RBrace);
     return func_ast;
-}
-
-Node *assign(Lexer *l) {
-    Node *left = expr(l);
-    Token t = peek_token(l);
-    while (t.type == ASSIGN) {
-        Token op = get_token(l);
-        Node *right = expr(l);
-        left = make_ast_op(op.type, left, right);
-        t = peek_token(l);
-    }
-    return left;
-}
-
-Node *expr(Lexer *l) {
-    Node *left = term(l);
-    Token t = peek_token(l);
-    while (t.type == ADD || t.type == SUB) {
-        Token op = get_token(l);
-        Node *right = term(l);
-        left = make_ast_op(op.type, left, right);
-        t = peek_token(l);
-    }
-    return left;
-}
-
-Node *term(Lexer *l) {
-    Node *left = factor(l);
-    Token t = peek_token(l);
-    while (t.type == MULTI) {
-        Token op = get_token(l);
-        Node *right = term(l);
-        left = make_ast_op(op.type, left, right);
-        t = peek_token(l);
-    }
-    return left;
-}
-
-Node *factor(Lexer *l) {
-    Token t = get_token(l);
-    if (t.type == INT) return make_ast_int(atoi(t.literal));
-    else if (t.type == IDENT) {
-        if (peek_token(l).type == LParen) {
-            get_token(l);
-            Node *argv[6];
-            int argc = 0;
-            while (1) {
-                if (peek_token(l).type == RParen) break;
-                argv[argc] = expr(l);
-                argc += 1;
-                if (peek_token(l).type == COMMA) get_token(l);
-            }
-            assert(get_token(l).type == RParen);
-            return make_ast_func_call(t.literal, argc, argv);
-        }
-        return make_ast_ident(t.literal);
-    }
-    assert(t.type == LParen);
-    Node *left = expr(l);
-    assert(get_token(l).type == RParen);
-    return left;
 }

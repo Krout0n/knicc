@@ -9,15 +9,23 @@ typedef enum {
     INT,
     IDENT,
     SEMICOLON,
+    
     ADD,
     SUB,
     MULTI,
     ASSIGN,
+    Less,
+    LessEq,
+    More,
+    MoreEq,
+    
     LParen,
     RParen,
     LBrace,
     RBrace,
     COMMA,
+    If,
+
     _EOF,
     NOT_FOUND, // used for only special_char()
     ERR, // unused
@@ -49,6 +57,7 @@ typedef struct {
 
 extern Token lex(Lexer *l);
 extern void store_token(Lexer *l, Token t);
+extern TokenType keyword(char *s);
 extern Lexer init_lexer();
 extern Token get_token(Lexer *l);
 extern Token peek_token(Lexer *l);
@@ -101,6 +110,10 @@ typedef struct Node {
         int argc;
         Map *map;
     } func_decl;
+    struct {
+        struct Node *expression;
+        struct CompoundStatement *stmt;
+    } if_stmt;
 } Node;
 
 typedef struct CompoundStatement {

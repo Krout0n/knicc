@@ -24,7 +24,7 @@ Token lex(Lexer *l) {
             c = l->src[l->index];
         }
         t.literal[i] = '\0';
-        t.type = IDENT;
+        t.type = keyword(t.literal);
     } else if (spacial_char(c) != NOT_FOUND) {
         t.literal[0] = c;
         t.literal[1] = '\0';
