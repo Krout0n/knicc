@@ -15,13 +15,16 @@ typedef enum {
     ASSIGN,
     LParen,
     RParen,
+    LBrace,
+    RBrace,
     COMMA,
     _EOF,
     NOT_FOUND, // used for only special_char()
     ERR, // unused
 
     // used only ast
-    FUNC,
+    FUNC_DECL,
+    FUNC_CALL,
 } TokenType;
 
 typedef struct {
@@ -50,33 +53,6 @@ extern Lexer init_lexer();
 extern Token get_token(Lexer *l);
 extern Token peek_token(Lexer *l);
 
-// node.c
-typedef struct Node {
-    int type;
-    union {
-        int ival;
-        char *literal;
-        struct {
-            struct Node *left;
-            struct Node *right;
-        };
-        struct {
-            char *func_name;
-            int argc;
-            int *argv;
-        };
-    };
-} Node;
-
-typedef struct {
-    int length;
-    Node *ast[100];
-} Parser;
-
-extern Node* assign(Lexer *l);
-extern Parser init_parser();
-extern void add_ast(Parser *p, Node *n);
-
 // map.c
 typedef struct {
 	char *key;
@@ -98,9 +74,40 @@ extern void debug_kv(KeyValue *kv);
 KeyValue *vec_get(Vector *vec, int index);
 KeyValue *find_by_key(Vector *vec, char *key);
 
+// node.c
+struct CompoundStatement;
+typedef struct Node {
+    int type;
+    int ival;
+    char *literal;
+    struct Node *left;
+    struct Node *right;
+    struct { // FUNC_CALL
+        char *func_name;
+        int argc;
+        int *argv;
+    } func_call;
+    struct { // FUNC_DECL
+        char *func_name;
+        struct CompoundStatement *stmt;
+        Vector *vec;
+    } func_decl;
+} Node;
+
+typedef struct CompoundStatement {
+    int length;
+    Node *ast[100];
+} CompoundStatement;
+
+extern Node *func_decl(Lexer *l);
+extern CompoundStatement init_stmt();
+extern void add_ast(CompoundStatement *p, Node *n);
+
 // code.c
-extern void emit_prologue(int count);
+extern void emit_prologue(void);
 extern void emit_epilogue(Node *n, int length, int count);
+extern void emit_func_decl(Node *n);
+extern void emit_func_ret(void);
 extern void emit_code(Node *n);
 extern void emit_lvalue_code(Vector *vec, Node *n);
 extern void print_ast(Node *n);

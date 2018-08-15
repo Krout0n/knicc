@@ -3,16 +3,33 @@
 
 #include "knicc.h"
 
-void emit_prologue(int count) {
+void emit_prologue(void) {
     printf(".global main\n");
-    printf("main:\n");
-    printf("  push %%rbp\n");
-    printf("  mov %%rsp, %%rbp\n");
-    printf("  sub $%d, %%rsp\n", count * 4);
+}
+
+void emit_func_decl(Node *n) {
+    printf("%s:\n", n->func_decl.func_name);
+    for (int i = 0; i < n->func_decl.stmt->length; i++) {
+            // for (int i = 0; i < p.length; i++) {
+    //     if (p.ast[i]->type == ASSIGN) {
+    //         emit_lvalue_code(vec, p.ast[i]);
+    //         continue;
+    //     }
+    //     emit_code(p.ast[i]);
+    // }
+    // emit_epilogue(p.ast[p.length - 1], p.length, vec->length);
+        Node *ast = n->func_decl.stmt->ast[i];
+        emit_code(ast);
+    }
+}
+
+void emit_func_ret(void) {
+    printf("  pop %%rax\n");
+    printf("  ret\n");
 }
 
 void emit_epilogue(Node *n, int length, int count) {
-    if (n->type != ASSIGN && n->type != FUNC) {
+    if (n->type != ASSIGN && n->type != FUNC_CALL) {
         printf("  pop %%rax\n");
         length -= 1;
     }
@@ -26,23 +43,23 @@ void emit_epilogue(Node *n, int length, int count) {
 }
 
 void emit_args(Node *n) {
-    if (n->argc >= 1) {
-        printf("  mov  $%d,  %%rdi\n", n->argv[0]);
+    if (n->func_call.argc >= 1) {
+        printf("  mov  $%d,  %%rdi\n", n->func_call.argv[0]);
     }
-    if (n->argc >= 2) {
-        printf("  mov  $%d,  %%rsi\n", n->argv[1]);
+    if (n->func_call.argc >= 2) {
+        printf("  mov  $%d,  %%rsi\n", n->func_call.argv[1]);
     }
-    if (n->argc >= 3) {
-        printf("  mov  $%d,  %%rdx\n", n->argv[2]);
+    if (n->func_call.argc >= 3) {
+        printf("  mov  $%d,  %%rdx\n", n->func_call.argv[2]);
     }
-    if (n->argc >= 4) {
-        printf("  mov  $%d,  %%rcx\n", n->argv[3]);
+    if (n->func_call.argc >= 4) {
+        printf("  mov  $%d,  %%rcx\n", n->func_call.argv[3]);
     }
-    if (n->argc >= 5) {
-        printf("  mov  $%d,  %%r8\n", n->argv[4]);
+    if (n->func_call.argc >= 5) {
+        printf("  mov  $%d,  %%r8\n", n->func_call.argv[4]);
     }
-    if (n->argc >= 6) {
-        printf("  mov  $%d,  %%r9\n", n->argv[5]);
+    if (n->func_call.argc >= 6) {
+        printf("  mov  $%d,  %%r9\n", n->func_call.argv[5]);
     }
 }
 
@@ -72,12 +89,12 @@ void codegen(Node *n) {
         case IDENT:
             printf("  pop %%rax\n");
             break;
-        case FUNC:
+        case FUNC_CALL:
             printf("  push %%rbx\n");
             printf("  push %%rbp\n");
             printf("  push %%rsp\n");
             emit_args(n);
-            printf("  call %s\n", n->func_name);
+            printf("  call %s\n", n->func_call.func_name);
             printf("  pop %%rsp\n");
             printf("  pop %%rbp\n");
             printf("  pop %%rbx\n");
@@ -138,11 +155,11 @@ void print_ast(Node *node) {
         case INT:
             printf("%d", node->ival);
             break;
-        case FUNC:
+        case FUNC_CALL:
             printf("(");
-            printf("%s", node->func_name);
-            for (int i = 0; i < node->argc; i++) {
-                printf(" %d", node->argv[i]);
+            printf("%s", node->func_call.func_name);
+            for (int i = 0; i < node->func_call.argc; i++) {
+                printf(" %d", node->func_call.argv[i]);
             }
             printf(")\n");
             break;
