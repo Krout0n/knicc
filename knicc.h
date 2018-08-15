@@ -53,6 +53,18 @@ extern Lexer init_lexer();
 extern Token get_token(Lexer *l);
 extern Token peek_token(Lexer *l);
 
+// vector.c
+typedef struct {
+    size_t length;
+    size_t buf;
+    void **data;
+} Vector;
+
+extern Vector *init_vector(void);
+extern size_t vec_size(Vector *vec);
+extern void vec_push(Vector *vec, void *item);
+extern void *vec_get(Vector *vec, int index);
+
 // map.c
 typedef struct {
 	char *key;
@@ -60,19 +72,12 @@ typedef struct {
 } KeyValue;
 
 typedef struct {
-	size_t length;
-	size_t buf;
-	KeyValue *data; // void
-} Vector;
+    Vector *vec;
+} Map;
 
-extern Vector *init_vector(void);
-extern size_t vec_size(Vector *vec);
-extern void vec_push(Vector *vec, KeyValue *item);
-extern void debug_vec(Vector *vec);
 extern KeyValue *new_kv(char *key, int value);
 extern void debug_kv(KeyValue *kv);
-KeyValue *vec_get(Vector *vec, int index);
-KeyValue *find_by_key(Vector *vec, char *key);
+KeyValue *find_by_key(Map *map, char *key);
 
 // node.c
 struct CompoundStatement;
@@ -90,7 +95,6 @@ typedef struct Node {
     struct { // FUNC_DECL
         char *func_name;
         struct CompoundStatement *stmt;
-        Vector *vec;
     } func_decl;
 } Node;
 

@@ -16,15 +16,13 @@ int main(int argc, char **argv) {
         store_token(&l, t);
         if (t.type == _EOF) break;
     }
-    int i = 0;
-    Node *funcs[10];
+    Vector *funcs = init_vector();
     while (peek_token(&l).type != _EOF) {
-        funcs[i] = func_decl(&l);
-        i += 1;
+        vec_push(funcs, func_decl(&l));
     }
     emit_prologue();
-    for (int c = 0; c < i; c++) {
-        emit_func_decl(funcs[c]);
+    for (int i = 0; i < funcs->length; i++) {
+        emit_func_decl((Node *)vec_get(funcs, i));
         emit_func_ret();
     }
     return 0;

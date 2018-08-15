@@ -9,15 +9,9 @@ void emit_prologue(void) {
 
 void emit_func_decl(Node *n) {
     printf("%s:\n", n->func_decl.func_name);
+    printf("  pushq %%rbp\n");
+    printf("  mov %%rsp, %%rbp\n");
     for (int i = 0; i < n->func_decl.stmt->length; i++) {
-            // for (int i = 0; i < p.length; i++) {
-    //     if (p.ast[i]->type == ASSIGN) {
-    //         emit_lvalue_code(vec, p.ast[i]);
-    //         continue;
-    //     }
-    //     emit_code(p.ast[i]);
-    // }
-    // emit_epilogue(p.ast[p.length - 1], p.length, vec->length);
         Node *ast = n->func_decl.stmt->ast[i];
         emit_code(ast);
     }
@@ -25,6 +19,8 @@ void emit_func_decl(Node *n) {
 
 void emit_func_ret(void) {
     printf("  pop %%rax\n");
+    printf("  mov %%rbp, %%rsp\n");
+    printf("  pop %%rbp\n");
     printf("  ret\n");
 }
 

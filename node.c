@@ -61,24 +61,21 @@ Node *make_ast_func_decl(char *func_name) {
     n->func_decl.func_name = malloc(sizeof(char) * strlen(func_name));
     strcpy(n->func_decl.func_name, func_name);
     n->func_decl.stmt = malloc(sizeof(CompoundStatement));
-    n->func_decl.vec = init_vector();
     return n;
 }
 
 Node *func_decl(Lexer *l) {
     Token t = get_token(l);
     assert(t.type == IDENT);
-    char *func_name = t.literal;
+    char *func_name = malloc(sizeof(char) * strlen(t.literal));
+    strcpy(func_name, t.literal);
     assert(get_token(l).type == LParen);
     assert(get_token(l).type == RParen);
     assert(get_token(l).type == LBrace);
     Node *func_ast = make_ast_func_decl(func_name);
     while (peek_token(l).type != RBrace) {
         Node *n = assign(l);
-        add_ast(n->func_decl.stmt, n);
-        if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT) {
-            vec_push(func_ast->func_decl.vec, new_kv(n->left->literal, func_ast->func_decl.vec->length * -4));
-        }
+        add_ast(func_ast->func_decl.stmt, n);
         assert(get_token(l).type == SEMICOLON);
     }
     assert(get_token(l).type == RBrace);
@@ -144,7 +141,6 @@ Node *factor(Lexer *l) {
         }
         return make_ast_ident(t.literal);
     }
-    debug_token(t);
     assert(t.type == LParen);
     Node *left = expr(l);
     assert(get_token(l).type == RParen);
