@@ -5,6 +5,7 @@
 #include "knicc.h"
 
 Node *expression(Lexer *l);
+Node *statement(Lexer *l);
 
 CompoundStatement init_stmt() {
     CompoundStatement stmt;
@@ -144,6 +145,14 @@ Node *relational_expression(Lexer *l) {
     return left;  
 }
 
+Node *make_ast_if_stmt(Node *expr, Node *stmt) {
+    Node *n = malloc(sizeof(Node));
+    n->type = If;
+    n->if_stmt.expression = expr;
+    n->if_stmt.stmt = stmt;
+    return n;
+}
+
 Node *equality_expression(Lexer *l) {
     Node *left = relational_expression(l);
     return left;
@@ -196,15 +205,35 @@ Node *assignment_expression(Lexer *l) {
     return left;
 }
 
-// TODO
-// Node *assignment_operator(Lexer *l) {
-//     Node *n = make_ast_op();
-//     return n;
-// }
-
-Node *expression(Lexer *l) {
+Node *expression(Lexer *l) { 
     Node *left = assignment_expression(l);
     return left;
+}
+
+Node *expression_statement(Lexer *l) {
+    Node *n = expression(l);
+    assert(get_token(l).type == SEMICOLON);
+    return n;
+}
+
+Node *selection_statement(Lexer *l) {
+    assert(get_token(l).type == If);
+    assert(get_token(l).type == LParen);
+    Node *expr = expression(l);
+    assert(get_token(l).type == RParen);
+    Node *stmt = statement(l);
+    return make_ast_if_stmt(expr, stmt);
+}
+
+Node *statement(Lexer *l) {
+    Node *expr;
+    Token t = peek_token(l);
+    if (t.type == If) {
+        expr = selection_statement(l);
+    } else {
+        expr = expression_statement(l);
+    }
+    return expr;
 }
 
 Node *func_decl(Lexer *l) {
@@ -227,9 +256,8 @@ Node *func_decl(Lexer *l) {
     assert(get_token(l).type == RParen);
     assert(get_token(l).type == LBrace);
     while (peek_token(l).type != RBrace) {
-        Node *n = expression(l);
+        Node *n = statement(l);
         add_ast(func_ast->func_decl.stmt, n);
-        assert(get_token(l).type == SEMICOLON);
         if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT && find_by_key(map, n->left->literal) == NULL) {
             KeyValue *kv = new_kv(n->left->literal, (map->vec->length + 1) * -8);
             insert_map(map, kv);

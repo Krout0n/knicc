@@ -112,7 +112,7 @@ typedef struct Node {
     } func_decl;
     struct {
         struct Node *expression;
-        struct CompoundStatement *stmt;
+        struct Node *stmt;
     } if_stmt;
 } Node;
 

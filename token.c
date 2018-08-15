@@ -68,6 +68,8 @@ TokenType spacial_char(char c) {
         case '{': return LBrace;
         case '}': return RBrace;
         case ',': return COMMA;
+        case '<': return Less;
+        case '>': return More;
         default: return NOT_FOUND;
     }
 }
@@ -94,6 +96,8 @@ bool is_binop(TokenType type) {
         case SUB:
         case MULTI:
         case ASSIGN:
+        case Less:
+        case More:
             return true;
         default:
             return false;
