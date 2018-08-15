@@ -118,7 +118,7 @@ extern void emit_epilogue(Node *n, int length, int count);
 extern void emit_func_decl(Node *n);
 extern void emit_func_ret(void);
 extern void emit_code(Node *n);
-extern void emit_lvalue_code(Map *map, Node *n);
+void emit_lvalue_code(Node *n);
 extern void print_ast(Node *n);
 
 #endif
