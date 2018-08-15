@@ -52,6 +52,11 @@ void emit_func_ret(void) {
 
 void emit_args(Node *n) {
     for (int i = 0; i < n->func_call.argc; i++) {
+        if (is_binop(n->func_call.argv[i]->type)) {
+            emit_code(n->func_call.argv[i]);
+            printf("  pop %%rax\n");
+            printf("  mov  %%rax,  %%%s\n", regs[i]);
+        }
         if (n->func_call.argv[i]->type == INT) {
             printf("  mov  $%d,  %%%s\n", n->func_call.argv[i]->ival, regs[i]);
         } else if (n->func_call.argv[i]->type == IDENT) {

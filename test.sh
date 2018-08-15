@@ -79,5 +79,6 @@ exit_code 'add(x,y) { x + y; } main() { a=1; b=2; add(a,b);}' '3'
 exit_code 'local(x) { y = 20; x + y;} main() { a=10; local(a);}' '30'
 exit_code 'local_assign(x) { y = x; y;} main(){ local_assign(10); }' '10'
 exit_code 'local_assign(x) { y = x; y;} main(){ a=10; local_assign(a); }' '10'
+exit_code 'expr(x) { x+10; } main() { expr(10+10);} ' '30'
 
 make clean

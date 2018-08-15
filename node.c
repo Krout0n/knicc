@@ -76,7 +76,7 @@ Node *func_decl(Lexer *l) {
     assert(get_token(l).type == LParen);
     while (peek_token(l).type != RParen) {
         Token arg = get_token(l);
-        if (arg.type == IDENT) { // 今の所これで良い
+        if (arg.type == IDENT) {
             KeyValue *kv = new_kv(arg.literal, (map->vec->length + 1) * -8);
             insert_map(func_ast->func_decl.map, kv);
             func_ast->func_decl.argc += 1;
@@ -144,13 +144,8 @@ Node *factor(Lexer *l) {
             int argc = 0;
             while (1) {
                 if (peek_token(l).type == RParen) break;
-                if (peek_token(l).type == INT) {
-                    argv[argc] = make_ast_int(atoi(get_token(l).literal));
-                    argc += 1;
-                } else if (peek_token(l).type == IDENT) {
-                    argv[argc] = make_ast_ident(get_token(l).literal);
-                    argc += 1;
-                }
+                argv[argc] = expr(l);
+                argc += 1;
                 if (peek_token(l).type == COMMA) get_token(l);
             }
             assert(get_token(l).type == RParen);
