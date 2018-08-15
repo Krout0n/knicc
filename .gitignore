@@ -6,3 +6,4 @@ compiler
 *.log
 *.s
 *.o
+core
