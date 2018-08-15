@@ -80,5 +80,10 @@ exit_code 'local(x) { y = 20; x + y;} main() { a=10; local(a);}' '30'
 exit_code 'local_assign(x) { y = x; y;} main(){ local_assign(10); }' '10'
 exit_code 'local_assign(x) { y = x; y;} main(){ a=10; local_assign(a); }' '10'
 exit_code 'expr(x) { x+10; } main() { expr(10+10);} ' '30'
+exit_code 'main(){ if (1 < 2) 10; }' '10'
+exit_code 'main(){ if (1) 10;}' '10'
+exit_code 'main(){ if (2 < 1) 10; 20;}' '20'
+# exit_code 'main(){ if (10 > 5) 10;}' '10'
+exit_code 'main() { if (1+2 < 4) 10;}' '10'
 
 make clean

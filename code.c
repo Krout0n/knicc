@@ -90,6 +90,15 @@ void codegen(Node *n) {
             printf("  imul %%rdx, %%rax\n");
             printf("  push %%rax\n\n");
             break;
+        case Less:
+            printf("  popq %%rdx\n");
+            printf("  popq %%rax\n");
+            printf("  cmpq %%rdx, %%rax\n");
+            printf("  setl %%al\n");
+            printf("  movzbl %%al, %%eax\n");
+            printf("  push %%rax\n\n");
+            printf("  popq %%rax\n");
+            break;
         case IDENT:
             printf("  mov %d(%%rbp), %%rax\n", find_by_key(map, n->literal)->value);
             printf("  pushq %%rax\n\n");
@@ -98,6 +107,13 @@ void codegen(Node *n) {
             emit_args(n);
             printf("  call %s\n", n->func_call.func_name);
             printf("  push %%rax\n\n");
+            break;
+        case If:
+            emit_code(n->if_stmt.expression);
+            printf("  cmpq $0, %%rax\n");
+            printf("  je .Lend\n");
+            emit_code(n->if_stmt.stmt);
+            printf(".Lend:\n");
             break;
         default:
             debug_token(new_token("", n->type));
@@ -144,6 +160,13 @@ void print_ast(Node *node) {
             goto print_op;
         case MULTI:
             printf("(* ");
+            goto print_op;
+        case Less:
+            printf("(< ");
+            goto print_op;
+        case More:
+            printf("(> ");
+            goto print_op;
             print_op:
             print_ast(node->left);
             printf(" ");
@@ -161,7 +184,14 @@ void print_ast(Node *node) {
             }
             printf(")\n");
             break;
+        case If:
+            printf("(if ");
+            print_ast(node->if_stmt.expression);
+            print_ast(node->if_stmt.stmt);
+            printf(")\n");
+            break;
         default:
+            debug_token(new_token("err", node->type));
             perror("should not reach here");
     }
 }
