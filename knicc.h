@@ -108,7 +108,6 @@ extern void debug_kv(KeyValue *kv);
 extern KeyValue *find_by_key(Map *map, char *key);
 
 // node.c
-struct CompoundStatement;
 typedef struct Node {
     int type;
     int ival;
@@ -151,6 +150,7 @@ typedef struct Node {
 } Node;
 
 extern Node *func_decl(Lexer *l);
+extern int how_many_nested_pointer(Node *n, int i);
 
 // code.c
 extern void emit_prologue(void);
