@@ -113,6 +113,13 @@ Node *make_ast_unary_op(int type, Node *left) {
     return n;
 }
 
+Node *make_ast_ret_stmt(Node *expr) {
+    Node *n = malloc(sizeof(Node));
+    n->type = Return;
+    n->ret_stmt.expr = expr;
+    return n;
+}
+
 Node *primary_expression(Lexer *l) {
     Token t = get_token(l);
     if (t.type == INT) return make_ast_int(atoi(t.literal));
@@ -336,6 +343,13 @@ Node *compound_statement(Lexer *l) {
     return n;
 }
 
+Node *jump_statement(Lexer *l) {
+    assert(get_token(l).type == Return);
+    Node *expr = expression(l);
+    assert(get_token(l).type == SEMICOLON);
+    return make_ast_ret_stmt(expr);
+}
+
 Node *statement(Lexer *l) {
     Node *expr;
     Token t = peek_token(l);
@@ -345,6 +359,8 @@ Node *statement(Lexer *l) {
         expr = iteration_statement(l);
     } else if (t.type == LBrace) {
         expr = compound_statement(l);
+    } else if (t.type == Return) {
+        expr = jump_statement(l);
     } else {
         expr = expression_statement(l);
     }

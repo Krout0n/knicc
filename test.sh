@@ -32,7 +32,7 @@ printing_test() {
   rm -rf a.out
 }
 
-exit_code "int main(){1;}" 1
+exit_code "int main(){ return 1;}" 1
 exit_code "int main(){10;}" 10
 exit_code "int main(){22;}" 22
 exit_code 'int main(){1+2;}' 3
@@ -90,13 +90,31 @@ exit_code 'int main() { int a; a=1; int v; v=1; if (a+1 < 1) v=20; v;}' '1'
 exit_code 'int main() { if (1) { 10; 20;}}' '20'
 exit_code 'int main() { int a; a = 10; a = a + 1; a;}' '11'
 exit_code 'int main() { int a; a = 10; a = a + 1;}' '11'
-exit_code 'int inc (int a){ a+1; } int main() { int a; a=10; if (1) { inc(a); }}' '11'
+exit_code 'int inc(int a) { a+1; } int main() { int a; a=10; if (1) { inc(a); }}' '11'
 exit_code 'int main(){ int a; a=1; while(a < 5){ a = a + 1;} a;}' '5'
 exit_code 'int main() { int a; a = 1; while (0) { a= a+1;} a;}' '1'
-exit_code 'int main() { int a; for (a = 1; a < 10; a = a + 1) { a = a + 2; } }' '11'
-exit_code 'int main() {int a; a = 1; int *b; b = &a; *b;}' '1'
-exit_code 'int main() {int a; a = 1; int c; c = 2; int *b; b = &c; if(1){b = &a;} *b;}' '1'
-exit_code 'int main() {int a; a = 1; int c; c = 2; int *b; b = &c; if(0){b = &a;} *b;}' '2'
+exit_code 'int main() { int a; int b; b = 3; for (a = 1; a < 10; a = a + 1) { a = a + 2; }  return a;}' '10'
+exit_code 'int main() { int a; int b; b = 3; for (a = 1; a < 10; a = a + 1) { a = a + 2; }  return b;}' '3'
+exit_code 'int main() {int a;int b;b = 3;for (a = 1; a < 3; a = a + 1) { a = a + 2; }return b;}' '3'
+exit_code 'int main() { int a; a = 1; int *b; b = &a; *b;}' '1'
+exit_code 'int main() { int a; a = 1; int c; c = 2; int *b; b = &c; if(1){b = &a;} *b;}' '1'
+exit_code 'int main() { int a; a = 1; int c; c = 2; int *b; b = &c; if(0){b = &a;} *b;}' '2'
+exit_code 'int main() { int a; a = 3; if (a < 2+3) return 10; return 20; }' '10'
+exit_code 'int main() { int a; a = 3; if (a < 3) return 10; return 20; }' '20'
+exit_code 'int lower(int x, int y) { if (x < y) return x; return y; } int main() { return lower(10, 20); }' '10'
+exit_code 'int lower(int x, int y) { if (x < y) return x; return y; } int main() { return lower(20, 10); }' '10'
+exit_code 'int bigger(int x, int y) { if (x < y) return y; return x; } int main() { return bigger(5+5, 10+20); }' '30'
+exit_code 'int second() { return 10; } int first() { return second(); } int main() { return first(); }' '10'
+exit_code 'int main() {int a;int b;b = 3;for (a = 1; a < 3; a = a + 1) { b = a + 10; }return b;}' '12'
+exit_code 'int main() {int a;int b;b = 3;for (a = 1; a < 3; a = a + 1) { b = a + 2; }return b;}' '4'
+exit_code 'int main() { int a; int b; b = 3; for (a = 1; a < 3; a = a + 1) { b = b + a; }  return b;}' '6'
+exit_code 'int main() { int a; int b; b = 0; for (a = 1; a < 3; a = a + 1) { b = b + a; }  return b;}' '3'
+exit_code 'int fib(int n) {int a;a = 0;int b;b = 1;int i;int temp; for (i = 1; i < n; i = i + 1) {temp = b; b = a + b; a = temp;}return a;} int main() { return fib(10); }' '34'
+exit_code 'int inc(int n) { return n+1; } int main() { int ten; ten = 10; return inc(ten + 1); }' '12'
+# exit_code 'int ten(int x){ if (x < 10) { return ten(x+1); } return x; } int main() { return ten(9); }' '10'
+# exit_code 'int fib(int a, int b, int i, int n) {if (i < n) return fib(b, a+b, i+1, n); return a;} int main(){return fib(0, 1, 0, 10); }' '34'
+# exit_code 'int fib(int a, int b, int i, int n){ if (n < i) { return a;} return fib(b, a+b, i+1, n); } int main() {return fib(0, 1, 0, 1);}' '34'
+# exit_code 'int main() { int a; a = 2; int *b; b = &a; *b * 4; }' '8' コピペ or source test.sh すると落ちないのに make test だと パースエラーになるの謎い
 # failng_test 'int inc (a) { a + 1; } int main() { inc(10) }' 正しく落ちた
 
 make clean

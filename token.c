@@ -55,6 +55,9 @@ char *find_token_name(TokenType t) {
         case While:
             s = "While";
             break;
+        case Return:
+            s = "Return";
+            break;
         case COMPOUND_STMT:
             s = "COMPOUND_STMT";
             break;
@@ -101,6 +104,7 @@ TokenType keyword(char *s) {
     if (strcmp("while", s) == 0) return While;
     if (strcmp("for", s) == 0) return For;
     if (strcmp("int", s) == 0) return DEC_INT;
+    if (strcmp("return", s) == 0) return Return;
     return IDENT;
 }
 

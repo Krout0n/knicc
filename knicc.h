@@ -28,6 +28,7 @@ typedef enum {
     If,
     While,
     For,
+    Return,
 
     DEC_INT,
     Ref,
@@ -144,6 +145,9 @@ typedef struct Node {
     struct {
         struct Node *next;
     } pointer;
+    struct {
+        struct Node *expr;
+    } ret_stmt;
 } Node;
 
 extern Node *func_decl(Lexer *l);

@@ -141,6 +141,7 @@ void codegen(Node *n) {
             printf("  cmpq $0, %%rax\n");
             printf("  je .Lend\n");
             emit_code(n->for_stmt.stmt); 
+            emit_code(n->for_stmt.loop_expr);
             printf("  jmp .Lbegin\n");
             printf(".Lend:\n");
             break;
@@ -151,6 +152,13 @@ void codegen(Node *n) {
         case Deref:
             printf("  movq %d(%%rbp), %%rax\n", (int)(size_t)find_by_key(map, n->left->literal)->value);
             printf("  push (%%rax)  \n");
+            break;
+        case Return:
+            emit_code(n->ret_stmt.expr);
+            printf("  pop %%rax\n");
+            printf("  add $%ld, %%rsp\n", 8 * vec_size(map->vec));
+            printf("  leave\n");
+            printf("  ret\n");
             break;
         default:
             debug_token(new_token("", n->type));
