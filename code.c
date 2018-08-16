@@ -99,7 +99,7 @@ void codegen(Node *n) {
             printf("  push %%rax\n\n");
             break;
         case IDENT:
-            printf("  mov %d(%%rbp), %%rax\n", find_by_key(map, n->literal)->value);
+            printf("  mov %d(%%rbp), %%rax\n", (int)find_by_key(map, n->literal)->value);
             printf("  pushq %%rax\n\n");
             break;
         case FUNC_CALL:
@@ -159,7 +159,7 @@ void emit_code(Node *n) {
 
 void emit_lvalue_code(Node *n) {
     // aを左辺値としてコンパイル。lea命令を使うことでアドレスを取得
-    printf("  leaq %d(%%rbp), %%rax\n", find_by_key(map, n->left->literal)->value);
+    printf("  leaq %d(%%rbp), %%rax\n", (int)find_by_key(map, n->left->literal)->value);
     printf("  pushq %%rax\n");
     emit_code(n->right);
 

@@ -29,7 +29,7 @@ typedef enum {
     While,
     For,
 
-    TYPE_INT,
+    DEC_INT,
 
     //
     COMPOUND_STMT,
@@ -82,9 +82,14 @@ extern void vec_push(Vector *vec, void *item);
 extern void *vec_get(Vector *vec, int index);
 
 // map.c
+struct Type {
+    enum { TYPE_INT, PTR } ty;
+    struct Type *ptrof;
+};
+
 typedef struct {
 	char *key;
-	int value;
+	void *value;
 } KeyValue;
 
 typedef struct {
@@ -92,7 +97,7 @@ typedef struct {
 } Map;
 
 extern Map *init_map(void);
-extern KeyValue *new_kv(char *key, int value);
+extern KeyValue *new_kv(char *key, void *value);
 extern void insert_map(Map *map, KeyValue *kv);
 extern void debug_map(Map *map);
 extern void debug_kv(KeyValue *kv);

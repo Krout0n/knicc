@@ -4,17 +4,13 @@
 
 #include "./knicc.h"
 
-KeyValue *new_kv(char *key, int value) {
+KeyValue *new_kv(char *key, void *value) {
 	KeyValue *kv = (KeyValue *)malloc(sizeof(KeyValue));
 	if (kv == NULL) return NULL;
 	kv->value = value;
 	kv->key = (char *)malloc(sizeof(char) * strlen(key));
 	strcpy(kv->key, key);
 	return kv;
-}
-
-void debug_kv(KeyValue *kv) {
-	printf("%s: %d\n", kv->key, kv->value);
 }
 
 Map *init_map(void) {
@@ -37,13 +33,4 @@ KeyValue *find_by_key(Map *map, char *key) {
 		i += 1;
 	}
 	return NULL;
-}
-
-void debug_map(Map *map) {
-	printf("Map: {\n");
-	for (int i = 0; i < map->vec->length; i++) {
-		KeyValue *kv = vec_get(map->vec, i);
-		printf("  %s: %d,\n", kv->key, kv->value);
-	}
-	printf("}\n");
 }
