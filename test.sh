@@ -32,69 +32,68 @@ printing_test() {
   rm -rf a.out
 }
 
-exit_code "main(){1;}" 1
-exit_code "main(){10;}" 10
-exit_code "main(){22;}" 22
-exit_code 'main(){1+2;}' 3
-exit_code 'main(){12+34;}' 46
-exit_code 'main(){1+2+3;}' 6
-exit_code 'main(){11+22+33;}' 66
-exit_code 'main(){3-2;}' 1
-exit_code 'main(){3-2+1;}' 2
-exit_code 'main(){40-20+11;}' 31
-exit_code 'main(){99-21-37;}' 41
-exit_code 'main(){1*2;}' 2
-exit_code 'main(){1*2*3;}' 6
-exit_code 'main(){1+2*3;}' 7
-exit_code 'main(){1*2+3*4;}' 14
-exit_code 'main(){1+2*3+4;}' 11
-exit_code 'main(){15-3*4;}' 3
-exit_code 'main(){1+2; 3+4;}' 7
-exit_code 'main(){1+2; 1*4+3*10;}' 34
-exit_code 'main(){11+22; 33+44; 114-10-40*2;}' 24
-exit_code 'main(){(1+2)*3;}' 9
-exit_code 'main(){1+(2*3);}' 7
-exit_code 'main(){(1*2)+3;}' 5
-exit_code 'main(){(1+2+3);}' 6
-exit_code 'main(){(9-5)*10;}' 40
+exit_code "int main(){1;}" 1
+exit_code "int main(){10;}" 10
+exit_code "int main(){22;}" 22
+exit_code 'int main(){1+2;}' 3
+exit_code 'int main(){12+34;}' 46
+exit_code 'int main(){1+2+3;}' 6
+exit_code 'int main(){11+22+33;}' 66
+exit_code 'int main(){3-2;}' 1
+exit_code 'int main(){3-2+1;}' 2
+exit_code 'int main(){40-20+11;}' 31
+exit_code 'int main(){99-21-37;}' 41
+exit_code 'int main(){1*2;}' 2
+exit_code 'int main(){1*2*3;}' 6
+exit_code 'int main(){1+2*3;}' 7
+exit_code 'int main(){1*2+3*4;}' 14
+exit_code 'int main(){1+2*3+4;}' 11
+exit_code 'int main(){15-3*4;}' 3
+exit_code 'int main(){1+2; 3+4;}' 7
+exit_code 'int main(){1+2; 1*4+3*10;}' 34
+exit_code 'int main(){11+22; 33+44; 114-10-40*2;}' 24
+exit_code 'int main(){(1+2)*3;}' 9
+exit_code 'int main(){1+(2*3);}' 7
+exit_code 'int main(){(1*2)+3;}' 5
+exit_code 'int main(){(1+2+3);}' 6
+exit_code 'int main(){(9-5)*10;}' 40
 
-exit_code 'main(){ a=1;}' 1
-exit_code 'main(){ a=1; a;}' 1
-exit_code 'main(){ a=1+2; a;}' 3
-exit_code 'main(){ a=1;b=2; b;}' 2
-exit_code 'main(){ a=1+2+3;10+20;}' 30
-exit_code 'main(){ a=3; a;}' '3'
-exit_code 'main(){ a=1; b=2; a+b;}' '3'
+exit_code 'int main(){ int a; a = 1;}' 1
+exit_code 'int main(){ int a; a=1+2;}' 3
+exit_code 'int main(){ int a; a = 1; int b; b=2;}' 2
+exit_code 'int main(){ int a; a=1+2+3;10+20;}' 30
+exit_code 'int main(){ int a; a=1; int b; b=2; a+b;}' '3'
 
-printing_test 'main(){ print_ok(); }' "OK"
-printing_test 'main() { 1+2; print_ok(); }' "OK"
-printing_test 'main() { add_one(1);}' "2"
-printing_test 'main() { add(1,2);}' "3"
-printing_test 'main() { print_all_args(1,2,3,4,5,6); }' "123456"
+printing_test 'int main(){ print_ok(); }' "OK"
+printing_test 'int main() { 1+2; print_ok(); }' "OK"
+printing_test 'int main() { add_one(1);}' "2"
+printing_test 'int main() { add(1,2);}' "3"
+printing_test 'int main() { print_all_args(1,2,3,4,5,6); }' "123456"
 
-exit_code 'foo() { 10; } main(){ foo(); }' "10"
-exit_code 'foo(x){ x + 1; } main(){ foo(1); }' "2"
-exit_code 'add(x,y) { x + y; } main() { add(1,2); }' '3'
-exit_code 'foo(x) { x + 1;} main() { a = 3; foo(a);}' '4'
-exit_code 'add(x,y) { x + y; } main() { a=1; b=2; add(a,b);}' '3'
-exit_code 'local(x) { y = 20; x + y;} main() { a=10; local(a);}' '30'
-exit_code 'local_assign(x) { y = x; y;} main(){ local_assign(10); }' '10'
-exit_code 'local_assign(x) { y = x; y;} main(){ a=10; local_assign(a); }' '10'
-exit_code 'expr(x) { x+10; } main() { expr(10+10);} ' '30'
-exit_code 'main(){ if (1 < 2) 10; }' '10'
-exit_code 'main(){ if (1) 10;}' '10'
-exit_code 'main(){ if (2 < 1) 10; 20;}' '20'
-exit_code 'main() { if (1+2 < 4) 10;}' '10'
-exit_code 'main() { a=1; v=1; if (a) v=20; v;}' '20'
-exit_code 'main() { a=0; v=1; if (a) v=20; v;}' '1'
-exit_code 'main() { a=1; v=1; if (a+1 < 3) v=20; v;}' '20'
-exit_code 'main() { a=1; v=1; if (a+1 < 1) v=20; v;}' '1'
-exit_code 'main() { if (1) { 10; 20;}}' '20'
-exit_code 'main() { a = 10; a = a + 1; a;}' '11'
-exit_code 'main() { a = 10; a = a + 1;}' '11'
-exit_code 'inc (a){ a+1; } main() { a=10; if (1) { inc(a); }}' '11'
-exit_code 'main(){ a=1; while(a < 5){ a = a + 1;} a;}' '5'
-exit_code 'main() { a = 1; while (0) { a= a+1;} a;}' '1'
-exit_code 'main() { for (a = 1; a < 10; a = a + 1) { a = a + 2; } }' '11'
+exit_code 'int foo() { 10; } int main(){ foo(); }' "10"
+exit_code 'int foo(int x){ x + 1; } int main(){ foo(1); }' "2"
+exit_code 'int add(int x, int y) { x + y; } int main() { add(1,2); }' '3'
+exit_code 'int foo(int x) { x + 1;} int main() { int a; a =3; foo(a);}' '4'
+exit_code 'int add(int x,int y) { x + y; } int main() { int a; a = 1; int b; b=2; add(a,b);}' '3'
+exit_code 'int local(int x) { int y; y = 20; x + y;} int main() { int a; a = 10; local(a);}' '30'
+exit_code 'int local_assign(int x) { int y; y = x;} int main(){ local_assign(10); }' '10'
+exit_code 'int local_assign(int x) { int y; y = x;} int main(){ int a; a=10; local_assign(a); }' '10'
+exit_code 'int expr(int x) { x+10; } int main() { expr(10+10);} ' '30'
+exit_code 'int main(){ if (1 < 2) 10; }' '10'
+exit_code 'int main(){ if (1) 10;}' '10'
+exit_code 'int main(){ if (2 < 1) 10; 20;}' '20'
+exit_code 'int main() { if (1+2 < 4) 10;}' '10'
+exit_code 'int main() { int a; a=1; int v; v=1; if (a) v=20; v;}' '20'
+exit_code 'int main() { int a; a=0; int v; v=1; if (a) v=20; v;}' '1'
+exit_code 'int main() { int a; a=1; int v; v=1; if (a+1 < 3) v=20; v;}' '20'
+exit_code 'int main() { int a; a=1; int v; v=1; if (a+1 < 1) v=20; v;}' '1'
+exit_code 'int main() { if (1) { 10; 20;}}' '20'
+exit_code 'int main() { int a; a = 10; a = a + 1; a;}' '11'
+exit_code 'int main() { int a; a = 10; a = a + 1;}' '11'
+exit_code 'int inc (int a){ a+1; } int main() { int a; a=10; if (1) { inc(a); }}' '11'
+exit_code 'int main(){ int a; a=1; while(a < 5){ a = a + 1;} a;}' '5'
+exit_code 'int main() { int a; a = 1; while (0) { a= a+1;} a;}' '1'
+exit_code 'int main() { int a; for (a = 1; a < 10; a = a + 1) { a = a + 2; } }' '11'
+# failng_test 'int inc (a) { a + 1; } int main() { inc(10) }' 正しく落ちた
 
 make clean

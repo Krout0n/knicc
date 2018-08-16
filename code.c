@@ -167,6 +167,7 @@ void emit_lvalue_code(Node *n) {
     printf("  pop %%rbx\n");
     printf("  pop %%rax\n");
     printf("  mov %%rbx, (%%rax)\n\n");
+    printf("  push %%rbx\n");
 }
 
 void print_ast(Node *node) {

@@ -29,6 +29,8 @@ typedef enum {
     While,
     For,
 
+    TYPE_INT,
+
     //
     COMPOUND_STMT,
     _EOF,

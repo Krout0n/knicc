@@ -108,16 +108,25 @@ Node *primary_expression(Lexer *l) {
             assert(get_token(l).type == RParen);
             return make_ast_func_call(t.literal, argc, argv);
         }
-        if (find_by_key(map, t.literal) == NULL) {
-            KeyValue *kv = new_kv(t.literal, (map->vec->length + 1) * -8);
-            insert_map(map, kv);
-        }
         return make_ast_ident(t.literal);
     }
+    // debug_token(t);
     assert(t.type == LParen);
     Node *left = expression(l);
     assert(get_token(l).type == RParen);
     return left;
+}
+
+Node *declaration(Lexer *l) {
+    assert(get_token(l).type == TYPE_INT);
+    Token ident = get_token(l);
+    assert(ident.type == IDENT);
+    assert(get_token(l).type == SEMICOLON);
+    if (find_by_key(map, ident.literal) == NULL) {
+        KeyValue *kv = new_kv(ident.literal, (map->vec->length + 1) * -8);
+        insert_map(map, kv);
+    }
+    return make_ast_ident(ident.literal);
 }
 
 Node *postfix_expression(Lexer *l) {
@@ -274,7 +283,11 @@ Node *compound_statement(Lexer *l) {
     assert(get_token(l).type == LBrace);
     Node *n = make_ast_compound_statement();
     while (peek_token(l).type != RBrace) {
-        vec_push(n->compound_stmt.block_item_list, statement(l));
+        Node *block_item;
+        // debug_token(peek_token(l));
+        if (peek_token(l).type == TYPE_INT) block_item = declaration(l);
+        else block_item = statement(l);
+        vec_push(n->compound_stmt.block_item_list, block_item);
     }
     assert(get_token(l).type == RBrace);
     return n;
@@ -297,6 +310,7 @@ Node *statement(Lexer *l) {
 
 Node *func_decl(Lexer *lexer) {
     l = lexer;
+    assert(get_token(l).type == TYPE_INT);
     Token t = get_token(l);
     assert(t.type == IDENT);
     char *func_name = malloc(sizeof(char) * strlen(t.literal));
@@ -305,20 +319,16 @@ Node *func_decl(Lexer *lexer) {
     map = func_ast->func_decl.map;
     assert(get_token(l).type == LParen);
     while (peek_token(l).type != RParen) {
+        assert(get_token(l).type == TYPE_INT);
         Token arg = get_token(l);
-        if (arg.type == IDENT) {
-            KeyValue *kv = new_kv(arg.literal, (map->vec->length + 1) * -8);
-            insert_map(func_ast->func_decl.map, kv);
-            func_ast->func_decl.argc += 1;
-        }
+        assert(arg.type == IDENT);
+        KeyValue *kv = new_kv(arg.literal, (map->vec->length + 1) * -8);
+        insert_map(func_ast->func_decl.map, kv);
+        func_ast->func_decl.argc += 1;
         if (peek_token(l).type == COMMA) get_token(l);
     }
     assert(get_token(l).type == RParen);
-    assert(get_token(l).type == LBrace);
-    while (peek_token(l).type != RBrace) {
-        Node *n = statement(l);
-        vec_push(func_ast->compound_stmt.block_item_list, n);
-    }
-    assert(get_token(l).type == RBrace);
+    Node *n = compound_statement(l);
+    vec_push(func_ast->compound_stmt.block_item_list, n);
     return func_ast;
 }
