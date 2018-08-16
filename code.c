@@ -30,21 +30,17 @@ void emit_func_decl(Node *n) {
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
     map = n->func_decl.map;
-    printf("  sub $%ld, %%rbp\n", 8 * vec_size(map->vec));
+    printf("  sub $%ld, %%rsp\n", 8 * vec_size(map->vec));
     emit_mov_args(n->func_decl.argc);
     for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {
         Node *ast = vec_get(n->compound_stmt.block_item_list, i);
-        if (ast->type == ASSIGN) {
-            emit_lvalue_code(ast);
-            continue;
-        }
         emit_code(ast);
     }
 }
 
 void emit_func_ret(void) {
     printf("  pop %%rax\n");
-    printf("  add $%ld, %%rbp\n", 8 * vec_size(map->vec));
+    printf("  add $%ld, %%rsp\n", 8 * vec_size(map->vec));
     printf("  mov %%rbp, %%rsp\n");
     printf("  pop %%rbp\n");
     printf("  ret\n");
@@ -101,7 +97,6 @@ void codegen(Node *n) {
             printf("  setl %%al\n");
             printf("  movzbl %%al, %%eax\n");
             printf("  push %%rax\n\n");
-            printf("  popq %%rax\n");
             break;
         case IDENT:
             printf("  mov %d(%%rbp), %%rax\n", find_by_key(map, n->literal)->value);
@@ -121,9 +116,20 @@ void codegen(Node *n) {
             break;
         case If:
             emit_code(n->if_stmt.expression);
+            printf("  pop %%rax\n");
             printf("  cmpq $0, %%rax\n");
             printf("  je .Lend\n");
             emit_code(n->if_stmt.stmt); 
+            printf(".Lend:\n");
+            break;
+        case While:
+            printf(".Lbegin:\n");
+            emit_code(n->while_stmt.expression);
+            printf("  pop %%rax\n");
+            printf("  cmpq $0, %%rax\n");
+            printf("  je .Lend\n");
+            emit_code(n->while_stmt.stmt); 
+            printf("  jmp .Lbegin\n");
             printf(".Lend:\n");
             break;
         default:
@@ -133,7 +139,7 @@ void codegen(Node *n) {
 }
 
 void emit_code(Node *n) {
-    if (is_binop(n->type)) {
+    if (is_binop(n->type) && n->type != ASSIGN) {
         emit_code(n->left);
         emit_code(n->right);
     }
@@ -149,7 +155,7 @@ void emit_lvalue_code(Node *n) {
     // 代入を実行
     printf("  pop %%rbx\n");
     printf("  pop %%rax\n");
-    printf("  mov %%rbx, (%%rax)\n");
+    printf("  mov %%rbx, (%%rax)\n\n");
 }
 
 void print_ast(Node *node) {

@@ -25,7 +25,7 @@ typedef enum {
     RBrace,
     COMMA,
     If,
-
+    While,
 
     //
     COMPOUND_STMT,
@@ -117,6 +117,10 @@ typedef struct Node {
         struct Node *expression;
         struct Node *stmt;
     } if_stmt;
+    struct {
+        struct Node *expression;
+        struct Node *stmt;
+    } while_stmt;
     struct {
         Vector *block_item_list;
     } compound_stmt;

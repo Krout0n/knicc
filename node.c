@@ -65,6 +65,14 @@ Node *make_ast_if_stmt(Node *expr, Node *stmt) {
     return n;
 }
 
+Node *make_ast_while_stmt(Node *expr, Node *stmt) {
+    Node *n = malloc(sizeof(Node));
+    n->type = While;
+    n->while_stmt.expression = expr;
+    n->while_stmt.stmt = stmt;
+    return n;
+}
+
 Node *make_ast_compound_statement(void) {
     Node *n = malloc(sizeof(Node));
     n->type = COMPOUND_STMT;
@@ -225,6 +233,15 @@ Node *selection_statement(Lexer *l) {
     return make_ast_if_stmt(expr, stmt);
 }
 
+Node *iteration_statement(Lexer *l) {
+    assert(get_token(l).type == While);
+    assert(get_token(l).type == LParen);
+    Node *expr = expression(l);
+    assert(get_token(l).type == RParen);
+    Node *stmt = statement(l);
+    return make_ast_while_stmt(expr, stmt);
+}
+
 Node *compound_statement(Lexer *l) {
     assert(get_token(l).type == LBrace);
     Node *n = make_ast_compound_statement();
@@ -240,6 +257,8 @@ Node *statement(Lexer *l) {
     Token t = peek_token(l);
     if (t.type == If) {
         expr = selection_statement(l);
+    } else if (t.type == While) {
+        expr = iteration_statement(l);
     } else if (t.type == LBrace) {
         expr = compound_statement(l);
     } else {

@@ -8,9 +8,9 @@ exit_code() {
   ./a.out
   exit_code=$?
   if [ $exit_code -eq $expected ] ; then
-    echo "exit code test succeeded, got=${expr}"
+    echo "[\e[32mSUCCESS\e[37m] exit code test succeeded, got=${expr}"
   else
-    echo "exit code test failed, args=${expr} expected=${expected}, got=${exit_code}"
+    echo "[\e[31mFAILED!!\e[37m]exit code test failed, args=${expr} expected=${expected}, got=${exit_code}"
     exit 1
   fi
   rm -rf a.out
@@ -24,9 +24,9 @@ printing_test() {
   gcc -g test.s lib.o
   result=`./a.out`
   if [ $expected_output = $result ] ; then
-    echo "printing test succeeded, got=${expr}"
+    echo "[\e[32mSUCCESS\e[37m] printing test succeeded, got=${expr}"
   else
-    echo "printing test failed, args=${expr} expected=${expected_output}, got=${result}"
+    echo "[\e[31mFAILED\e[37m] printing test failed, args=${expr} expected=${expected_output}, got=${result}"
     exit 1
   fi
   rm -rf a.out
@@ -83,13 +83,16 @@ exit_code 'expr(x) { x+10; } main() { expr(10+10);} ' '30'
 exit_code 'main(){ if (1 < 2) 10; }' '10'
 exit_code 'main(){ if (1) 10;}' '10'
 exit_code 'main(){ if (2 < 1) 10; 20;}' '20'
-# exit_code 'main(){ if (10 > 5) 10;}' '10'
 exit_code 'main() { if (1+2 < 4) 10;}' '10'
 exit_code 'main() { a=1; v=1; if (a) v=20; v;}' '20'
 exit_code 'main() { a=0; v=1; if (a) v=20; v;}' '1'
 exit_code 'main() { a=1; v=1; if (a+1 < 3) v=20; v;}' '20'
 exit_code 'main() { a=1; v=1; if (a+1 < 1) v=20; v;}' '1'
 exit_code 'main() { if (1) { 10; 20;}}' '20'
+exit_code 'main() { a = 10; a = a + 1; a;}' '11'
+exit_code 'main() { a = 10; a = a + 1;}' '11'
 exit_code 'inc (a){ a+1; } main() { a=10; if (1) { inc(a); }}' '11'
+exit_code 'main(){ a=1; while(a < 5){ a = a + 1;} a;}' '5'
+exit_code 'main() { a = 1; while (0) { a= a+1;} a;}' '1'
 
 make clean

@@ -49,6 +49,9 @@ char *find_token_name(TokenType t) {
         case If:
             s = "If";
             break;
+        case While:
+            s = "While";
+            break;
         case COMPOUND_STMT:
             s = "COMPOUND_STMT";
             break;
@@ -79,6 +82,7 @@ TokenType spacial_char(char c) {
 
 TokenType keyword(char *s) {
     if (strcmp("if", s) == 0) return If;
+    if (strcmp("while", s) == 0) return While;
     return IDENT;
 }
 
