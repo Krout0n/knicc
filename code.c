@@ -32,8 +32,8 @@ void emit_func_decl(Node *n) {
     map = n->func_decl.map;
     printf("  sub $%ld, %%rbp\n", 8 * vec_size(map->vec));
     emit_mov_args(n->func_decl.argc);
-    for (int i = 0; i < n->statements->length; i++) {
-        Node *ast = vec_get(n->statements, i);
+    for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {
+        Node *ast = vec_get(n->compound_stmt.block_item_list, i);
         if (ast->type == ASSIGN) {
             emit_lvalue_code(ast);
             continue;
@@ -68,6 +68,7 @@ void emit_args(Node *n) {
 }
 
 void codegen(Node *n) {
+    Vector *stmts;
     switch(n->type) {
         case INT:
             printf("  push $%d\n\n", n->ival);
@@ -111,11 +112,18 @@ void codegen(Node *n) {
             printf("  call %s\n", n->func_call.func_name);
             printf("  push %%rax\n\n");
             break;
+        case COMPOUND_STMT:
+            stmts = n->compound_stmt.block_item_list;
+            for (int i = 0; i < stmts->length; i++) {
+                Node *ast = vec_get(stmts, i);
+                emit_code(ast);
+            }
+            break;
         case If:
             emit_code(n->if_stmt.expression);
             printf("  cmpq $0, %%rax\n");
             printf("  je .Lend\n");
-            emit_code(n->if_stmt.stmt);
+            emit_code(n->if_stmt.stmt); 
             printf(".Lend:\n");
             break;
         default:

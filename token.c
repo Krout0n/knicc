@@ -49,6 +49,9 @@ char *find_token_name(TokenType t) {
         case If:
             s = "If";
             break;
+        case COMPOUND_STMT:
+            s = "COMPOUND_STMT";
+            break;
         default:
             s = "UNEXPECTED TOKEN";
             break;
@@ -87,7 +90,7 @@ Token new_token(char *literal, TokenType kind) {
 }
 
 void debug_token(Token t) {
-    printf("Token.type: %s literal: %s\n", find_token_name(t.type), t.literal);
+    printf("Token.type: %s, literal: %s\n", find_token_name(t.type), t.literal);
 }
 
 bool is_binop(TokenType type) {

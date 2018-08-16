@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -51,7 +52,7 @@ Node *make_ast_func_decl(char *func_name) {
     strcpy(n->func_decl.func_name, func_name);
     n->func_decl.map = init_map();
     n->func_decl.argc = 0;
-    n->statements = init_vector();
+    n->compound_stmt.block_item_list = init_vector();
     return n;
 }
 
@@ -67,7 +68,7 @@ Node *make_ast_if_stmt(Node *expr, Node *stmt) {
 Node *make_ast_compound_statement(void) {
     Node *n = malloc(sizeof(Node));
     n->type = COMPOUND_STMT;
-    n->statements = init_vector();
+    n->compound_stmt.block_item_list = init_vector();
     return n;
 }
 
@@ -228,7 +229,7 @@ Node *compound_statement(Lexer *l) {
     assert(get_token(l).type == LBrace);
     Node *n = make_ast_compound_statement();
     while (peek_token(l).type != RBrace) {
-        vec_push(n->statements, statement(l));
+        vec_push(n->compound_stmt.block_item_list, statement(l));
     }
     assert(get_token(l).type == RBrace);
     return n;
@@ -269,7 +270,7 @@ Node *func_decl(Lexer *lexer) {
     assert(get_token(l).type == LBrace);
     while (peek_token(l).type != RBrace) {
         Node *n = statement(l);
-        vec_push(func_ast->statements, n);
+        vec_push(func_ast->compound_stmt.block_item_list, n);
         if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT && find_by_key(map, n->left->literal) == NULL) {
             KeyValue *kv = new_kv(n->left->literal, (map->vec->length + 1) * -8);
             insert_map(map, kv);

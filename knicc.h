@@ -117,7 +117,9 @@ typedef struct Node {
         struct Node *expression;
         struct Node *stmt;
     } if_stmt;
-    Vector *statements;
+    struct {
+        Vector *block_item_list;
+    } compound_stmt;
 } Node;
 
 extern Node *func_decl(Lexer *l);

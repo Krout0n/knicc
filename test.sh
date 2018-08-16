@@ -85,8 +85,11 @@ exit_code 'main(){ if (1) 10;}' '10'
 exit_code 'main(){ if (2 < 1) 10; 20;}' '20'
 # exit_code 'main(){ if (10 > 5) 10;}' '10'
 exit_code 'main() { if (1+2 < 4) 10;}' '10'
-# exit_code 'main() { if (1) { 10; 20;} ' '20'
 exit_code 'main() { a=1; v=1; if (a) v=20; v;}' '20'
 exit_code 'main() { a=0; v=1; if (a) v=20; v;}' '1'
+exit_code 'main() { a=1; v=1; if (a+1 < 3) v=20; v;}' '20'
+exit_code 'main() { a=1; v=1; if (a+1 < 1) v=20; v;}' '1'
+exit_code 'main() { if (1) { 10; 20;}}' '20'
+exit_code 'inc (a){ a+1; } main() { a=10; if (1) { inc(a); }}' '11'
 
 make clean
