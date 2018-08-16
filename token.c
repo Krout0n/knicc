@@ -61,8 +61,8 @@ char *find_token_name(TokenType t) {
         case For:
             s = "for";
             break;
-        case TYPE_INT:
-            s = "TYPE_INT";
+        case DEC_INT:
+            s = "DEC_INT";
             break;
         default:
             s = "UNEXPECTED TOKEN";
@@ -93,7 +93,7 @@ TokenType keyword(char *s) {
     if (strcmp("if", s) == 0) return If;
     if (strcmp("while", s) == 0) return While;
     if (strcmp("for", s) == 0) return For;
-    if (strcmp("int", s) == 0) return TYPE_INT;
+    if (strcmp("int", s) == 0) return DEC_INT;
     return IDENT;
 }
 
