@@ -9,6 +9,7 @@ Node *expression(Lexer *l);
 Node *statement(Lexer *l);
 
 Lexer *l;
+Map *map;
 
 Node *make_ast_int(int val) {
     Node *n = malloc(sizeof(Node));
@@ -73,6 +74,16 @@ Node *make_ast_while_stmt(Node *expr, Node *stmt) {
     return n;
 }
 
+Node *make_ast_for_stmt(Node *init_expr, Node *cond_expr, Node *loop_expr, Node *stmt) {
+    Node *n = malloc(sizeof(Node));
+    n->type = For;
+    n->for_stmt.init_expr = init_expr;
+    n->for_stmt.cond_expr = cond_expr;
+    n->for_stmt.loop_expr = loop_expr;
+    n->for_stmt.stmt = stmt;
+    return n;
+}
+
 Node *make_ast_compound_statement(void) {
     Node *n = malloc(sizeof(Node));
     n->type = COMPOUND_STMT;
@@ -96,6 +107,10 @@ Node *primary_expression(Lexer *l) {
             }
             assert(get_token(l).type == RParen);
             return make_ast_func_call(t.literal, argc, argv);
+        }
+        if (find_by_key(map, t.literal) == NULL) {
+            KeyValue *kv = new_kv(t.literal, (map->vec->length + 1) * -8);
+            insert_map(map, kv);
         }
         return make_ast_ident(t.literal);
     }
@@ -234,12 +249,25 @@ Node *selection_statement(Lexer *l) {
 }
 
 Node *iteration_statement(Lexer *l) {
-    assert(get_token(l).type == While);
+    Node *stmt;
+    Token t = get_token(l);
     assert(get_token(l).type == LParen);
-    Node *expr = expression(l);
-    assert(get_token(l).type == RParen);
-    Node *stmt = statement(l);
-    return make_ast_while_stmt(expr, stmt);
+    if (t.type == While) {
+        Node *expr = expression(l);
+        assert(get_token(l).type == RParen);
+        Node *_stmt = statement(l);
+        stmt = make_ast_while_stmt(expr, _stmt);
+    } else if (t.type == For) {
+        Node *init = expression(l);
+        assert(get_token(l).type == SEMICOLON);
+        Node *cond = expression(l);
+        assert(get_token(l).type == SEMICOLON);
+        Node *loop = expression(l);
+        assert(get_token(l).type == RParen);
+        Node *_stmt = statement(l);
+        stmt = make_ast_for_stmt(init, cond, loop, _stmt);
+    }
+    return stmt;
 }
 
 Node *compound_statement(Lexer *l) {
@@ -257,7 +285,7 @@ Node *statement(Lexer *l) {
     Token t = peek_token(l);
     if (t.type == If) {
         expr = selection_statement(l);
-    } else if (t.type == While) {
+    } else if (t.type == While || t.type == For) {
         expr = iteration_statement(l);
     } else if (t.type == LBrace) {
         expr = compound_statement(l);
@@ -274,7 +302,7 @@ Node *func_decl(Lexer *lexer) {
     char *func_name = malloc(sizeof(char) * strlen(t.literal));
     strcpy(func_name, t.literal);
     Node *func_ast = make_ast_func_decl(func_name);
-    Map *map = func_ast->func_decl.map;
+    map = func_ast->func_decl.map;
     assert(get_token(l).type == LParen);
     while (peek_token(l).type != RParen) {
         Token arg = get_token(l);
@@ -290,10 +318,6 @@ Node *func_decl(Lexer *lexer) {
     while (peek_token(l).type != RBrace) {
         Node *n = statement(l);
         vec_push(func_ast->compound_stmt.block_item_list, n);
-        if (is_binop(n->type) && n->left != NULL && n->left->type == IDENT && find_by_key(map, n->left->literal) == NULL) {
-            KeyValue *kv = new_kv(n->left->literal, (map->vec->length + 1) * -8);
-            insert_map(map, kv);
-        }
     }
     assert(get_token(l).type == RBrace);
     return func_ast;

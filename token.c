@@ -28,6 +28,9 @@ char *find_token_name(TokenType t) {
         case ASSIGN:
             s = "ASSIGN";
             break;
+        case Less:
+            s = "Less";
+            break;
         case _EOF:
             s = "EOF";
             break;
@@ -54,6 +57,9 @@ char *find_token_name(TokenType t) {
             break;
         case COMPOUND_STMT:
             s = "COMPOUND_STMT";
+            break;
+        case For:
+            s = "for";
             break;
         default:
             s = "UNEXPECTED TOKEN";
@@ -83,6 +89,7 @@ TokenType spacial_char(char c) {
 TokenType keyword(char *s) {
     if (strcmp("if", s) == 0) return If;
     if (strcmp("while", s) == 0) return While;
+    if (strcmp("for", s) == 0) return For;
     return IDENT;
 }
 

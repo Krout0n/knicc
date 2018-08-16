@@ -24,8 +24,10 @@ typedef enum {
     LBrace,
     RBrace,
     COMMA,
+
     If,
     While,
+    For,
 
     //
     COMPOUND_STMT,
@@ -124,6 +126,12 @@ typedef struct Node {
     struct {
         Vector *block_item_list;
     } compound_stmt;
+    struct {
+        struct Node *init_expr;
+        struct Node *cond_expr;
+        struct Node *loop_expr;
+        struct Node *stmt;
+    } for_stmt;
 } Node;
 
 extern Node *func_decl(Lexer *l);

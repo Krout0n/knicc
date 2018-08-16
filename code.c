@@ -132,6 +132,17 @@ void codegen(Node *n) {
             printf("  jmp .Lbegin\n");
             printf(".Lend:\n");
             break;
+        case For:
+            emit_code(n->for_stmt.init_expr);
+            printf(".Lbegin:\n");
+            emit_code(n->for_stmt.cond_expr);
+            printf("  pop %%rax\n");
+            printf("  cmpq $0, %%rax\n");
+            printf("  je .Lend\n");
+            emit_code(n->for_stmt.stmt); 
+            printf("  jmp .Lbegin\n");
+            printf(".Lend:\n");
+            break;
         default:
             debug_token(new_token("", n->type));
             return;

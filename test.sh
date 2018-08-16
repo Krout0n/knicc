@@ -58,6 +58,7 @@ exit_code 'main(){(1*2)+3;}' 5
 exit_code 'main(){(1+2+3);}' 6
 exit_code 'main(){(9-5)*10;}' 40
 
+exit_code 'main(){ a=1;}' 1
 exit_code 'main(){ a=1; a;}' 1
 exit_code 'main(){ a=1+2; a;}' 3
 exit_code 'main(){ a=1;b=2; b;}' 2
@@ -94,5 +95,6 @@ exit_code 'main() { a = 10; a = a + 1;}' '11'
 exit_code 'inc (a){ a+1; } main() { a=10; if (1) { inc(a); }}' '11'
 exit_code 'main(){ a=1; while(a < 5){ a = a + 1;} a;}' '5'
 exit_code 'main() { a = 1; while (0) { a= a+1;} a;}' '1'
+exit_code 'main() { for (a = 1; a < 10; a = a + 1) { a = a + 2; } }' '11'
 
 make clean

@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
     while (1) {
         Token t = lex(&l);
         store_token(&l, t);
+        // debug_token(t);
         if (t.type == _EOF) break;
     }
     Vector *funcs = init_vector();
