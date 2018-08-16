@@ -39,7 +39,7 @@ void emit_func_decl(Node *n) {
 }
 
 void emit_func_ret(void) {
-    printf("  pop %%rax\n");
+    printf("\n  pop %%rax\n");
     printf("  add $%ld, %%rsp\n", 8 * vec_size(map->vec));
     printf("  mov %%rbp, %%rsp\n");
     printf("  pop %%rbp\n");
@@ -67,25 +67,25 @@ void codegen(Node *n) {
     Vector *stmts;
     switch(n->type) {
         case INT:
-            printf("  push $%d\n\n", n->ival);
+            printf("  push $%d\n", n->ival);
             break;
         case ADD:
             printf("  pop %%rax\n");
             printf("  pop %%rdx\n");
             printf("  add %%rdx, %%rax\n");
-            printf("  push %%rax\n\n");
+            printf("  push %%rax\n");
             break;
         case SUB:
             printf("  pop %%rdx\n");
             printf("  pop %%rax\n");
             printf("  sub %%rdx, %%rax\n");
-            printf("  push %%rax\n\n");
+            printf("  push %%rax\n");
             break;
         case MULTI:
             printf("  pop %%rdx\n");
             printf("  pop %%rax\n");
             printf("  imul %%rdx, %%rax\n");
-            printf("  push %%rax\n\n");
+            printf("  push %%rax\n");
             break;
         case ASSIGN:
             emit_lvalue_code(n);
@@ -96,21 +96,22 @@ void codegen(Node *n) {
             printf("  cmpq %%rdx, %%rax\n");
             printf("  setl %%al\n");
             printf("  movzbl %%al, %%eax\n");
-            printf("  push %%rax\n\n");
+            printf("  push %%rax\n");
             break;
         case IDENT:
-            printf("  mov %d(%%rbp), %%rax\n", (int)(find_by_key(map, n->literal)->value));
-            printf("  pushq %%rax\n\n");
+            printf("  mov %d(%%rbp), %%rax\n", (int)(size_t)(find_by_key(map, n->literal)->value));
+            printf("  pushq %%rax\n");
             break;
         case FUNC_CALL:
             emit_args(n);
             printf("  call %s\n", n->func_call.func_name);
-            printf("  push %%rax\n\n");
+            printf("  push %%rax\n");
             break;
         case COMPOUND_STMT:
             stmts = n->compound_stmt.block_item_list;
             for (int i = 0; i < stmts->length; i++) {
                 Node *ast = vec_get(stmts, i);
+                printf("\n// %d line\n", i+1);
                 emit_code(ast);
             }
             break;
@@ -143,6 +144,14 @@ void codegen(Node *n) {
             printf("  jmp .Lbegin\n");
             printf(".Lend:\n");
             break;
+        case Ref:
+            printf("  leaq %d(%%rbp),  %%rax\n", (int)(size_t)find_by_key(map, n->left->literal)->value);
+            printf("  push %%rax  \n");
+            break;
+        case Deref:
+            printf("  movq %d(%%rbp), %%rax\n", (int)(size_t)find_by_key(map, n->left->literal)->value);
+            printf("  push (%%rax)  \n");
+            break;
         default:
             debug_token(new_token("", n->type));
             return;
@@ -159,14 +168,14 @@ void emit_code(Node *n) {
 
 void emit_lvalue_code(Node *n) {
     // aを左辺値としてコンパイル。lea命令を使うことでアドレスを取得
-    printf("  leaq %d(%%rbp), %%rax\n", (int)(find_by_key(map, n->left->literal)->value));
+    printf("  leaq %d(%%rbp), %%rax\n", (int)(size_t)(find_by_key(map, n->left->literal)->value));
     printf("  pushq %%rax\n");
     emit_code(n->right);
 
     // 代入を実行
     printf("  pop %%rbx\n");
     printf("  pop %%rax\n");
-    printf("  mov %%rbx, (%%rax)\n\n");
+    printf("  mov %%rbx, (%%rax)\n");
     printf("  push %%rbx\n");
 }
 

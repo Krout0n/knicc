@@ -94,6 +94,9 @@ exit_code 'int inc (int a){ a+1; } int main() { int a; a=10; if (1) { inc(a); }}
 exit_code 'int main(){ int a; a=1; while(a < 5){ a = a + 1;} a;}' '5'
 exit_code 'int main() { int a; a = 1; while (0) { a= a+1;} a;}' '1'
 exit_code 'int main() { int a; for (a = 1; a < 10; a = a + 1) { a = a + 2; } }' '11'
+exit_code 'int main() {int a; a = 1; int *b; b = &a; *b;}' '1'
+exit_code 'int main() {int a; a = 1; int c; c = 2; int *b; b = &c; if(1){b = &a;} *b;}' '1'
+exit_code 'int main() {int a; a = 1; int c; c = 2; int *b; b = &c; if(0){b = &a;} *b;}' '2'
 # failng_test 'int inc (a) { a + 1; } int main() { inc(10) }' 正しく落ちた
 
 make clean

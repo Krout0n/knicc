@@ -30,6 +30,8 @@ typedef enum {
     For,
 
     DEC_INT,
+    Ref,
+    Deref,
 
     //
     COMPOUND_STMT,
@@ -52,6 +54,7 @@ extern Token new_token(char *literal, TokenType kind);
 extern bool assert_token(TokenType expected, TokenType got);
 extern void debug_token(Token t);
 extern bool is_binop(TokenType type);
+extern bool is_unaryop(TokenType type);
 
 // lexer.c
 typedef struct {
@@ -118,7 +121,6 @@ typedef struct Node {
     } func_call;
     struct { // FUNC_DECL
         char *func_name;
-        struct CompoundStatement *stmt;
         int argc;
         Map *map;
     } func_decl;
@@ -139,6 +141,9 @@ typedef struct Node {
         struct Node *loop_expr;
         struct Node *stmt;
     } for_stmt;
+    struct {
+        struct Node *next;
+    } pointer;
 } Node;
 
 extern Node *func_decl(Lexer *l);

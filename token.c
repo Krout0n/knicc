@@ -64,6 +64,12 @@ char *find_token_name(TokenType t) {
         case DEC_INT:
             s = "DEC_INT";
             break;
+        case Deref:
+            s = "Deref";
+            break;
+        case Ref:
+            s = "Ref";
+            break;
         default:
             s = "UNEXPECTED TOKEN";
             break;
@@ -73,6 +79,7 @@ char *find_token_name(TokenType t) {
 
 TokenType spacial_char(char c) {
     switch (c) {
+        case '&': return Ref;
         case ';': return SEMICOLON;
         case '+': return ADD;
         case '-': return SUB;
@@ -116,6 +123,16 @@ bool is_binop(TokenType type) {
         case ASSIGN:
         case Less:
         case More:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_unaryop(TokenType type) {
+    switch (type) {
+        case Ref:
+        case MULTI:
             return true;
         default:
             return false;

@@ -34,3 +34,12 @@ KeyValue *find_by_key(Map *map, char *key) {
 	}
 	return NULL;
 }
+
+void debug_map(Map *map) {
+	printf("Map: {\n");
+	for (int i = 0; i < map->vec->length; i++) {
+		KeyValue *kv = vec_get(map->vec, i);
+		printf("  %s: %d,\n", kv->key, kv->value);
+	}
+	printf("}\n");
+}

@@ -7,9 +7,17 @@
 
 Node *expression(Lexer *l);
 Node *statement(Lexer *l);
+Node *cast_expression(Lexer *l);
 
 Lexer *l;
 Map *map;
+
+int how_many_nested_pointer(Node *n, int i) {
+    if (n->pointer.next != NULL) {
+        return how_many_nested_pointer(n->pointer.next, i+1);
+    }
+    return i;
+}
 
 Node *make_ast_int(int val) {
     Node *n = malloc(sizeof(Node));
@@ -26,11 +34,12 @@ Node *make_ast_op(int type, Node *left, Node *right) {
     return n;
 }
 
-Node *make_ast_ident(char *literal) {
+Node *make_ast_ident(char *literal, Node *pointer) {
     Node *n = malloc(sizeof(Node));
     n->literal = malloc(sizeof(char) * strlen(literal));
     strcpy(n->literal, literal);
     n->type = IDENT;
+    n->pointer.next = pointer;
     return n;
 }
 
@@ -91,6 +100,19 @@ Node *make_ast_compound_statement(void) {
     return n;
 }
 
+Node *make_ast_pointer(Node *previous) {
+    Node *next = malloc(sizeof(Node));
+    previous->pointer.next = next;
+    return next;
+}
+
+Node *make_ast_unary_op(int type, Node *left) {
+    Node *n = malloc(sizeof(Node));
+    n->type = type;
+    n->left = left;
+    return n;
+}
+
 Node *primary_expression(Lexer *l) {
     Token t = get_token(l);
     if (t.type == INT) return make_ast_int(atoi(t.literal));
@@ -108,7 +130,7 @@ Node *primary_expression(Lexer *l) {
             assert(get_token(l).type == RParen);
             return make_ast_func_call(t.literal, argc, argv);
         }
-        return make_ast_ident(t.literal);
+        return make_ast_ident(t.literal, NULL);
     }
     // debug_token(t);
     assert(t.type == LParen);
@@ -117,8 +139,22 @@ Node *primary_expression(Lexer *l) {
     return left;
 }
 
+Node *pointer(Lexer *l) {
+    Node *previous = malloc(sizeof(Node));
+    Node *ret = previous;
+    while (peek_token(l).type == MULTI) {
+        Node *next;
+        next = make_ast_pointer(previous);
+        previous = next;
+        get_token(l);
+        // printf("NESTED!\n");
+    }
+    return ret;
+}
+
 Node *declaration(Lexer *l) {
     assert(get_token(l).type == DEC_INT);
+    Node *p = pointer(l);
     Token ident = get_token(l);
     assert(ident.type == IDENT);
     assert(get_token(l).type == SEMICOLON);
@@ -126,7 +162,7 @@ Node *declaration(Lexer *l) {
         KeyValue *kv = new_kv(ident.literal, (void *)((map->vec->length + 1) * -8));
         insert_map(map, kv);
     }
-    return make_ast_ident(ident.literal);
+    return make_ast_ident(ident.literal, p);
 }
 
 Node *postfix_expression(Lexer *l) {
@@ -135,6 +171,13 @@ Node *postfix_expression(Lexer *l) {
 }
 
 Node *unary_expression(Lexer *l) {
+    if (is_unaryop(peek_token(l).type)) {
+        Token op = get_token(l);
+        TokenType ty = op.type;
+        if (op.type == MULTI) ty = Deref;
+        Node *n = cast_expression(l);
+        return make_ast_unary_op(ty, n);
+    }
     Node *n = postfix_expression(l);
     return n;
 }
