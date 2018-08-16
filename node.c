@@ -34,12 +34,11 @@ Node *make_ast_op(int type, Node *left, Node *right) {
     return n;
 }
 
-Node *make_ast_ident(char *literal, Node *pointer) {
+Node *make_ast_ident(char *literal) {
     Node *n = malloc(sizeof(Node));
     n->literal = malloc(sizeof(char) * strlen(literal));
     strcpy(n->literal, literal);
     n->type = IDENT;
-    n->pointer.next = pointer;
     return n;
 }
 
@@ -137,7 +136,7 @@ Node *primary_expression(Lexer *l) {
             assert(get_token(l).type == RParen);
             return make_ast_func_call(t.literal, argc, argv);
         }
-        return make_ast_ident(t.literal, NULL);
+        return make_ast_ident(t.literal);
     }
     // debug_token(t);
     assert(t.type == LParen);
@@ -166,10 +165,10 @@ Node *declaration(Lexer *l) {
     assert(ident.type == IDENT);
     assert(get_token(l).type == SEMICOLON);
     if (find_by_key(map, ident.literal) == NULL) {
-        KeyValue *kv = new_kv(ident.literal, (void *)((map->vec->length + 1) * -8));
+        KeyValue *kv = new_kv(ident.literal, new_var(TYPE_INT, (void *)((map->vec->length + 1) * -8)));
         insert_map(map, kv);
     }
-    return make_ast_ident(ident.literal, p);
+    return make_ast_ident(ident.literal);
 }
 
 Node *postfix_expression(Lexer *l) {
@@ -381,8 +380,8 @@ Node *func_decl(Lexer *lexer) {
         assert(get_token(l).type == DEC_INT);
         Token arg = get_token(l);
         assert(arg.type == IDENT);
-        KeyValue *kv = new_kv(arg.literal, (void *)((map->vec->length + 1) * -8));
-        insert_map(func_ast->func_decl.map, kv);
+        KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, (map->vec->length + 1) * -8));
+        insert_map(map, kv);
         func_ast->func_decl.argc += 1;
         if (peek_token(l).type == COMMA) get_token(l);
     }

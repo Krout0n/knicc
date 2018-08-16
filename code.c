@@ -99,7 +99,7 @@ void codegen(Node *n) {
             printf("  push %%rax\n");
             break;
         case IDENT:
-            printf("  mov %d(%%rbp), %%rax\n", (int)(size_t)(find_by_key(map, n->literal)->value));
+            printf("  mov %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->position);
             printf("  pushq %%rax\n");
             break;
         case FUNC_CALL:
@@ -146,11 +146,11 @@ void codegen(Node *n) {
             printf(".Lend:\n");
             break;
         case Ref:
-            printf("  leaq %d(%%rbp),  %%rax\n", (int)(size_t)find_by_key(map, n->left->literal)->value);
+            printf("  leaq %d(%%rbp),  %%rax\n", ((Var *)(find_by_key(map, n->left->literal)->value))->position);
             printf("  push %%rax  \n");
             break;
         case Deref:
-            printf("  movq %d(%%rbp), %%rax\n", (int)(size_t)find_by_key(map, n->left->literal)->value);
+            printf("  movq %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->left->literal)->value))->position);
             printf("  push (%%rax)  \n");
             break;
         case Return:
@@ -176,7 +176,7 @@ void emit_code(Node *n) {
 
 void emit_lvalue_code(Node *n) {
     // aを左辺値としてコンパイル。lea命令を使うことでアドレスを取得
-    printf("  leaq %d(%%rbp), %%rax\n", (int)(size_t)(find_by_key(map, n->left->literal)->value));
+    printf("  leaq %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->left->literal)->value))->position);
     printf("  pushq %%rax\n");
     emit_code(n->right);
 

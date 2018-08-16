@@ -86,15 +86,21 @@ extern void vec_push(Vector *vec, void *item);
 extern void *vec_get(Vector *vec, int index);
 
 // map.c
-struct Type {
-    enum { TYPE_INT, PTR } ty;
-    struct Type *ptrof;
-};
+
+typedef enum {
+    TYPE_INT,
+    TYPE_POINTER
+} TrueType;
 
 typedef struct {
 	char *key;
 	void *value;
 } KeyValue;
+
+typedef struct {
+    TrueType type;
+    int position;
+} Var;
 
 typedef struct {
     Vector *vec;
@@ -162,4 +168,6 @@ void emit_lvalue_code(Node *n);
 void codegen(Node *n);
 extern void print_ast(Node *n);
 
+// semantics.c
+extern Var *new_var(TrueType type, int pos);
 #endif
