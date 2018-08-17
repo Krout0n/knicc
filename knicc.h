@@ -89,7 +89,8 @@ extern void *vec_get(Vector *vec, int index);
 
 typedef enum {
     TYPE_INT,
-    TYPE_POINTER
+    TYPE_INT_PTR,
+    TYPE_PTR_PTR,
 } TrueType;
 
 typedef struct {
@@ -170,4 +171,5 @@ extern void print_ast(Node *n);
 
 // semantics.c
 extern Var *new_var(TrueType type, int pos);
+extern int add_sub_ptr(TrueType ty);
 #endif

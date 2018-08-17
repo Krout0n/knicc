@@ -35,6 +35,11 @@ KeyValue *find_by_key(Map *map, char *key) {
 	return NULL;
 }
 
+KeyValue *last_inserted(Map *map) {
+	Vector *vec = map->vec;
+	return (KeyValue *) vec_get(vec, vec_size(vec));
+}
+
 void debug_map(Map *map) {
 	printf("Map: {\n");
 	for (int i = 0; i < map->vec->length; i++) {

@@ -125,7 +125,7 @@ Node *primary_expression(Lexer *l) {
     else if (t.type == IDENT) {
         if (peek_token(l).type == LParen) {
             get_token(l);
-            Node *argv[6];
+            Node **argv = malloc(sizeof(Node) * 6);
             int argc = 0;
             while (1) {
                 if (peek_token(l).type == RParen) break;
@@ -136,6 +136,7 @@ Node *primary_expression(Lexer *l) {
             assert(get_token(l).type == RParen);
             return make_ast_func_call(t.literal, argc, argv);
         }
+        assert(find_by_key(map, t.literal) != NULL);
         return make_ast_ident(t.literal);
     }
     // debug_token(t);
@@ -165,7 +166,12 @@ Node *declaration(Lexer *l) {
     assert(ident.type == IDENT);
     assert(get_token(l).type == SEMICOLON);
     if (find_by_key(map, ident.literal) == NULL) {
-        KeyValue *kv = new_kv(ident.literal, new_var(TYPE_INT, (void *)((map->vec->length + 1) * -8)));
+        TrueType ty;
+        int nested_times = how_many_nested_pointer(p, 0);
+        if (nested_times == 0 ) ty = TYPE_INT;
+        else if (nested_times == 1) ty = TYPE_INT_PTR;
+        else ty = TYPE_PTR_PTR;
+        KeyValue *kv = new_kv(ident.literal, new_var(ty, (void *)((map->vec->length + 1) * -8)));
         insert_map(map, kv);
     }
     return make_ast_ident(ident.literal);

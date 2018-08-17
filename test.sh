@@ -32,6 +32,23 @@ printing_test() {
   rm -rf a.out
 }
 
+using_other() {
+  expr=$1
+  expected=$2
+  echo $expr | ./compiler > test.s
+  gcc -c test/lib.c
+  gcc -g test.s lib.o
+  ./a.out
+  exit_code=$?
+  if [  $exit_code -eq $expected ] ; then
+    echo "[\e[32mSUCCESS\e[37m] using other test succeeded, got=${expr}"
+  else
+    echo "[\e[31mFAILED\e[37m] using other test failed, args=${expr} expected=${expected}, got=${exit_code}"
+    exit 1
+  fi
+  rm -rf a.out
+}
+
 exit_code "int main(){ return 1;}" 1
 exit_code "int main(){10;}" 10
 exit_code "int main(){22;}" 22
@@ -112,7 +129,11 @@ exit_code 'int main() { int a; int b; b = 3; for (a = 1; a < 3; a = a + 1) { b =
 exit_code 'int main() { int a; int b; b = 0; for (a = 1; a < 3; a = a + 1) { b = b + a; }  return b;}' '3'
 exit_code 'int fib(int n) {int a;a = 0;int b;b = 1;int i;int temp; for (i = 1; i < n; i = i + 1) {temp = b; b = a + b; a = temp;}return a;} int main() { return fib(10); }' '34'
 exit_code 'int inc(int n) { return n+1; } int main() { int ten; ten = 10; return inc(ten + 1); }' '12'
-
+exit_code 'int get_ptr_set(int x) { return x+1; } int main() { int *x; int y; y = 3; x = &y; get_ptr_set(*x); }' '4'
+exit_code 'int set_local_ptr_var() {int x; x = 10; int *p; p = &x; return p;} int main() { int *p; p=set_local_ptr_var(); return *p;}' '10'
+using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); return *p; }' '1'
+using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+2; return *q; }' '4'
+using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+3; return *q; }' '8'
 # exit_code 'int main() { int a; int b; a = 1; b = 2; int *p; p = &b; p = p + 1;}' '1'
 # exit_code 'int ten(int x){ if (x < 10) { return ten(x+1); } return x; } int main() { return ten(9); }' '10'
 # exit_code 'int fib(int a, int b, int i, int n) {if (i < n) return fib(b, a+b, i+1, n); return a;} int main(){return fib(0, 1, 0, 10); }' '34'

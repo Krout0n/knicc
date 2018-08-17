@@ -48,15 +48,10 @@ void emit_func_ret(void) {
 
 void emit_args(Node *n) {
     for (int i = 0; i < n->func_call.argc; i++) {
-        if (is_binop(n->func_call.argv[i]->type)) {
-            emit_code(n->func_call.argv[i]);
-            printf("  pop %%rax\n");
-            printf("  mov  %%rax,  %%%s\n", regs[i]);
-        }
         if (n->func_call.argv[i]->type == INT) {
             printf("  mov  $%d,  %%%s\n", n->func_call.argv[i]->ival, regs[i]);
-        } else if (n->func_call.argv[i]->type == IDENT) {
-            codegen(n->func_call.argv[i]); // IDENTにはいるはず
+        } else {
+            emit_code(n->func_call.argv[i]);
             printf("  pop %%rax\n");
             printf("  mov  %%rax,  %%%s\n", regs[i]);
         }
@@ -161,6 +156,7 @@ void codegen(Node *n) {
             printf("  ret\n");
             break;
         default:
+            printf("type of n->type: %d\n", n->type);
             debug_token(new_token("", n->type));
             return;
     }
@@ -168,8 +164,27 @@ void codegen(Node *n) {
 
 void emit_code(Node *n) {
     if (is_binop(n->type) && n->type != ASSIGN) {
-        emit_code(n->left);
-        emit_code(n->right);
+        if (n->type == ADD || n->type == SUB) {
+            if (n->left->type == IDENT) {
+                TrueType ty = ((Var *)(find_by_key(map, n->left->literal)->value))->type;
+                int s = add_sub_ptr(ty);
+                emit_code(n->left);
+                n->right->ival *= s;
+                emit_code(n->right);
+            } else if (n->right->type == IDENT) {
+                TrueType ty = ((Var *)(find_by_key(map, n->right->literal)->value))->type;
+                int s = add_sub_ptr(ty);
+                n->left->ival *= s;
+                emit_code(n->left);
+                emit_code(n->right);
+            } else {
+                emit_code(n->left);
+                emit_code(n->right);
+            }
+        } else {
+            emit_code(n->left);
+            emit_code(n->right);
+        }
     }
     codegen(n);
 }
