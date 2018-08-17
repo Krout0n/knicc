@@ -11,4 +11,4 @@ test: compiler
 		./test.sh
 
 clean:
-		rm -f compiler *.o *~ *.s
+		rm -f compiler *.o *~ *.s *.out
