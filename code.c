@@ -147,7 +147,10 @@ void codegen(Node *n) {
             break;
         case Deref:
             var = get_first_var(map, n);
-            printf("  movq %d(%%rbp), %%rax\n", var->position);
+            emit_code(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
+            // emit_code(n->right); segfault
+            // printf("  movq %d(%%rbp), %%rax\n", var->position);
+            printf("  pop %%rax\n");
             printf("  push (%%rax)  \n");
             break;
         case Return:
@@ -196,11 +199,13 @@ void emit_lvalue_code(Node *n) {
     Var *v;
     if (n->left->type == Deref) {
         emit_lvalue_deref(n->left->left);
+        // printf("  pop %%rax\n");
+        // 最終的に p+12 とかのアドレスを返したい.
     } else {
         v = ((Var *)(find_by_key(map, n->left->literal)->value));
         printf("  leaq %d(%%rbp), %%rax\n", v->position);
+        printf("  pushq %%rax\n"); // アドレスを返してる
     }
-    printf("  pushq %%rax\n");
     emit_code(n->right);
 
     // 代入を実行
@@ -211,7 +216,6 @@ void emit_lvalue_code(Node *n) {
 }
 
 void emit_lvalue_deref(Node *n) {
-    // printf("OK\n");
     emit_code(n);
 }
 

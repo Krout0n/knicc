@@ -176,13 +176,20 @@ Node *declaration(Lexer *l) {
     }
     assert(get_token(l).type == SEMICOLON);
     if (find_by_key(map, ident.literal) == NULL) {
+        int allignment = 8;
         if (array_size == 0) {
             int nested_times = how_many_nested_pointer(p, 0);
             if (nested_times == 0 ) ty = TYPE_INT;
             else if (nested_times == 1) ty = TYPE_INT_PTR;
             else ty = TYPE_PTR_PTR;
         }
-        KeyValue *kv = new_kv(ident.literal, new_var(ty, (void *)((map->vec->length + 1) * -8)));
+        if (map->vec->length != 0) {
+            allignment = ((Var *)(last_inserted(map)->value))->position;
+            if (array_size == 0) allignment += 8;
+            else allignment += 8 * array_size;
+        }
+        debug_map(map);
+        KeyValue *kv = new_kv(ident.literal, new_var(ty, -1 * allignment));
         insert_map(map, kv);
     }
     return make_ast_ident(ident.literal);

@@ -118,6 +118,7 @@ extern void insert_map(Map *map, KeyValue *kv);
 extern void debug_map(Map *map);
 extern void debug_kv(KeyValue *kv);
 extern KeyValue *find_by_key(Map *map, char *key);
+extern KeyValue *last_inserted(Map *map);
 
 // node.c
 typedef struct Node {
@@ -178,4 +179,5 @@ extern void print_ast(Node *n);
 extern Var *new_var(TrueType type, int pos);
 extern int add_sub_ptr(TrueType ty);
 extern Var *get_first_var(Map *map, Node *n);
+extern void debug_var(Var *var);
 #endif
