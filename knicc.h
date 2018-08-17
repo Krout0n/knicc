@@ -23,6 +23,9 @@ typedef enum {
     RParen,
     LBrace,
     RBrace,
+    LBracket,
+    RBracket,
+
     COMMA,
 
     If,
@@ -89,6 +92,7 @@ extern void *vec_get(Vector *vec, int index);
 
 typedef enum {
     TYPE_INT,
+    TYPE_ARRAY,
     TYPE_INT_PTR,
     TYPE_PTR_PTR,
 } TrueType;
@@ -101,6 +105,7 @@ typedef struct {
 typedef struct {
     TrueType type;
     int position;
+    size_t array_size;
 } Var;
 
 typedef struct {
@@ -172,4 +177,5 @@ extern void print_ast(Node *n);
 // semantics.c
 extern Var *new_var(TrueType type, int pos);
 extern int add_sub_ptr(TrueType ty);
+extern Var *get_first_var(Map *map, Node *n);
 #endif

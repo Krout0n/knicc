@@ -95,6 +95,8 @@ TokenType spacial_char(char c) {
         case ',': return COMMA;
         case '<': return Less;
         case '>': return More;
+        case '[': return LBracket;
+        case ']': return RBracket;
         default: return NOT_FOUND;
     }
 }
@@ -137,6 +139,7 @@ bool is_unaryop(TokenType type) {
     switch (type) {
         case Ref:
         case MULTI:
+        case Deref:
             return true;
         default:
             return false;

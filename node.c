@@ -160,17 +160,28 @@ Node *pointer(Lexer *l) {
 }
 
 Node *declaration(Lexer *l) {
+    TrueType ty;
+    size_t array_size = 0;
     assert(get_token(l).type == DEC_INT);
     Node *p = pointer(l);
     Token ident = get_token(l);
     assert(ident.type == IDENT);
+    if (peek_token(l).type == LBracket) {
+        get_token(l);
+        Token t = get_token(l);
+        assert(t.type == INT);
+        array_size = atoi(t.literal);
+        ty = TYPE_INT_PTR;
+        assert(get_token(l).type == RBracket);
+    }
     assert(get_token(l).type == SEMICOLON);
     if (find_by_key(map, ident.literal) == NULL) {
-        TrueType ty;
-        int nested_times = how_many_nested_pointer(p, 0);
-        if (nested_times == 0 ) ty = TYPE_INT;
-        else if (nested_times == 1) ty = TYPE_INT_PTR;
-        else ty = TYPE_PTR_PTR;
+        if (array_size == 0) {
+            int nested_times = how_many_nested_pointer(p, 0);
+            if (nested_times == 0 ) ty = TYPE_INT;
+            else if (nested_times == 1) ty = TYPE_INT_PTR;
+            else ty = TYPE_PTR_PTR;
+        }
         KeyValue *kv = new_kv(ident.literal, new_var(ty, (void *)((map->vec->length + 1) * -8)));
         insert_map(map, kv);
     }
@@ -178,7 +189,14 @@ Node *declaration(Lexer *l) {
 }
 
 Node *postfix_expression(Lexer *l) {
-    Node *n = primary_expression(l);
+    Node *n;
+    if (peek_token(l).type == LBracket) {
+        get_token(l);
+        n = expression(l);
+        assert(get_token(l).type == RBracket);
+    } else {
+        n = primary_expression(l);
+    }
     return n;
 }
 
