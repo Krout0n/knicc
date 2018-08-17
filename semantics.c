@@ -16,3 +16,9 @@ int add_sub_ptr(TrueType ty) {
     }
     return 0;
 }
+
+Var *get_first_var(Map *map, Node *n) {
+    if (n->type != IDENT) return get_first_var(map, n->left);
+    Var *v = (Var *)(find_by_key(map, n->literal)->value);
+    return v;
+}

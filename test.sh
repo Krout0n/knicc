@@ -49,6 +49,10 @@ using_other() {
   rm -rf a.out
 }
 
+exit_code 'int main() {int *a; int b; a=&b; *a=10; return b;}' '10'
+exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; *p + *(p + 1); }' '3'
+exit_code 'int main() { int a[2]; *(a+1) = 2; *(a + 1); }' '2'
+# exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int b; b = *a; int c; c = *(a + 1); b+c; }' '3'
 exit_code "int main(){ return 1;}" 1
 exit_code "int main(){10;}" 10
 exit_code "int main(){22;}" 22
