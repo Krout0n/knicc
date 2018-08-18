@@ -12,7 +12,7 @@ char peek_char(Lexer *l) {
 }
 
 TokenType is_two_chars_op(char current, char peeked) {
-    if (current == '=' && peeked == '=') return Eq;
+    if (current == '=' && peeked == '=') return tEq;
     return NOT_FOUND;
 }
 
@@ -30,7 +30,7 @@ Token lex(Lexer *l) {
             c = l->src[l->index];
         }
         t.literal[i] = '\0';
-        t.type = INT;
+        t.type = tInt;
         return t;
     } else if (isalpha(c)) {
         while(isdigit(c) || isalpha(c) || c == '_') {

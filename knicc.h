@@ -6,48 +6,41 @@
 
 // token.c
 typedef enum {
-    INT,
-    IDENT,
-    SEMICOLON,
+    tInt,
+    tIdent,
+    tSemicolon,
     
-    ADD,
-    SUB,
-    MULTI,
-    ASSIGN,
-    Eq,
-    Less,
-    LessEq,
-    More,
-    MoreEq,
+    tAdd,
+    tSub,
+    tStar,
+    tAssign,
+    tEq,
+    tLess,
+    tLessEq,
+    tMore,
+    tMoreEq,
     
-    LParen,
-    RParen,
-    LBrace,
-    RBrace,
-    LBracket,
-    RBracket,
+    tLParen,
+    tRParen,
+    tLBrace,
+    tRBrace,
+    tLBracket,
+    tRBracket,
 
-    COMMA,
+    tComma,
 
-    If,
-    Else,
-    While,
-    For,
-    Return,
+    tIf,
+    tElse,
+    tWhile,
+    tFor,
+    tReturn,
 
-    DEC_INT,
-    Ref,
-    Deref,
+    tDecInt,
+    tRef,
 
-    //
-    COMPOUND_STMT,
     _EOF,
     NOT_FOUND, // used for only special_char()
     ERR, // unused
-
-    // used only ast
-    FUNC_DECL,
-    FUNC_CALL,
 } TokenType;
 
 typedef struct {
@@ -77,6 +70,7 @@ extern TokenType keyword(char *s);
 extern Lexer init_lexer();
 extern Token get_token(Lexer *l);
 extern Token peek_token(Lexer *l);
+extern bool is_unaryop_token(TokenType type);
 
 // vector.c
 typedef struct {
@@ -123,8 +117,38 @@ extern KeyValue *find_by_key(Map *map, char *key);
 extern KeyValue *last_inserted(Map *map);
 
 // node.c
+
+typedef enum {
+    IDENTIFIER,
+    INT,
+
+    ADD,
+    SUB,
+    MULTI,
+    ASSIGN,
+    EQ,
+    LESS,
+    LESSEQ,
+    MORE,
+    MOREEQ,
+
+    IF_STMT,
+    IF_ELSE_STMT,
+    WHILE,
+    FOR,
+    RETURN,
+
+    DEREF,
+    REF,
+
+    FUNC_CALL,
+    FUNC_DEF,
+
+    COMPOUND_STMT,
+} NodeType;
+
 typedef struct Node {
-    int type;
+    NodeType type;
     int ival;
     char *literal;
     struct Node *left;
@@ -164,7 +188,6 @@ typedef struct Node {
     struct {
         struct Node *expr;
     } ret_stmt;
-    int local_vars_size;
 } Node;
 
 extern Node *func_decl(Lexer *l);
