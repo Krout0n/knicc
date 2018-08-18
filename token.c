@@ -7,83 +7,65 @@
 char *find_token_name(TokenType t) {
     char *s;
     switch (t) {
-        case INT:
+        case tInt:
             s = "INT";
             break;
-        case IDENT:
+        case tIdent:
             s = "IDENT";
             break;
-        case SEMICOLON:
+        case tSemicolon:
             s = "SEMICOLON";
             break;
-        case ADD:
+        case tAdd:
             s = "ADD";
             break;
-        case SUB:
+        case tSub:
             s = "SUB";
             break;
-        case MULTI:
-            s = "MULTI";
+        case tStar:
+            s = "STAR";
             break;
-        case ASSIGN:
+        case tAssign:
             s = "ASSIGN";
             break;
-        case Eq:
+        case tEq:
             s = "Eq";
             break;
-        case Less:
+        case tLess:
             s = "Less";
             break;
         case _EOF:
             s = "EOF";
             break;
-        case LParen:
+        case tLParen:
             s = "LParen";
             break;
-        case RParen:
+        case tRParen:
             s = "RParen";
             break;
-        case LBrace:
+        case tLBrace:
             s = "LBrace";
             break;
-        case RBrace:
+        case tRBrace:
             s = "RBrace";
             break;
-        case COMMA:
+        case tComma:
             s = ",";
             break;
-        case If:
+        case tIf:
             s = "If";
             break;
-        case Else:
+        case tElse:
             s = "Else";
             break;
-        case While:
+        case tWhile:
             s = "While";
             break;
-        case Return:
+        case tReturn:
             s = "Return";
             break;
-        case COMPOUND_STMT:
-            s = "COMPOUND_STMT";
-            break;
-        case For:
+        case tFor:
             s = "for";
-            break;
-        case DEC_INT:
-            s = "DEC_INT";
-            break;
-        case Deref:
-            s = "Deref";
-            break;
-        case Ref:
-            s = "Ref";
-            break;
-        case FUNC_CALL:
-            s = "FUNC_CALL";
-            break;
-        case FUNC_DECL:
-            s = "FUNC_DECL";
             break;
         default:
             s = "UNEXPECTED TOKEN";
@@ -95,33 +77,33 @@ char *find_token_name(TokenType t) {
 
 TokenType spacial_char(char c) {
     switch (c) {
-        case '&': return Ref;
-        case ';': return SEMICOLON;
-        case '+': return ADD;
-        case '-': return SUB;
-        case '*': return MULTI;
-        case '=': return ASSIGN;
-        case '(': return LParen;
-        case ')': return RParen;
-        case '{': return LBrace;
-        case '}': return RBrace;
-        case ',': return COMMA;
-        case '<': return Less;
-        case '>': return More;
-        case '[': return LBracket;
-        case ']': return RBracket;
+        case '&': return tRef;
+        case ';': return tSemicolon;
+        case '+': return tAdd;
+        case '-': return tSub;
+        case '*': return tStar;
+        case '=': return tAssign;
+        case '(': return tLParen;
+        case ')': return tRParen;
+        case '{': return tLBrace;
+        case '}': return tRBrace;
+        case ',': return tComma;
+        case '<': return tLess;
+        case '>': return tMore;
+        case '[': return tLBracket;
+        case ']': return tRBracket;
         default: return NOT_FOUND;
     }
 }
 
 TokenType keyword(char *s) {
-    if (strcmp("if", s) == 0) return If;
-    if (strcmp("else", s) == 0) return Else;
-    if (strcmp("while", s) == 0) return While;
-    if (strcmp("for", s) == 0) return For;
-    if (strcmp("int", s) == 0) return DEC_INT;
-    if (strcmp("return", s) == 0) return Return;
-    return IDENT;
+    if (strcmp("if", s) == 0) return tIf;
+    if (strcmp("else", s) == 0) return tElse;
+    if (strcmp("while", s) == 0) return tWhile;
+    if (strcmp("for", s) == 0) return tFor;
+    if (strcmp("int", s) == 0) return tDecInt;
+    if (strcmp("return", s) == 0) return tReturn;
+    return tIdent;
 }
 
 Token new_token(char *literal, TokenType kind) {
@@ -135,27 +117,7 @@ void debug_token(Token t) {
     printf("Token.type: %s, literal: %s\n", find_token_name(t.type), t.literal);
 }
 
-bool is_binop(TokenType type) {
-    switch (type) {
-        case ADD:
-        case SUB:
-        case MULTI:
-        case ASSIGN:
-        case Less:
-        case More:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_unaryop(TokenType type) {
-    switch (type) {
-        case Ref:
-        case MULTI:
-        case Deref:
-            return true;
-        default:
-            return false;
-    }
+bool is_unaryop_token(TokenType type) {
+    if (type == tRef || type == tStar) return true;
+    return false;
 }

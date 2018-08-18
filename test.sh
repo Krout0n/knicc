@@ -136,12 +136,12 @@ exit_code 'int inc(int n) { return n+1; } int main() { int ten; ten = 10; return
 exit_code 'int get_ptr_set(int x) { return x+1; } int main() { int *x; int y; y = 3; x = &y; get_ptr_set(*x); }' '4'
 exit_code 'int set_local_ptr_var() {int x; x = 10; int *p; p = &x; return p;} int main() { int *p; p=set_local_ptr_var(); return *p;}' '10'
 using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); return *p; }' '1'
-using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+2; return *q; }' '4'
-using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+3; return *q; }' '8'
-using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); p = p+3; return *p; }' '8'
-using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int q; q = *(p+3); return q; }' '8'
-exit_code 'int main() {int *a; int b; a=&b; *a=10; return b;}' '10'
-exit_code 'int main() { int a[2]; int *p; p = a + 1; *p = 2; return *(a+1); }' '2'
+# using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+2; return *q; }' '4'
+# using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+3; return *q; }' '8'
+# using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); p = p+3; return *p; }' '8'
+# using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int q; q = *(p+3); return q; }' '8'
+# exit_code 'int main() {int *a; int b; a=&b; *a=10; return b;}' '10'
+# exit_code 'int main() { int a[2]; int *p; p = a + 1; *p = 2; return *(a+1); }' '2'
 
 # exit_code 'int main() { int a; int b; a = 1; b = 2; int *p; p = &b; p = p + 1;}' '1' // ローカル変数のアラインメントを利用したかった
 # exit_code 'int ten(int x){ if (x < 10) { return ten(x+1); } return x; } int main() { return ten(9); }' '10'

@@ -85,7 +85,7 @@ void codegen(Node *n) {
         case ASSIGN:
             emit_lvalue_code(n);
             break;
-        case Less:
+        case LESS:
             printf("  popq %%rdx\n");
             printf("  popq %%rax\n");
             printf("  cmpq %%rdx, %%rax\n");
@@ -93,7 +93,7 @@ void codegen(Node *n) {
             printf("  movzbl %%al, %%eax\n");
             printf("  push %%rax\n");
             break;
-        case IDENT:
+        case IDENTIFIER:
             printf("  mov %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->position);
             printf("  pushq %%rax\n");
             break;
@@ -110,7 +110,7 @@ void codegen(Node *n) {
                 emit_code(ast);
             }
             break;
-        case If:
+        case IF_STMT:
             emit_code(n->if_stmt.expression);
             printf("  pop %%rax\n");
             printf("  cmpq $0, %%rax\n");
@@ -118,7 +118,7 @@ void codegen(Node *n) {
             emit_code(n->if_stmt.true_stmt);
             printf(".Lend:\n");
             break;
-        case While:
+        case WHILE:
             printf(".Lbegin:\n");
             emit_code(n->while_stmt.expression);
             printf("  pop %%rax\n");
@@ -128,7 +128,7 @@ void codegen(Node *n) {
             printf("  jmp .Lbegin\n");
             printf(".Lend:\n");
             break;
-        case For:
+        case FOR:
             emit_code(n->for_stmt.init_expr);
             printf(".Lbegin:\n");
             emit_code(n->for_stmt.cond_expr);
@@ -140,12 +140,12 @@ void codegen(Node *n) {
             printf("  jmp .Lbegin\n");
             printf(".Lend:\n");
             break;
-        case Ref:
+        case REF:
             var = get_first_var(map, n);
             printf("  leaq %d(%%rbp),  %%rax\n", var->position);
             printf("  push %%rax  \n");
             break;
-        case Deref:
+        case DEREF:
             var = get_first_var(map, n);
             emit_code(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
             // emit_code(n->right); segfault
@@ -153,7 +153,7 @@ void codegen(Node *n) {
             printf("  pop %%rax\n");
             printf("  push (%%rax)  \n");
             break;
-        case Return:
+        case RETURN:
             emit_code(n->ret_stmt.expr);
             printf("  pop %%rax\n");
             printf("  add $%ld, %%rsp\n", 8 * vec_size(map->vec));
@@ -170,13 +170,13 @@ void codegen(Node *n) {
 void emit_code(Node *n) {
     if (is_binop(n->type) && n->type != ASSIGN) {
         if (n->type == ADD || n->type == SUB) {
-            if (n->left->type == IDENT) {
+            if (n->left->type == IDENTIFIER) {
                 TrueType ty = ((Var *)(find_by_key(map, n->left->literal)->value))->type;
                 int s = add_sub_ptr(ty);
                 emit_code(n->left);
                 n->right->ival *= s;
                 emit_code(n->right);
-            } else if (n->right->type == IDENT) {
+            } else if (n->right->type == IDENTIFIER) {
                 TrueType ty = ((Var *)(find_by_key(map, n->right->literal)->value))->type;
                 int s = add_sub_ptr(ty);
                 n->left->ival *= s;
@@ -191,13 +191,14 @@ void emit_code(Node *n) {
             emit_code(n->right);
         }
     }
+    // print_ast(n);
     codegen(n);
 }
 
 void emit_lvalue_code(Node *n) {
     // aを左辺値としてコンパイル。lea命令を使うことでアドレスを取得
     Var *v;
-    if (n->left->type == Deref) {
+    if (n->left->type == DEREF) {
         emit_lvalue_deref(n->left->left);
         // printf("  pop %%rax\n");
         // 最終的に p+12 とかのアドレスを返したい.
@@ -227,7 +228,7 @@ void print_ast(Node *node) {
             print_ast(node->right);
             printf(")");
             break;
-        case IDENT:
+        case IDENTIFIER:
             printf("%s ", node->literal);
             break;
         case ADD:
@@ -239,10 +240,10 @@ void print_ast(Node *node) {
         case MULTI:
             printf("(* ");
             goto print_op;
-        case Less:
+        case LESS:
             printf("(< ");
             goto print_op;
-        case More:
+        case MORE:
             printf("(> ");
             goto print_op;
             print_op:
@@ -262,7 +263,7 @@ void print_ast(Node *node) {
             }
             printf(")\n");
             break;
-        case If:
+        case IF_STMT:
             printf("(if ");
             print_ast(node->if_stmt.expression);
             print_ast(node->if_stmt.true_stmt);

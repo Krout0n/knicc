@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+
 #include "knicc.h"
 
 Var *new_var(TrueType type, int pos) {
@@ -7,6 +9,30 @@ Var *new_var(TrueType type, int pos) {
     v->type = type;
     v->position = pos;
     return v;
+}
+
+bool is_unaryop(TokenType type) {
+    switch (type) {
+        case REF:
+        case DEREF:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_binop(TokenType type) {
+    switch (type) {
+        case ADD:
+        case SUB:
+        case MULTI:
+        case ASSIGN:
+        case LESS:
+        case MORE:
+            return true;
+        default:
+            return false;
+    }
 }
 
 int add_sub_ptr(TrueType ty) {
@@ -26,7 +52,7 @@ int add_sub_ptr(TrueType ty) {
 }
 
 Var *get_first_var(Map *map, Node *n) {
-    if (n->type != IDENT) return get_first_var(map, n->left);
+    if (n->type != IDENTIFIER) return get_first_var(map, n->left);
     Var *v = (Var *)(find_by_key(map, n->literal)->value);
     return v;
 }
