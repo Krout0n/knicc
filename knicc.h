@@ -136,6 +136,7 @@ typedef struct Node {
         char *func_name;
         int argc;
         Map *map;
+        TrueType ret_type;
     } func_decl;
     struct {
         struct Node *expression;
