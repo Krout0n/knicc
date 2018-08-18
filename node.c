@@ -70,7 +70,7 @@ Node *make_ast_if_stmt(Node *expr, Node *stmt) {
     Node *n = malloc(sizeof(Node));
     n->type = If;
     n->if_stmt.expression = expr;
-    n->if_stmt.stmt = stmt;
+    n->if_stmt.true_stmt = stmt;
     return n;
 }
 

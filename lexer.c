@@ -3,10 +3,25 @@
 
 #include "knicc.h"
 
+char current_char(Lexer *l) {
+    return l->src[l->index];
+}
+
+char peek_char(Lexer *l) {
+    return l->src[l->index + 1];
+}
+
+TokenType is_two_chars_op(char current, char peeked) {
+    if (current == '=' && peeked == '=') return Eq;
+    return NOT_FOUND;
+}
+
 Token lex(Lexer *l) {
     Token t;
+    TokenType type;
     int i = 0;
-    char c = l->src[l->index];
+    char c = current_char(l);
+    char peeked;
     if (isdigit(c)) {
         while(isdigit(c)) {
             t.literal[i] = c;
@@ -16,6 +31,7 @@ Token lex(Lexer *l) {
         }
         t.literal[i] = '\0';
         t.type = INT;
+        return t;
     } else if (isalpha(c)) {
         while(isdigit(c) || isalpha(c) || c == '_') {
             t.literal[i] = c;
@@ -25,7 +41,28 @@ Token lex(Lexer *l) {
         }
         t.literal[i] = '\0';
         t.type = keyword(t.literal);
+        return t;
     } else if (spacial_char(c) != NOT_FOUND) {
+        switch (c) {
+            case '+':
+            case '-':
+            case '*':
+            // case '/':
+            case '!':
+            case '=':
+            case '<':
+            case '>':
+                peeked = peek_char(l);
+                type = is_two_chars_op(c, peeked);
+                if (type != NOT_FOUND) {
+                    t.literal[0] = c;
+                    t.literal[1] = peeked;
+                    t.literal[2] = '\0';
+                    t.type = type;
+                    l->index += 2;
+                    return t;
+                }
+        }
         t.literal[0] = c;
         t.literal[1] = '\0';
         t.type = spacial_char(c);

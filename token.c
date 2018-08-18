@@ -28,6 +28,9 @@ char *find_token_name(TokenType t) {
         case ASSIGN:
             s = "ASSIGN";
             break;
+        case Eq:
+            s = "Eq";
+            break;
         case Less:
             s = "Less";
             break;
@@ -52,6 +55,9 @@ char *find_token_name(TokenType t) {
         case If:
             s = "If";
             break;
+        case Else:
+            s = "Else";
+            break;
         case While:
             s = "While";
             break;
@@ -73,8 +79,15 @@ char *find_token_name(TokenType t) {
         case Ref:
             s = "Ref";
             break;
+        case FUNC_CALL:
+            s = "FUNC_CALL";
+            break;
+        case FUNC_DECL:
+            s = "FUNC_DECL";
+            break;
         default:
             s = "UNEXPECTED TOKEN";
+            printf("type: %d\n", t);
             break;
     }
     return s;
@@ -103,6 +116,7 @@ TokenType spacial_char(char c) {
 
 TokenType keyword(char *s) {
     if (strcmp("if", s) == 0) return If;
+    if (strcmp("else", s) == 0) return Else;
     if (strcmp("while", s) == 0) return While;
     if (strcmp("for", s) == 0) return For;
     if (strcmp("int", s) == 0) return DEC_INT;
