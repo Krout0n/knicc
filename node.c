@@ -163,7 +163,7 @@ Node *declaration(Lexer *l) {
     TrueType ty;
     size_t array_size = 0;
     assert(get_token(l).type == tDecInt);
-    // Node *p = pointer(l);
+    Node *p = pointer(l);
     Token ident = get_token(l);
     assert(ident.type == tIdent);
     if (peek_token(l).type == tLBracket) {
@@ -176,7 +176,7 @@ Node *declaration(Lexer *l) {
     }
     assert(get_token(l).type == tSemicolon);
     if (find_by_key(map, ident.literal) == NULL) {
-        KeyValue *kv = new_kv(ident.literal, new_var(ty, -8 * (map->vec->length + 1)));
+        KeyValue *kv = new_kv(ident.literal, new_var(ty, -8 * (map->vec->length + 1), p));
         insert_map(map, kv);
     }
     return make_ast_ident(ident.literal);
@@ -407,7 +407,7 @@ Node *func_decl(Lexer *lexer) {
         assert(get_token(l).type == tDecInt);
         Token arg = get_token(l);
         assert(arg.type == tIdent);
-        KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, (map->vec->length + 1) * -8));
+        KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, (map->vec->length + 1) * -8, NULL));
         insert_map(map, kv);
         func_ast->func_decl.argc += 1;
         if (peek_token(l).type == tComma) get_token(l);

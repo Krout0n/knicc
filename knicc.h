@@ -99,12 +99,6 @@ typedef struct {
 } KeyValue;
 
 typedef struct {
-    TrueType type;
-    int position;
-    size_t array_size;
-} Var;
-
-typedef struct {
     Vector *vec;
 } Map;
 
@@ -204,7 +198,14 @@ void codegen(Node *n);
 extern void print_ast(Node *n);
 
 // semantics.c
-extern Var *new_var(TrueType type, int pos);
+typedef struct {
+    TrueType type;
+    int position;
+    size_t array_size;
+    Node *next;
+} Var;
+
+extern Var *new_var(TrueType type, int pos, Node *pointer);
 extern int add_sub_ptr(TrueType ty);
 extern Var *get_first_var(Map *map, Node *n);
 extern void debug_var(Var *var);

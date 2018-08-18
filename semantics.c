@@ -4,10 +4,11 @@
 
 #include "knicc.h"
 
-Var *new_var(TrueType type, int pos) {
+Var *new_var(TrueType type, int pos, Node *next) {
     Var *v = malloc(sizeof(Var));
     v->type = type;
     v->position = pos;
+    v->next = next;
     return v;
 }
 
@@ -73,6 +74,7 @@ void debug_var(Var *var) {
             s = "TYPE_ARRAY";
             break;
         default:
+            printf("WHY YOU CAME !!!\n");
             assert(false);
     }
     printf("{ type: %d, position: %d }\n", s, var->position);
