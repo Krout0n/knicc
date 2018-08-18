@@ -14,6 +14,7 @@ typedef enum {
     SUB,
     MULTI,
     ASSIGN,
+    Eq,
     Less,
     LessEq,
     More,
@@ -29,6 +30,7 @@ typedef enum {
     COMMA,
 
     If,
+    Else,
     While,
     For,
     Return,
@@ -139,7 +141,8 @@ typedef struct Node {
     } func_decl;
     struct {
         struct Node *expression;
-        struct Node *stmt;
+        struct Node *true_stmt;
+        struct Node *else_stmt;
     } if_stmt;
     struct {
         struct Node *expression;
@@ -160,6 +163,7 @@ typedef struct Node {
     struct {
         struct Node *expr;
     } ret_stmt;
+    int local_vars_size;
 } Node;
 
 extern Node *func_decl(Lexer *l);

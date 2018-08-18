@@ -115,7 +115,7 @@ void codegen(Node *n) {
             printf("  pop %%rax\n");
             printf("  cmpq $0, %%rax\n");
             printf("  je .Lend\n");
-            emit_code(n->if_stmt.stmt); 
+            emit_code(n->if_stmt.true_stmt);
             printf(".Lend:\n");
             break;
         case While:
@@ -265,7 +265,7 @@ void print_ast(Node *node) {
         case If:
             printf("(if ");
             print_ast(node->if_stmt.expression);
-            print_ast(node->if_stmt.stmt);
+            print_ast(node->if_stmt.true_stmt);
             printf(")\n");
             break;
         default:
