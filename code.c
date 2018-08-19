@@ -29,7 +29,7 @@ void emit_func_decl(Node *n) {
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
     map = n->func_decl.map;
-    printf("  sub $%ld, %%rsp\n", 8 * vec_size(map->vec));
+    printf("  sub $%ld, %%rsp\n", n->offset);
     emit_mov_args(n->func_decl.argc);
     for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {
         Node *ast = vec_get(n->compound_stmt.block_item_list, i);
@@ -209,10 +209,6 @@ void emit_lvalue_code(Node *n) {
         printf("  leaq %d(%%rbp), %%rax\n", v->offset);
     }
     printf("  pushq %%rax\n");
-}
-
-void emit_lvalue_deref(Node *n) {
-    emit_code(n);
 }
 
 void print_ast(Node *node) {

@@ -420,5 +420,6 @@ Node *func_decl(Lexer *lexer) {
     assert(get_token(l).type == tRParen);
     Node *n = compound_statement(l);
     vec_push(func_ast->compound_stmt.block_item_list, n);
+    func_ast->offset = offset;
     return func_ast;
 }

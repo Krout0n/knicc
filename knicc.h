@@ -182,6 +182,7 @@ typedef struct Node {
     struct {
         struct Node *expr;
     } ret_stmt;
+    int offset;
 } Node;
 
 extern Node *func_decl(Lexer *l);
