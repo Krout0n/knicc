@@ -166,14 +166,6 @@ Node *declaration(Lexer *l) {
     Node *p = pointer(l);
     Token ident = get_token(l);
     assert(ident.type == tIdent);
-    if (peek_token(l).type == tLBracket) {
-        get_token(l);
-        Token t = get_token(l);
-        assert(t.type == tInt);
-        array_size = atoi(t.literal);
-        ty = TYPE_INT_PTR;
-        assert(get_token(l).type == tRBracket);
-    }
     assert(get_token(l).type == tSemicolon);
     if (find_by_key(map, ident.literal) == NULL) {
         KeyValue *kv = new_kv(ident.literal, new_var(ty, -8 * (map->vec->length + 1), p));
