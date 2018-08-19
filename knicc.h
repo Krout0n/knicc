@@ -200,12 +200,12 @@ extern void print_ast(Node *n);
 // semantics.c
 typedef struct {
     TrueType type;
-    int position;
+    int offset;
     size_t array_size;
     Node *next;
 } Var;
 
-extern Var *new_var(TrueType type, int pos, Node *pointer);
+extern Var *new_var(TrueType type, int pos, Node *pointer, size_t array_size);
 extern int add_sub_ptr(TrueType ty);
 extern Var *get_first_var(Map *map, Node *n);
 extern void debug_var(Var *var);

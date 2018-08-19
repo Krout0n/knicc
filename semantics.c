@@ -4,11 +4,12 @@
 
 #include "knicc.h"
 
-Var *new_var(TrueType type, int pos, Node *next) {
+Var *new_var(TrueType type, int offset, Node *next, size_t array_size) {
     Var *v = malloc(sizeof(Var));
     v->type = type;
-    v->position = pos;
+    v->offset = offset;
     v->next = next;
+    v->array_size = array_size;
     return v;
 }
 
@@ -27,7 +28,6 @@ bool is_binop(TokenType type) {
         case ADD:
         case SUB:
         case MULTI:
-        case ASSIGN:
         case LESS:
         case MORE:
             return true;
@@ -77,5 +77,5 @@ void debug_var(Var *var) {
             printf("WHY YOU CAME !!!\n");
             assert(false);
     }
-    printf("{ type: %d, position: %d }\n", s, var->position);
+    printf("{ type: %d, position: %d, array_size: %d }\n", s, var->offset, var->array_size);
 }

@@ -12,6 +12,8 @@ Node *cast_expression(Lexer *l);
 Lexer *l;
 Map *map;
 
+int offset = 0;
+
 int how_many_nested_pointer(Node *n, int i) {
     if (n->pointer.next != NULL) {
         return how_many_nested_pointer(n->pointer.next, i+1);
@@ -166,10 +168,19 @@ Node *declaration(Lexer *l) {
     Node *p = pointer(l);
     Token ident = get_token(l);
     assert(ident.type == tIdent);
-    if (p->pointer.next != NULL) ty = TYPE_INT_PTR;
+    if (peek_token(l).type == tLBracket) {
+        get_token(l);
+        Token s = get_token(l);
+        assert(s.type == tInt);
+        array_size = atoi(s.literal);
+        assert(get_token(l).type == tRBracket);
+    }
+    if (p->pointer.next != NULL || array_size > 0) ty = TYPE_INT_PTR;
     assert(get_token(l).type == tSemicolon);
     if (find_by_key(map, ident.literal) == NULL) {
-        KeyValue *kv = new_kv(ident.literal, new_var(ty, -8 * (map->vec->length + 1), p));
+        if (array_size >= 2) offset += array_size * 4;
+        else offset += 8;
+        KeyValue *kv = new_kv(ident.literal, new_var(ty, offset * -1, p, array_size));
         insert_map(map, kv);
     }
     return make_ast_ident(ident.literal);
@@ -400,7 +411,8 @@ Node *func_decl(Lexer *lexer) {
         assert(get_token(l).type == tDecInt);
         Token arg = get_token(l);
         assert(arg.type == tIdent);
-        KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, (map->vec->length + 1) * -8, NULL));
+        offset += 8;
+        KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, offset * -1, NULL, 0));
         insert_map(map, kv);
         func_ast->func_decl.argc += 1;
         if (peek_token(l).type == tComma) get_token(l);

@@ -83,7 +83,13 @@ void codegen(Node *n) {
             printf("  push %%rax\n");
             break;
         case ASSIGN:
-            emit_lvalue_code(n);
+            emit_lvalue_code(n->left);
+            emit_code(n->right); // expr
+            // 代入を実行
+            printf("  pop %%rbx\n");
+            printf("  pop %%rax\n");
+            printf("  mov %%rbx, (%%rax)\n");
+            printf("  push %%rbx\n");
             break;
         case LESS:
             printf("  popq %%rdx\n");
@@ -94,7 +100,7 @@ void codegen(Node *n) {
             printf("  push %%rax\n");
             break;
         case IDENTIFIER:
-            printf("  mov %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->position);
+            printf("  mov %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->offset);
             printf("  pushq %%rax\n");
             break;
         case FUNC_CALL:
@@ -142,14 +148,14 @@ void codegen(Node *n) {
             break;
         case REF:
             var = get_first_var(map, n);
-            printf("  leaq %d(%%rbp),  %%rax\n", var->position);
+            printf("  leaq %d(%%rbp),  %%rax\n", var->offset);
             printf("  push %%rax  \n");
             break;
         case DEREF:
             var = get_first_var(map, n);
             emit_code(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
             // emit_code(n->right); segfault
-            // printf("  movq %d(%%rbp), %%rax\n", var->position);
+            // printf("  movq %d(%%rbp), %%rax\n", var->offset);
             printf("  pop %%rax\n");
             printf("  push (%%rax)  \n");
             break;
@@ -168,12 +174,11 @@ void codegen(Node *n) {
 }
 
 void emit_code(Node *n) {
-    if (is_binop(n->type) && n->type != ASSIGN) {
+    if (is_binop(n->type)) {
         if (n->type == ADD || n->type == SUB) {
             if (n->left->type == IDENTIFIER) {
                 TrueType ty = ((Var *)(find_by_key(map, n->left->literal)->value))->type;
                 int s = add_sub_ptr(ty);
-                // printf("%d\n", s);
                 emit_code(n->left);
                 n->right->ival *= s;
                 emit_code(n->right);
@@ -197,16 +202,13 @@ void emit_code(Node *n) {
 }
 
 void emit_lvalue_code(Node *n) {
-    Var *v = ((Var *)(find_by_key(map, n->left->literal)->value));
-    printf("  leaq %d(%%rbp), %%rax\n", v->position);
+    if (n->type == DEREF) {
+        emit_code(n->left);
+    } else if (n->type == IDENTIFIER) {
+        Var *v = ((Var *)(find_by_key(map, n->literal)->value));
+        printf("  leaq %d(%%rbp), %%rax\n", v->offset);
+    }
     printf("  pushq %%rax\n");
-    emit_code(n->right);
-
-    // 代入を実行
-    printf("  pop %%rbx\n");
-    printf("  pop %%rax\n");
-    printf("  mov %%rbx, (%%rax)\n");
-    printf("  push %%rbx\n");
 }
 
 void emit_lvalue_deref(Node *n) {
