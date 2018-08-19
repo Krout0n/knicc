@@ -160,12 +160,13 @@ Node *pointer(Lexer *l) {
 }
 
 Node *declaration(Lexer *l) {
-    TrueType ty;
+    TrueType ty = TYPE_INT;
     size_t array_size = 0;
     assert(get_token(l).type == tDecInt);
     Node *p = pointer(l);
     Token ident = get_token(l);
     assert(ident.type == tIdent);
+    if (p->pointer.next != NULL) ty = TYPE_INT_PTR;
     assert(get_token(l).type == tSemicolon);
     if (find_by_key(map, ident.literal) == NULL) {
         KeyValue *kv = new_kv(ident.literal, new_var(ty, -8 * (map->vec->length + 1), p));
