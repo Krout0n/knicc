@@ -173,6 +173,7 @@ void emit_code(Node *n) {
             if (n->left->type == IDENTIFIER) {
                 TrueType ty = ((Var *)(find_by_key(map, n->left->literal)->value))->type;
                 int s = add_sub_ptr(ty);
+                // printf("%d\n", s);
                 emit_code(n->left);
                 n->right->ival *= s;
                 emit_code(n->right);
@@ -196,17 +197,9 @@ void emit_code(Node *n) {
 }
 
 void emit_lvalue_code(Node *n) {
-    // aを左辺値としてコンパイル。lea命令を使うことでアドレスを取得
-    Var *v;
-    if (n->left->type == DEREF) {
-        emit_lvalue_deref(n->left->left);
-        // printf("  pop %%rax\n");
-        // 最終的に p+12 とかのアドレスを返したい.
-    } else {
-        v = ((Var *)(find_by_key(map, n->left->literal)->value));
-        printf("  leaq %d(%%rbp), %%rax\n", v->position);
-        printf("  pushq %%rax\n"); // アドレスを返してる
-    }
+    Var *v = ((Var *)(find_by_key(map, n->left->literal)->value));
+    printf("  leaq %d(%%rbp), %%rax\n", v->position);
+    printf("  pushq %%rax\n");
     emit_code(n->right);
 
     // 代入を実行
