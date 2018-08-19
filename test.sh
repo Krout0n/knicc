@@ -49,10 +49,6 @@ using_other() {
   rm -rf a.out
 }
 
-# exit_code 'int main() { int a[2]; a = a + 1; *a = 2; return *a; }' '2'
-# exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; *p + *(p + 1); }' '3'
-# exit_code 'int main() { int a[2]; *(a+1) = 2; *(a + 1); }' '2'
-# exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int b; b = *a; int c; c = *(a + 1); b+c; }' '3'
 exit_code "int main(){ return 1;}" 1
 exit_code "int main(){10;}" 10
 exit_code "int main(){22;}" 22
@@ -135,7 +131,12 @@ exit_code 'int fib(int n) {int a;a = 0;int b;b = 1;int i;int temp; for (i = 1; i
 exit_code 'int inc(int n) { return n+1; } int main() { int ten; ten = 10; return inc(ten + 1); }' '12'
 exit_code 'int get_ptr_set(int x) { return x+1; } int main() { int *x; int y; y = 3; x = &y; get_ptr_set(*x); }' '4'
 exit_code 'int set_local_ptr_var() {int x; x = 10; int *p; p = &x; return p;} int main() { int *p; p=set_local_ptr_var(); return *p;}' '10'
-using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); return *p; }' '1'
+exit_code 'int main() { int a; a = 10; int *b; b = &a; int **c; c = &b; return **c;}' '10'
+exit_code 'int main() { int a; a = 10; int *b; b = &a; return *b + 1;}' '11'
+exit_code 'int main() { int a; a = 10; int *b; b = &a; int **c; c = &b; return **c+1;}' '11'
+# exit_code "int *f(int *p) { return p; } int main() { int x; x = 123; int *y; y = f(&x); return *y; }" 123
+# using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); return *p; }' '1'
+# using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+1; return *q; }' '2'
 # using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+2; return *q; }' '4'
 # using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+3; return *q; }' '8'
 # using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); p = p+3; return *p; }' '8'
