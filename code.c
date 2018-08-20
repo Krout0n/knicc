@@ -33,7 +33,7 @@ void emit_func_decl(Node *n) {
     emit_mov_args(n->func_decl.argc);
     for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {
         Node *ast = vec_get(n->compound_stmt.block_item_list, i);
-        emit_code(ast);
+        emit_expr(ast);
     }
     emit_func_ret(n);
 }
@@ -51,14 +51,14 @@ void emit_args(Node *n) {
         if (n->func_call.argv[i]->type == INT) {
             printf("  mov  $%d,  %%%s\n", n->func_call.argv[i]->ival, regs[i]);
         } else {
-            emit_code(n->func_call.argv[i]);
+            emit_expr(n->func_call.argv[i]);
             printf("  pop %%rax\n");
             printf("  mov  %%rax,  %%%s\n", regs[i]);
         }
     }
 }
 
-void codegen(Node *n) {
+void emit_code(Node *n) {
     Vector *stmts;
     Var *v;
     switch(n->type) {
@@ -85,7 +85,7 @@ void codegen(Node *n) {
             break;
         case ASSIGN:
             emit_lvalue_code(n->left);
-            emit_code(n->right); // expr
+            emit_expr(n->right); // expr
             // 代入を実行
             printf("  pop %%rbx\n");
             printf("  pop %%rax\n");
@@ -102,8 +102,8 @@ void codegen(Node *n) {
             break;
         case IDENTIFIER:
             v = ((Var *)(find_by_key(map, n->literal)->value));
-            if (v->type == TYPE_INT) printf("  mov %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->offset);
-            if (v->type == TYPE_INT_PTR) printf("  leaq %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->offset);
+            printf("  mov %d(%%rbp), %%rax\n", v->offset);
+            // if (v->type == TYPE_INT_PTR) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
             printf("  pushq %%rax\n");
             break;
         case FUNC_CALL:
@@ -116,36 +116,36 @@ void codegen(Node *n) {
             for (int i = 0; i < stmts->length; i++) {
                 Node *ast = vec_get(stmts, i);
                 printf("\n// %d line\n", i+1);
-                emit_code(ast);
+                emit_expr(ast);
             }
             break;
         case IF_STMT:
-            emit_code(n->if_stmt.expression);
+            emit_expr(n->if_stmt.expression);
             printf("  pop %%rax\n");
             printf("  cmpq $0, %%rax\n");
             printf("  je .Lend\n");
-            emit_code(n->if_stmt.true_stmt);
+            emit_expr(n->if_stmt.true_stmt);
             printf(".Lend:\n");
             break;
         case WHILE:
             printf(".Lbegin:\n");
-            emit_code(n->while_stmt.expression);
+            emit_expr(n->while_stmt.expression);
             printf("  pop %%rax\n");
             printf("  cmpq $0, %%rax\n");
             printf("  je .Lend\n");
-            emit_code(n->while_stmt.stmt); 
+            emit_expr(n->while_stmt.stmt); 
             printf("  jmp .Lbegin\n");
             printf(".Lend:\n");
             break;
         case FOR:
-            emit_code(n->for_stmt.init_expr);
+            emit_expr(n->for_stmt.init_expr);
             printf(".Lbegin:\n");
-            emit_code(n->for_stmt.cond_expr);
+            emit_expr(n->for_stmt.cond_expr);
             printf("  pop %%rax\n");
             printf("  cmpq $0, %%rax\n");
             printf("  je .Lend\n");
-            emit_code(n->for_stmt.stmt); 
-            emit_code(n->for_stmt.loop_expr);
+            emit_expr(n->for_stmt.stmt); 
+            emit_expr(n->for_stmt.loop_expr);
             printf("  jmp .Lbegin\n");
             printf(".Lend:\n");
             break;
@@ -156,14 +156,14 @@ void codegen(Node *n) {
             break;
         case DEREF:
             v = get_first_var(map, n);
-            emit_code(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
-            // emit_code(n->right); segfault
+            emit_expr(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
+            // emit_expr(n->right); segfault
             // printf("  movq %d(%%rbp), %%rax\n", var->offset);
             printf("  pop %%rax\n");
             printf("  push (%%rax)  \n");
             break;
         case RETURN:
-            emit_code(n->ret_stmt.expr);
+            emit_expr(n->ret_stmt.expr);
             printf("  pop %%rax\n");
             printf("  add $%d, %%rsp\n", n->offset);
             printf("  leave\n");
@@ -176,37 +176,37 @@ void codegen(Node *n) {
     }
 }
 
-void emit_code(Node *n) {
+void emit_expr(Node *n) {
     if (is_binop(n->type)) {
         if (n->type == ADD || n->type == SUB) {
             if (n->left->type == IDENTIFIER) {
                 TrueType ty = ((Var *)(find_by_key(map, n->left->literal)->value))->type;
                 int s = add_sub_ptr(ty);
-                emit_code(n->left);
+                emit_expr(n->left);
                 n->right->ival *= s;
-                emit_code(n->right);
+                emit_expr(n->right);
             } else if (n->right->type == IDENTIFIER) {
                 TrueType ty = ((Var *)(find_by_key(map, n->right->literal)->value))->type;
                 int s = add_sub_ptr(ty);
                 n->left->ival *= s;
-                emit_code(n->left);
-                emit_code(n->right);
+                emit_expr(n->left);
+                emit_expr(n->right);
             } else {
-                emit_code(n->left);
-                emit_code(n->right);
+                emit_expr(n->left);
+                emit_expr(n->right);
             }
         } else {
-            emit_code(n->left);
-            emit_code(n->right);
+            emit_expr(n->left);
+            emit_expr(n->right);
         }
     }
     // print_ast(n);
-    codegen(n);
+    emit_code(n);
 }
 
 void emit_lvalue_code(Node *n) {
     if (n->type == DEREF) {
-        emit_code(n->left);
+        emit_expr(n->left);
     } else if (n->type == IDENTIFIER) {
         Var *v = ((Var *)(find_by_key(map, n->literal)->value));
         printf("  leaq %d(%%rbp), %%rax\n", v->offset);
