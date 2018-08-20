@@ -77,5 +77,5 @@ void debug_var(Var *var) {
             printf("WHY YOU CAME !!!\n");
             assert(false);
     }
-    printf("{ type: %d, position: %d, array_size: %d }\n", s, var->offset, var->array_size);
+    printf("{ type: %s, position: %d, array_size: %ld }\n", s, var->offset, var->array_size);
 }

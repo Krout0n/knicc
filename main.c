@@ -20,7 +20,6 @@ int main(int argc, char **argv) {
     emit_prologue();
     for (int i = 0; i < funcs->length; i++) {
         emit_func_decl((Node *)vec_get(funcs, i));
-        emit_func_ret();
     }
     return 0;
 }

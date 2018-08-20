@@ -49,6 +49,7 @@ using_other() {
   rm -rf a.out
 }
 
+exit_code 'int main() { int a[3]; int *b; b = a + 2; *b = 10; return *b; }' '10'
 exit_code "int main(){ return 1;}" 1
 exit_code "int main(){10;}" 10
 exit_code "int main(){22;}" 22
@@ -134,6 +135,7 @@ exit_code 'int get_ptr_set(int x) { return x+1; } int main() { int *x; int y; y 
 exit_code 'int set_local_ptr_var() {int x; x = 10; int *p; p = &x; return p;} int main() { int *p; p=set_local_ptr_var(); return *p;}' '10'
 exit_code 'int main() { int a; a = 10; int *b; b = &a; int **c; c = &b; return **c;}' '10'
 exit_code 'int main() { int a; a = 10; int *b; b = &a; return *b + 1;}' '11'
+exit_code 'int main() { int a; a = 10; int *b; b = &a; int **c; c = &b; return **c;}' '10'
 exit_code 'int main() { int a; a = 10; int *b; b = &a; int **c; c = &b; return **c+1;}' '11'
 # exit_code "int *f(int *p) { return p; } int main() { int x; x = 123; int *y; y = f(&x); return *y; }" 123
 using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); return *p; }' '1'
@@ -143,7 +145,7 @@ using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+3; re
 using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); p = p+3; return *p; }' '8'
 using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); p = p+3; p = p -1 ;return *p; }' '4'
 exit_code 'int main() { int *a; int b; a = &b; *a = 10; return b; }' '10'
-# exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; *p + *(p + 1)  }' '3'
+# exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; return *p + *(p + 1);  }' '3'
 # using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int q; q = *(p+3); return q; }' '8'
 # exit_code 'int main() {int *a; int b; a=&b; *a=10; return b;}' '10'
 # exit_code 'int main() { int a[2]; int *p; p = a + 1; *p = 2; return *(a+1); }' '2'

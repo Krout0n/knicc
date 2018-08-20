@@ -29,17 +29,18 @@ void emit_func_decl(Node *n) {
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
     map = n->func_decl.map;
-    printf("  sub $%ld, %%rsp\n", n->offset);
+    printf("  sub $%d, %%rsp\n", n->offset);
     emit_mov_args(n->func_decl.argc);
     for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {
         Node *ast = vec_get(n->compound_stmt.block_item_list, i);
         emit_code(ast);
     }
+    emit_func_ret(n);
 }
 
-void emit_func_ret(void) {
+void emit_func_ret(Node *n) {
     printf("\n  pop %%rax\n");
-    printf("  add $%ld, %%rsp\n", 8 * vec_size(map->vec));
+    printf("  add $%d, %%rsp\n", n->offset);
     printf("  mov %%rbp, %%rsp\n");
     printf("  pop %%rbp\n");
     printf("  ret\n");
@@ -59,7 +60,7 @@ void emit_args(Node *n) {
 
 void codegen(Node *n) {
     Vector *stmts;
-    Var *var;
+    Var *v;
     switch(n->type) {
         case INT:
             printf("  push $%d\n", n->ival);
@@ -100,7 +101,9 @@ void codegen(Node *n) {
             printf("  push %%rax\n");
             break;
         case IDENTIFIER:
-            printf("  mov %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->offset);
+            v = ((Var *)(find_by_key(map, n->literal)->value));
+            if (v->type == TYPE_INT) printf("  mov %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->offset);
+            if (v->type == TYPE_INT_PTR) printf("  leaq %d(%%rbp), %%rax\n", ((Var *)(find_by_key(map, n->literal)->value))->offset);
             printf("  pushq %%rax\n");
             break;
         case FUNC_CALL:
@@ -147,12 +150,12 @@ void codegen(Node *n) {
             printf(".Lend:\n");
             break;
         case REF:
-            var = get_first_var(map, n);
-            printf("  leaq %d(%%rbp),  %%rax\n", var->offset);
+            v = get_first_var(map, n);
+            printf("  leaq %d(%%rbp),  %%rax\n", v->offset);
             printf("  push %%rax  \n");
             break;
         case DEREF:
-            var = get_first_var(map, n);
+            v = get_first_var(map, n);
             emit_code(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
             // emit_code(n->right); segfault
             // printf("  movq %d(%%rbp), %%rax\n", var->offset);
@@ -162,7 +165,7 @@ void codegen(Node *n) {
         case RETURN:
             emit_code(n->ret_stmt.expr);
             printf("  pop %%rax\n");
-            printf("  add $%ld, %%rsp\n", 8 * vec_size(map->vec));
+            printf("  add $%d, %%rsp\n", n->offset);
             printf("  leave\n");
             printf("  ret\n");
             break;
