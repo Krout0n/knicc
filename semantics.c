@@ -41,10 +41,7 @@ int add_sub_ptr(TrueType ty) {
         case TYPE_INT: return 1;
         case TYPE_INT_PTR: return 4;
         case TYPE_PTR_PTR: return 8;
-        case TYPE_ARRAY:
-            printf("not implemented!\n");
-            assert(false);
-            break;
+        case TYPE_ARRAY: return 4;
         default:
             printf("WHY YOU CAME !!!\n");
             assert(false);

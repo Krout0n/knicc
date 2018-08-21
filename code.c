@@ -5,6 +5,8 @@
 
 Map *map;
 
+int func_offset;
+
 const char *regs[6] = {
     "rdi",
     "rsi",
@@ -29,7 +31,8 @@ void emit_func_decl(Node *n) {
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
     map = n->func_decl.map;
-    printf("  sub $%d, %%rsp\n", n->offset);
+    func_offset = n->offset;
+    printf("  sub $%d, %%rsp\n", func_offset);
     emit_mov_args(n->func_decl.argc);
     for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {
         Node *ast = vec_get(n->compound_stmt.block_item_list, i);
@@ -40,7 +43,7 @@ void emit_func_decl(Node *n) {
 
 void emit_func_ret(Node *n) {
     printf("\n  pop %%rax\n");
-    printf("  add $%d, %%rsp\n", n->offset);
+    printf("  add $%d, %%rsp\n", func_offset);
     printf("  mov %%rbp, %%rsp\n");
     printf("  pop %%rbp\n");
     printf("  ret\n");
@@ -102,8 +105,8 @@ void emit_code(Node *n) {
             break;
         case IDENTIFIER:
             v = ((Var *)(find_by_key(map, n->literal)->value));
-            printf("  mov %d(%%rbp), %%rax\n", v->offset);
-            // if (v->type == TYPE_INT_PTR) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
+            if (v->type == TYPE_ARRAY) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
+            else printf("  mov %d(%%rbp), %%rax\n", v->offset);
             printf("  pushq %%rax\n");
             break;
         case FUNC_CALL:
@@ -165,7 +168,7 @@ void emit_code(Node *n) {
         case RETURN:
             emit_expr(n->ret_stmt.expr);
             printf("  pop %%rax\n");
-            printf("  add $%d, %%rsp\n", n->offset);
+            printf("  add $%d, %%rsp\n",func_offset);
             printf("  leave\n");
             printf("  ret\n");
             break;

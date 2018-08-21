@@ -174,8 +174,8 @@ Node *declaration(Lexer *l) {
         assert(s.type == tInt);
         array_size = atoi(s.literal);
         assert(get_token(l).type == tRBracket);
-    }
-    if (p->pointer.next != NULL || array_size > 0) ty = TYPE_INT_PTR;
+        ty = TYPE_ARRAY;
+    } else if (p->pointer.next != NULL || array_size > 0) ty = TYPE_INT_PTR;
     assert(get_token(l).type == tSemicolon);
     if (find_by_key(map, ident.literal) == NULL) {
         if (array_size >= 2) offset += array_size * 4;

@@ -49,7 +49,6 @@ using_other() {
   rm -rf a.out
 }
 
-exit_code 'int main() { int a[3]; int *b; b = a + 2; *b = 10; return *b; }' '10'
 exit_code "int main(){ return 1;}" 1
 exit_code "int main(){10;}" 10
 exit_code "int main(){22;}" 22
@@ -145,6 +144,8 @@ using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int *q; q = p+3; re
 using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); p = p+3; return *p; }' '8'
 using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); p = p+3; p = p -1 ;return *p; }' '4'
 exit_code 'int main() { int *a; int b; a = &b; *a = 10; return b; }' '10'
+exit_code 'int main() { int a[3]; int *b; b = a + 2; *b = 10; return *b; }' '10'
+exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; *p + *(p + 1); }' '3'
 # exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; return *p + *(p + 1);  }' '3'
 # using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int q; q = *(p+3); return q; }' '8'
 # exit_code 'int main() {int *a; int b; a=&b; *a=10; return b;}' '10'
