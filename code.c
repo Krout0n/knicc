@@ -61,6 +61,11 @@ void emit_args(Node *n) {
     }
 }
 
+void gen_operands(void) {
+    printf("  popq %%rax\n");
+    printf("  popq %%rdx\n");
+}
+
 void emit_code(Node *n) {
     Vector *stmts;
     Var *v;
@@ -69,20 +74,17 @@ void emit_code(Node *n) {
             printf("  push $%d\n", n->ival);
             break;
         case ADD:
-            printf("  pop %%rax\n");
-            printf("  pop %%rdx\n");
+            gen_operands();
             printf("  add %%rdx, %%rax\n");
             printf("  push %%rax\n");
             break;
         case SUB:
-            printf("  pop %%rdx\n");
-            printf("  pop %%rax\n");
-            printf("  sub %%rdx, %%rax\n");
-            printf("  push %%rax\n");
+            gen_operands();
+            printf("  sub %%rax, %%rdx\n");
+            printf("  pushq %%rdx\n");
             break;
         case MULTI:
-            printf("  pop %%rdx\n");
-            printf("  pop %%rax\n");
+            gen_operands();
             printf("  imul %%rdx, %%rax\n");
             printf("  push %%rax\n");
             break;
@@ -181,27 +183,21 @@ void emit_code(Node *n) {
 
 void emit_expr(Node *n) {
     if (is_binop(n->type)) {
-        if (n->type == ADD || n->type == SUB) {
+        if (n->type == ADD) {
             if (n->left->type == IDENTIFIER) {
                 TrueType ty = ((Var *)(find_by_key(map, n->left->literal)->value))->type;
-                int s = add_sub_ptr(ty);
-                emit_expr(n->left);
-                n->right->ival *= s;
-                emit_expr(n->right);
-            } else if (n->right->type == IDENTIFIER) {
-                TrueType ty = ((Var *)(find_by_key(map, n->right->literal)->value))->type;
-                int s = add_sub_ptr(ty);
-                n->left->ival *= s;
                 emit_expr(n->left);
                 emit_expr(n->right);
-            } else {
-                emit_expr(n->left);
-                emit_expr(n->right);
+                printf("  pushq $%d\n", add_sub_ptr(ty));
+                gen_operands();
+                printf("  imul %%rdx, %%rax\n");
+                printf("  push %%rax\n");
+                emit_code(n);
+                return;
             }
-        } else {
-            emit_expr(n->left);
-            emit_expr(n->right);
         }
+        emit_expr(n->left);
+        emit_expr(n->right);
     }
     // print_ast(n);
     emit_code(n);
