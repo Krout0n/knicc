@@ -193,6 +193,12 @@ Node *postfix_expression(Lexer *l) {
         Node *expr = expression(l);
         assert(get_token(l).type == tRBracket);
         return make_ast_unary_op(DEREF, make_ast_op(ADD, n, expr));
+    } else if (peek_token(l).type == tInc) {
+        get_token(l);
+        return make_ast_op(ASSIGN, n, make_ast_op(ADD, n, make_ast_int(1)));
+    } else if (peek_token(l).type == tDec) {
+        get_token(l);
+        return make_ast_op(ASSIGN, n, make_ast_op(SUB, n, make_ast_int(1)));
     }
     return n;
 }

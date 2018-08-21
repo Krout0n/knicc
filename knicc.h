@@ -19,6 +19,8 @@ typedef enum {
     tLessEq,
     tMore,
     tMoreEq,
+    tInc,
+    tDec,
     
     tLParen,
     tRParen,
