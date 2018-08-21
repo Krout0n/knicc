@@ -187,13 +187,12 @@ Node *declaration(Lexer *l) {
 }
 
 Node *postfix_expression(Lexer *l) {
-    Node *n;
+    Node *n = primary_expression(l);
     if (peek_token(l).type == tLBracket) {
         get_token(l);
-        n = expression(l);
+        Node *expr = expression(l);
         assert(get_token(l).type == tRBracket);
-    } else {
-        n = primary_expression(l);
+        return make_ast_unary_op(DEREF, make_ast_op(ADD, n, expr));
     }
     return n;
 }
@@ -374,7 +373,7 @@ Node *compound_statement(Lexer *l) {
 }
 
 Node *jump_statement(Lexer *l) {
-    assert(get_token(l).type == tReturn);
+    get_token(l);
     Node *expr = expression(l);
     assert(get_token(l).type == tSemicolon);
     return make_ast_ret_stmt(expr);
