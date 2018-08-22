@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     }
     Vector *funcs = init_vector();
     while (peek_token(&l).type != _EOF) {
-        vec_push(funcs, func_decl(&l));
+        vec_push(funcs, external_declaration(&l));
     }
     emit_prologue();
     for (int i = 0; i < funcs->length; i++) {

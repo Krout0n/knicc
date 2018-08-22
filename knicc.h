@@ -187,7 +187,7 @@ typedef struct Node {
     int offset;
 } Node;
 
-extern Node *func_decl(Lexer *l);
+extern Node *external_declaration(Lexer *l);
 extern int how_many_nested_pointer(Node *n, int i);
 
 // code.c

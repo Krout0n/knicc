@@ -402,29 +402,32 @@ Node *statement(Lexer *l) {
     return expr;
 }
 
-Node *func_decl(Lexer *lexer) {
-    l = lexer;
+Node *external_declaration(Lexer *l) {
     assert(get_token(l).type == tDecInt);
     Token t = get_token(l);
     assert(t.type == tIdent);
-    char *func_name = malloc(sizeof(char) * strlen(t.literal));
-    strcpy(func_name, t.literal);
-    Node *func_ast = make_ast_func_def(func_name);
-    map = func_ast->func_decl.map;
-    assert(get_token(l).type == tLParen);
-    while (peek_token(l).type != tRParen) {
-        assert(get_token(l).type == tDecInt);
-        Token arg = get_token(l);
-        assert(arg.type == tIdent);
-        offset += 8;
-        KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, offset * -1, NULL, 0));
-        insert_map(map, kv);
-        func_ast->func_decl.argc += 1;
-        if (peek_token(l).type == tComma) get_token(l);
+    char *name = malloc(sizeof(char) * strlen(t.literal));
+    strcpy(name, t.literal);
+    if (peek_token(l).type == tLParen) {
+        Node *func_ast = make_ast_func_def(name);
+        map = func_ast->func_decl.map;
+        assert(get_token(l).type == tLParen);
+        while (peek_token(l).type != tRParen) {
+            assert(get_token(l).type == tDecInt);
+            Token arg = get_token(l);
+            assert(arg.type == tIdent);
+            offset += 8;
+            KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, offset * -1, NULL, 0));
+            insert_map(map, kv);
+            func_ast->func_decl.argc += 1;
+            if (peek_token(l).type == tComma) get_token(l);
+        }
+        assert(get_token(l).type == tRParen);
+        Node *n = compound_statement(l);
+        vec_push(func_ast->compound_stmt.block_item_list, n);
+        func_ast->offset = offset;
+        return func_ast;
+    } else {
+        assert(false);
     }
-    assert(get_token(l).type == tRParen);
-    Node *n = compound_statement(l);
-    vec_push(func_ast->compound_stmt.block_item_list, n);
-    func_ast->offset = offset;
-    return func_ast;
 }
