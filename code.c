@@ -4,6 +4,7 @@
 #include "knicc.h"
 
 Map *map;
+Map *global_map;
 
 int func_offset;
 
@@ -16,8 +17,24 @@ const char *regs[6] = {
     "r9"
 };
 
-void emit_prologue(void) {
+void emit_global_var(void) {
+    for (int i = 0; i < global_map->vec->length; i++) {
+        char *key = ((KeyValue *)(vec_get(global_map->vec, i)))->key;
+        printf("%s:\n", key);
+        printf("  .zero 4\n");
+    }
+}
+
+void emit_toplevel(Vector *n) {
+    printf(".data\n");
+    emit_global_var();
+    printf(".text\n");
     printf(".global main\n");
+    for (int i = 0; i < n->length; i++) {
+        Node *ast = vec_get(n, i);
+        if (ast->type == GLOBAL_DECL) continue;
+        else emit_func_decl(ast);
+    }
 }
 
 void emit_mov_args(int argc) {
@@ -69,6 +86,7 @@ void gen_operands(void) {
 void emit_code(Node *n) {
     Vector *stmts;
     Var *v;
+    KeyValue *kv;
     switch(n->type) {
         case INT:
             printf("  push $%d\n", n->ival);
@@ -106,9 +124,12 @@ void emit_code(Node *n) {
             printf("  push %%rax\n");
             break;
         case IDENTIFIER:
-            v = ((Var *)(find_by_key(map, n->literal)->value));
-            if (v->type == TYPE_ARRAY) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
-            else printf("  mov %d(%%rbp), %%rax\n", v->offset);
+            kv = ((KeyValue *)(find_by_key(map, n->literal)));
+            if (kv != NULL) {
+                v = kv->value;
+                if (v->type == TYPE_ARRAY) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
+                else printf("  mov %d(%%rbp), %%rax\n", v->offset);
+            } else printf("  mov %s(%%rip), %%rax\n", n->literal);
             printf("  pushq %%rax\n");
             break;
         case FUNC_CALL:
@@ -185,13 +206,16 @@ void emit_expr(Node *n) {
     if (is_binop(n->type)) {
         if (n->type == ADD) {
             if (n->left->type == IDENTIFIER) {
-                TrueType ty = ((Var *)(find_by_key(map, n->left->literal)->value))->type;
                 emit_expr(n->left);
                 emit_expr(n->right);
-                printf("  pushq $%d\n", add_sub_ptr(ty));
-                gen_operands();
-                printf("  imul %%rdx, %%rax\n");
-                printf("  push %%rax\n");
+                KeyValue *kv = find_by_key(map, n->left->literal);
+                if (kv != NULL) {
+                    TrueType ty = ((Var *)(kv->value))->type;
+                    printf("  pushq $%d\n", add_sub_ptr(ty));
+                    gen_operands();
+                    printf("  imul %%rdx, %%rax\n");
+                    printf("  push %%rax\n");
+                }
                 emit_code(n);
                 return;
             }
@@ -207,8 +231,12 @@ void emit_lvalue_code(Node *n) {
     if (n->type == DEREF) {
         emit_expr(n->left);
     } else if (n->type == IDENTIFIER) {
-        Var *v = ((Var *)(find_by_key(map, n->literal)->value));
-        printf("  leaq %d(%%rbp), %%rax\n", v->offset);
+        KeyValue *kv = ((KeyValue *)(find_by_key(map, n->literal)));
+        if (kv != NULL){
+            Var *v = ((Var *)(kv->value));
+            printf("  leaq %d(%%rbp), %%rax\n", v->offset);
+        }
+        else printf("  leaq %s(%%rip), %%rax\n", n->literal);
     }
     printf("  pushq %%rax\n");
 }

@@ -154,6 +154,8 @@ using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int i; i = 3; int *
 exit_code 'int main() { int a[10]; int i; for (i = 0; i < 10; i = i + 1) { a[i] = i; } return a[5];}' '5'
 exit_code 'int main() { int a[10]; int i; for (i = 0; i < 10; i++) { a[i] = i; } return a[5] + a[7];}' '12'
 exit_code 'int main() { int i; i = 4; i--; return i; }' '3'
+exit_code 'int i; int main() { i = 5; return i; }' '5'
+exit_code 'int i; int hoge() { i = 10; } int main(){i=3; hoge(); return i + 1; }' '11'
 # exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; return *p + *(p + 1);  }' '3'
 # using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int q; q = *(p+3); return q; }' '8'
 # exit_code 'int main() {int *a; int b; a=&b; *a=10; return b;}' '10'

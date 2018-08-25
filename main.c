@@ -6,6 +6,7 @@
 
 int main(int argc, char **argv) {
     Lexer l = init_lexer();
+    global_map = init_map();
     fgets(l.src, 1000, stdin);
     while (1) {
         Token t = lex(&l);
@@ -13,13 +14,10 @@ int main(int argc, char **argv) {
         // debug_token(t);
         if (t.type == _EOF) break;
     }
-    Vector *funcs = init_vector();
+    Vector *nodes = init_vector();
     while (peek_token(&l).type != _EOF) {
-        vec_push(funcs, external_declaration(&l));
+        vec_push(nodes, external_declaration(&l));
     }
-    emit_prologue();
-    for (int i = 0; i < funcs->length; i++) {
-        emit_func_decl((Node *)vec_get(funcs, i));
-    }
+    emit_toplevel(nodes);
     return 0;
 }

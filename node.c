@@ -11,6 +11,7 @@ Node *cast_expression(Lexer *l);
 
 Lexer *l;
 Map *map;
+Map *global_map;
 
 int offset = 0;
 
@@ -121,6 +122,14 @@ Node *make_ast_ret_stmt(Node *expr) {
     return n;
 }
 
+Node *make_ast_global_var(char *literal) {
+    Node *n = malloc(sizeof(Node));
+    n->type = GLOBAL_DECL;
+    n->literal = malloc(sizeof(char) * strlen(literal));
+    strcpy(n->literal, literal);
+    return n;
+}
+
 Node *primary_expression(Lexer *l) {
     Token t = get_token(l);
     if (t.type == tInt) return make_ast_int(atoi(t.literal));
@@ -138,10 +147,8 @@ Node *primary_expression(Lexer *l) {
             assert(get_token(l).type == tRParen);
             return make_ast_func_call(t.literal, argc, argv);
         }
-        assert(find_by_key(map, t.literal) != NULL);
         return make_ast_ident(t.literal);
     }
-    // debug_token(t);
     assert(t.type == tLParen);
     Node *left = expression(l);
     assert(get_token(l).type == tRParen);
@@ -427,7 +434,10 @@ Node *external_declaration(Lexer *l) {
         vec_push(func_ast->compound_stmt.block_item_list, n);
         func_ast->offset = offset;
         return func_ast;
-    } else {
-        assert(false);
     }
+    assert(get_token(l).type == tSemicolon);
+    Node *global_decl = make_ast_global_var(name);
+    Var *v = new_var(TYPE_INT, 0, NULL, 0);
+    insert_map(global_map, new_kv(name, v));
+    return global_decl;
 }
