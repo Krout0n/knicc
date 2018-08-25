@@ -55,7 +55,7 @@ Var *get_first_var(Map *map, Node *n) {
     return v;
 }
 
-void debug_var(Var *var) {
+void debug_var(char *key,Var *var) {
     char *s;
     switch (var->type) {
         case TYPE_INT:
@@ -71,8 +71,8 @@ void debug_var(Var *var) {
             s = "TYPE_ARRAY";
             break;
         default:
-            printf("WHY YOU CAME !!!\n");
+            printf("WHY YOU CAME: Type: %d, position: %d, array_size: %ld!!!\n", var->type, var->offset, var->array_size);
             assert(false);
     }
-    printf("{ type: %s, position: %d, array_size: %ld }\n", s, var->offset, var->array_size);
+    printf("%s: { type: %s, position: %d, array_size: %ld },\n",key, s, var->offset, var->array_size);
 }

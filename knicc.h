@@ -111,6 +111,7 @@ extern void debug_map(Map *map);
 extern void debug_kv(KeyValue *kv);
 extern KeyValue *find_by_key(Map *map, char *key);
 extern KeyValue *last_inserted(Map *map);
+extern Map *global_map;
 
 // node.c
 
@@ -141,6 +142,7 @@ typedef enum {
     FUNC_DEF,
 
     COMPOUND_STMT,
+    GLOBAL_DECL,
 } NodeType;
 
 typedef struct Node {
@@ -211,5 +213,5 @@ typedef struct {
 extern Var *new_var(TrueType type, int pos, Node *pointer, size_t array_size);
 extern int add_sub_ptr(TrueType ty);
 extern Var *get_first_var(Map *map, Node *n);
-extern void debug_var(Var *var);
+extern void debug_var(char *key, Var *var);
 #endif
