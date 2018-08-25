@@ -5,11 +5,11 @@
 
 #include "knicc.h"
 
-Node *expression(Lexer *l);
-Node *statement(Lexer *l);
-Node *cast_expression(Lexer *l);
+Node *expression();
+Node *statement();
+Node *cast_expression();
 
-Lexer *l;
+;
 Map *map;
 Map *global_map;
 
@@ -130,60 +130,60 @@ Node *make_ast_global_var(char *literal) {
     return n;
 }
 
-Node *primary_expression(Lexer *l) {
-    Token t = get_token(l);
+Node *primary_expression() {
+    Token t = get_token();
     if (t.type == tInt) return make_ast_int(atoi(t.literal));
     else if (t.type == tIdent) {
-        if (peek_token(l).type == tLParen) {
-            get_token(l);
+        if (peek_token().type == tLParen) {
+            get_token();
             Node **argv = malloc(sizeof(Node) * 6);
             int argc = 0;
             while (1) {
-                if (peek_token(l).type == tRParen) break;
-                argv[argc] = expression(l);
+                if (peek_token().type == tRParen) break;
+                argv[argc] = expression();
                 argc += 1;
-                if (peek_token(l).type == tComma) get_token(l);
+                if (peek_token().type == tComma) get_token();
             }
-            assert(get_token(l).type == tRParen);
+            assert(get_token().type == tRParen);
             return make_ast_func_call(t.literal, argc, argv);
         }
         return make_ast_ident(t.literal);
     }
     assert(t.type == tLParen);
-    Node *left = expression(l);
-    assert(get_token(l).type == tRParen);
+    Node *left = expression();
+    assert(get_token().type == tRParen);
     return left;
 }
 
-Node *pointer(Lexer *l) {
+Node *pointer() {
     Node *previous = malloc(sizeof(Node));
     Node *ret = previous;
-    while (peek_token(l).type == tStar) {
+    while (peek_token().type == tStar) {
         Node *next;
         next = make_ast_pointer(previous);
         previous = next;
-        get_token(l);
+        get_token();
         // printf("NESTED!\n");
     }
     return ret;
 }
 
-Node *declaration(Lexer *l) {
+Node *declaration() {
     TrueType ty = TYPE_INT;
     size_t array_size = 0;
-    assert(get_token(l).type == tDecInt);
-    Node *p = pointer(l);
-    Token ident = get_token(l);
+    assert(get_token().type == tDecInt);
+    Node *p = pointer();
+    Token ident = get_token();
     assert(ident.type == tIdent);
-    if (peek_token(l).type == tLBracket) {
-        get_token(l);
-        Token s = get_token(l);
+    if (peek_token().type == tLBracket) {
+        get_token();
+        Token s = get_token();
         assert(s.type == tInt);
         array_size = atoi(s.literal);
-        assert(get_token(l).type == tRBracket);
+        assert(get_token().type == tRBracket);
         ty = TYPE_ARRAY;
     } else if (p->pointer.next != NULL || array_size > 0) ty = TYPE_INT_PTR;
-    assert(get_token(l).type == tSemicolon);
+    assert(get_token().type == tSemicolon);
     if (find_by_key(map, ident.literal) == NULL) {
         if (array_size >= 2) offset += array_size * 4;
         else offset += 8;
@@ -193,249 +193,249 @@ Node *declaration(Lexer *l) {
     return make_ast_ident(ident.literal);
 }
 
-Node *postfix_expression(Lexer *l) {
-    Node *n = primary_expression(l);
-    if (peek_token(l).type == tLBracket) {
-        get_token(l);
-        Node *expr = expression(l);
-        assert(get_token(l).type == tRBracket);
+Node *postfix_expression() {
+    Node *n = primary_expression();
+    if (peek_token().type == tLBracket) {
+        get_token();
+        Node *expr = expression();
+        assert(get_token().type == tRBracket);
         return make_ast_unary_op(DEREF, make_ast_op(ADD, n, expr));
-    } else if (peek_token(l).type == tInc) {
-        get_token(l);
+    } else if (peek_token().type == tInc) {
+        get_token();
         return make_ast_op(ASSIGN, n, make_ast_op(ADD, n, make_ast_int(1)));
-    } else if (peek_token(l).type == tDec) {
-        get_token(l);
+    } else if (peek_token().type == tDec) {
+        get_token();
         return make_ast_op(ASSIGN, n, make_ast_op(SUB, n, make_ast_int(1)));
     }
     return n;
 }
 
-Node *unary_expression(Lexer *l) {
-    if (is_unaryop_token(peek_token(l).type)) {
-        Token op = get_token(l);
+Node *unary_expression() {
+    if (is_unaryop_token(peek_token().type)) {
+        Token op = get_token();
         TokenType ty = op.type;
         if (op.type == tStar) ty = DEREF;
         if (op.type == tRef) ty = REF;
-        Node *n = cast_expression(l);
+        Node *n = cast_expression();
         return make_ast_unary_op(ty, n);
     }
-    Node *n = postfix_expression(l);
+    Node *n = postfix_expression();
     return n;
 }
 
-Node *cast_expression(Lexer *l) {
-    Node *n = unary_expression(l);
+Node *cast_expression() {
+    Node *n = unary_expression();
     return n;
 }
 
-Node *multiplicative_expression(Lexer *l) {
-    Node *left = cast_expression(l);
-    Token t = peek_token(l);
+Node *multiplicative_expression() {
+    Node *left = cast_expression();
+    Token t = peek_token();
     while (t.type == tStar /* || t.type == DIV || t.type == MOD */) {
-        Token op = get_token(l);
-        Node *right = cast_expression(l);
+        Token op = get_token();
+        Node *right = cast_expression();
         left = make_ast_op(MULTI, left, right);
-        t = peek_token(l);
+        t = peek_token();
     }
     return left;
 }
 
-Node *additive_expression(Lexer *l) {
-    Node *left = multiplicative_expression(l);
-    Token t = peek_token(l);
+Node *additive_expression() {
+    Node *left = multiplicative_expression();
+    Token t = peek_token();
     while (t.type == tAdd || t.type == tSub) {
-        Token op = get_token(l);
+        Token op = get_token();
         NodeType ty;
         if (op.type == tAdd) ty = ADD;
         else ty = SUB;
-        Node *right = multiplicative_expression(l);
+        Node *right = multiplicative_expression();
         left = make_ast_op(ty, left, right);
-        t = peek_token(l);
+        t = peek_token();
     }
     return left;   
 }
 
-Node *shift_expression(Lexer *l) {
-    Node *left = additive_expression(l);
+Node *shift_expression() {
+    Node *left = additive_expression();
     return left;
 }
 
-Node *relational_expression(Lexer *l) {
-    Node *left = shift_expression(l);
-    Token t = peek_token(l);
+Node *relational_expression() {
+    Node *left = shift_expression();
+    Token t = peek_token();
     while (t.type == tLess || t.type == tLessEq || t.type == tMore || t.type == tMoreEq) {
-        Token op = get_token(l);
+        Token op = get_token();
         NodeType type;
         if (t.type == tLess) type = LESS;
         if (t.type == tLessEq) type = LESSEQ;
         if (t.type == tMore) type = MORE;
         if (t.type == tMoreEq) type = MOREEQ;
-        Node *right = shift_expression(l);
+        Node *right = shift_expression();
         left = make_ast_op(type, left, right);
-        t = peek_token(l);
+        t = peek_token();
     }
     return left;  
 }
 
-Node *equality_expression(Lexer *l) {
-    Node *left = relational_expression(l);
+Node *equality_expression() {
+    Node *left = relational_expression();
     return left;
 }
 
-Node *and_expression(Lexer *l) {
-    Node *left = equality_expression(l);
+Node *and_expression() {
+    Node *left = equality_expression();
     return left;
 }
 
-Node *exclusive_or_expression(Lexer *l) {
-    Node *left = and_expression(l);
+Node *exclusive_or_expression() {
+    Node *left = and_expression();
     return left;
 }
 
-Node *exclusive_and_expression(Lexer *l) {
-    Node *left = exclusive_or_expression(l);
+Node *exclusive_and_expression() {
+    Node *left = exclusive_or_expression();
     return left;
 }
 
-Node *inclusive_or_expression(Lexer *l) {
-    Node *left = exclusive_and_expression(l);
+Node *inclusive_or_expression() {
+    Node *left = exclusive_and_expression();
     return left;
 }
 
-Node *logical_and_expression(Lexer *l) {
-    Node *left = inclusive_or_expression(l);
+Node *logical_and_expression() {
+    Node *left = inclusive_or_expression();
     return left;
 }
 
-Node *logical_or_expression(Lexer *l) {
-    Node *left = logical_and_expression(l);
+Node *logical_or_expression() {
+    Node *left = logical_and_expression();
     return left;   
 }
 
-Node *conditional_expression(Lexer *l) {
-    Node *left = logical_or_expression(l);
+Node *conditional_expression() {
+    Node *left = logical_or_expression();
     return left;
 }
 
-Node *assignment_expression(Lexer *l) {
-    Node *left = conditional_expression(l);
-    Token t = peek_token(l);
+Node *assignment_expression() {
+    Node *left = conditional_expression();
+    Token t = peek_token();
     while (t.type == tAssign) {
-        get_token(l);
-        Node *right = shift_expression(l);
+        get_token();
+        Node *right = shift_expression();
         left = make_ast_op(ASSIGN, left, right);
-        t = peek_token(l);
+        t = peek_token();
     }
     return left;
 }
 
-Node *expression(Lexer *l) { 
-    Node *left = assignment_expression(l);
+Node *expression() { 
+    Node *left = assignment_expression();
     return left;
 }
 
-Node *expression_statement(Lexer *l) {
-    Node *n = expression(l);
-    assert(get_token(l).type == tSemicolon);
+Node *expression_statement() {
+    Node *n = expression();
+    assert(get_token().type == tSemicolon);
     return n;
 }
 
-Node *selection_statement(Lexer *l) {
-    assert(get_token(l).type == tIf);
-    assert(get_token(l).type == tLParen);
-    Node *expr = expression(l);
-    assert(get_token(l).type == tRParen);
-    Node *stmt = statement(l);
+Node *selection_statement() {
+    assert(get_token().type == tIf);
+    assert(get_token().type == tLParen);
+    Node *expr = expression();
+    assert(get_token().type == tRParen);
+    Node *stmt = statement();
     return make_ast_if_stmt(expr, stmt);
 }
 
-Node *iteration_statement(Lexer *l) {
+Node *iteration_statement() {
     Node *stmt;
-    Token t = get_token(l);
-    assert(get_token(l).type == tLParen);
+    Token t = get_token();
+    assert(get_token().type == tLParen);
     if (t.type == tWhile) {
-        Node *expr = expression(l);
-        assert(get_token(l).type == tRParen);
-        Node *_stmt = statement(l);
+        Node *expr = expression();
+        assert(get_token().type == tRParen);
+        Node *_stmt = statement();
         stmt = make_ast_while_stmt(expr, _stmt);
     } else if (t.type == tFor) {
-        Node *init = expression(l);
-        assert(get_token(l).type == tSemicolon);
-        Node *cond = expression(l);
-        assert(get_token(l).type == tSemicolon);
-        Node *loop = expression(l);
-        assert(get_token(l).type == tRParen);
-        Node *_stmt = statement(l);
+        Node *init = expression();
+        assert(get_token().type == tSemicolon);
+        Node *cond = expression();
+        assert(get_token().type == tSemicolon);
+        Node *loop = expression();
+        assert(get_token().type == tRParen);
+        Node *_stmt = statement();
         stmt = make_ast_for_stmt(init, cond, loop, _stmt);
     }
     return stmt;
 }
 
-Node *compound_statement(Lexer *l) {
-    assert(get_token(l).type == tLBrace);
+Node *compound_statement() {
+    assert(get_token().type == tLBrace);
     Node *n = make_ast_compound_statement();
-    while (peek_token(l).type != tRBrace) {
+    while (peek_token().type != tRBrace) {
         Node *block_item;
-        // debug_token(peek_token(l));
-        if (peek_token(l).type == tDecInt) block_item = declaration(l);
-        else block_item = statement(l);
+        // debug_token(peek_token());
+        if (peek_token().type == tDecInt) block_item = declaration();
+        else block_item = statement();
         vec_push(n->compound_stmt.block_item_list, block_item);
     }
-    assert(get_token(l).type == tRBrace);
+    assert(get_token().type == tRBrace);
     return n;
 }
 
-Node *jump_statement(Lexer *l) {
-    get_token(l);
-    Node *expr = expression(l);
-    assert(get_token(l).type == tSemicolon);
+Node *jump_statement() {
+    get_token();
+    Node *expr = expression();
+    assert(get_token().type == tSemicolon);
     return make_ast_ret_stmt(expr);
 }
 
-Node *statement(Lexer *l) {
+Node *statement() {
     Node *expr;
-    Token t = peek_token(l);
+    Token t = peek_token();
     if (t.type == tIf) {
-        expr = selection_statement(l);
+        expr = selection_statement();
     } else if (t.type == tWhile || t.type == tFor) {
-        expr = iteration_statement(l);
+        expr = iteration_statement();
     } else if (t.type == tLBrace) {
-        expr = compound_statement(l);
+        expr = compound_statement();
     } else if (t.type == tReturn) {
-        expr = jump_statement(l);
+        expr = jump_statement();
     } else {
-        expr = expression_statement(l);
+        expr = expression_statement();
     }
     return expr;
 }
 
-Node *external_declaration(Lexer *l) {
-    assert(get_token(l).type == tDecInt);
-    Token t = get_token(l);
+Node *external_declaration() {
+    assert(get_token().type == tDecInt);
+    Token t = get_token();
     assert(t.type == tIdent);
     char *name = malloc(sizeof(char) * strlen(t.literal));
     strcpy(name, t.literal);
-    if (peek_token(l).type == tLParen) {
+    if (peek_token().type == tLParen) {
         Node *func_ast = make_ast_func_def(name);
         map = func_ast->func_decl.map;
-        assert(get_token(l).type == tLParen);
-        while (peek_token(l).type != tRParen) {
-            assert(get_token(l).type == tDecInt);
-            Token arg = get_token(l);
+        assert(get_token().type == tLParen);
+        while (peek_token().type != tRParen) {
+            assert(get_token().type == tDecInt);
+            Token arg = get_token();
             assert(arg.type == tIdent);
             offset += 8;
             KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, offset * -1, NULL, 0));
             insert_map(map, kv);
             func_ast->func_decl.argc += 1;
-            if (peek_token(l).type == tComma) get_token(l);
+            if (peek_token().type == tComma) get_token();
         }
-        assert(get_token(l).type == tRParen);
-        Node *n = compound_statement(l);
+        assert(get_token().type == tRParen);
+        Node *n = compound_statement();
         vec_push(func_ast->compound_stmt.block_item_list, n);
         func_ast->offset = offset;
         return func_ast;
     }
-    assert(get_token(l).type == tSemicolon);
+    assert(get_token().type == tSemicolon);
     Node *global_decl = make_ast_global_var(name);
     Var *v = new_var(TYPE_INT, 0, NULL, 0);
     insert_map(global_map, new_kv(name, v));

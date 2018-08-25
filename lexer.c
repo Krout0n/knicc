@@ -3,11 +3,13 @@
 
 #include "knicc.h"
 
-char current_char(Lexer *l) {
+Lexer *l;
+
+char current_char() {
     return l->src[l->index];
 }
 
-char peek_char(Lexer *l) {
+char peek_char() {
     return l->src[l->index + 1];
 }
 
@@ -18,7 +20,7 @@ TokenType is_two_chars_op(char current, char peeked) {
     return NOT_FOUND;
 }
 
-Token lex(Lexer *l) {
+Token lex() {
     Token t;
     TokenType type;
     int i = 0;
@@ -79,24 +81,24 @@ Token lex(Lexer *l) {
     return t;
 }
 
-void store_token(Lexer *l, Token t) {
+void store_token(Token t) {
     l->tokens[l->length] = t;
     l->length += 1;
 }
 
-Lexer init_lexer() {
-    Lexer l;
-    l.index = 0;
-    l.token_index = 0;
-    l.length = 0;
+Lexer *init_lexer() {
+    Lexer *l = malloc(sizeof(Lexer));
+    l->index = 0;
+    l->token_index = 0;
+    l->length = 0;
     return l;
 }
 
-void debug_lexer(Lexer *l) {
+void debug_lexer() {
     printf("LEXER current: %d, length: %d\n", l->token_index, l->index);
 }
 
-Token get_token(Lexer *l) {
+Token get_token() {
     if (l->length <= l->token_index) {
         perror("get_token: LENGTH OVER");
     }
@@ -105,7 +107,7 @@ Token get_token(Lexer *l) {
     return t;
 }
 
-Token peek_token(Lexer *l) {
+Token peek_token() {
     if (l->length <= l->token_index) {
         perror("peek_token: LENGTH OVER");
     }

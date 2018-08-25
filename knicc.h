@@ -66,13 +66,14 @@ typedef struct {
     int length;
 } Lexer;
 
-extern Token lex(Lexer *l);
-extern void store_token(Lexer *l, Token t);
+extern Token lex();
+extern void store_token(Token t);
 extern TokenType keyword(char *s);
-extern Lexer init_lexer();
-extern Token get_token(Lexer *l);
-extern Token peek_token(Lexer *l);
+extern Lexer *init_lexer();
+extern Token get_token();
+extern Token peek_token();
 extern bool is_unaryop_token(TokenType type);
+extern Lexer *l;
 
 // vector.c
 typedef struct {
@@ -189,7 +190,7 @@ typedef struct Node {
     int offset;
 } Node;
 
-extern Node *external_declaration(Lexer *l);
+extern Node *external_declaration();
 extern int how_many_nested_pointer(Node *n, int i);
 
 // code.c

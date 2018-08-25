@@ -5,12 +5,12 @@
 #include "./knicc.h"
 
 int main(int argc, char **argv) {
-    Lexer l = init_lexer();
+    l = init_lexer();
     global_map = init_map();
-    fgets(l.src, 1000, stdin);
+    fgets(l->src, 1000, stdin);
     while (1) {
-        Token t = lex(&l);
-        store_token(&l, t);
+        Token t = lex();
+        store_token(t);
         // debug_token(t);
         if (t.type == _EOF) break;
     }
