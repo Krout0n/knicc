@@ -87,6 +87,7 @@ void emit_code(Node *n) {
     Vector *stmts;
     Var *v;
     KeyValue *kv;
+    if (n == NULL) return;
     switch(n->type) {
         case INT:
             printf("  push $%d\n", n->ival);
@@ -203,6 +204,7 @@ void emit_code(Node *n) {
 }
 
 void emit_expr(Node *n) {
+    if (n == NULL) return;
     if (is_binop(n->type)) {
         if (n->type == ADD) {
             if (n->left->type == IDENTIFIER) {

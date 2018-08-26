@@ -360,11 +360,15 @@ Node *iteration_statement() {
         Node *_stmt = statement();
         stmt = make_ast_while_stmt(expr, _stmt);
     } else if (t.type == tFor) {
-        Node *init = expression();
+        Node *init, *cond, *loop;
+        if (peek_token().type != tSemicolon) init = expression();
+        else init = NULL;
         assert(get_token().type == tSemicolon);
-        Node *cond = expression();
+        if (peek_token().type != tSemicolon) cond = expression();
+        else cond = make_ast_int(1);
         assert(get_token().type == tSemicolon);
-        Node *loop = expression();
+        if (peek_token().type != tRParen) loop = expression();
+        else loop = NULL;
         assert(get_token().type == tRParen);
         Node *_stmt = statement();
         stmt = make_ast_for_stmt(init, cond, loop, _stmt);

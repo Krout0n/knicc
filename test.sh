@@ -159,6 +159,7 @@ exit_code 'int i; int hoge() { i = 10; } int main(){i=3; hoge(); return i + 1; }
 exit_code 'int i; int hoge() { int j; j = 10; i = 20;} int main() { int j; j = 1; hoge(); return i + j; }' '21'
 exit_code 'int main(){ int i; i = 20; i += 3; return i;}' '23'
 exit_code 'int foo() { return 10; } int main(){ int i; i = 20; i += foo() + 3; return i;}' '33'
+exit_code 'int main() { int i; i = 0; int a; a = 0; for (; i < 10;) { a += i; i++; } return a; }' '45'
 # exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; return *p + *(p + 1);  }' '3'
 # using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int q; q = *(p+3); return q; }' '8'
 # exit_code 'int main() {int *a; int b; a=&b; *a=10; return b;}' '10'
