@@ -320,10 +320,11 @@ Node *conditional_expression() {
 Node *assignment_expression() {
     Node *left = conditional_expression();
     Token t = peek_token();
-    while (t.type == tAssign) {
+    while (t.type == tAssign || t.type == tPlusEq) {
         get_token();
         Node *right = shift_expression();
-        left = make_ast_op(ASSIGN, left, right);
+        if (t.type == tAssign) left = make_ast_op(ASSIGN, left, right);
+        else if (t.type == tPlusEq) left = make_ast_op(ASSIGN, left, make_ast_op(ADD, left, right));
         t = peek_token();
     }
     return left;

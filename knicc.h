@@ -14,6 +14,7 @@ typedef enum {
     tSub,
     tStar,
     tAssign,
+    tPlusEq,
     tEq,
     tLess,
     tLessEq,

@@ -17,6 +17,7 @@ TokenType is_two_chars_op(char current, char peeked) {
     if (current == '=' && peeked == '=') return tEq;
     if (current == '+' && peeked == '+') return tInc;
     if (current == '-' && peeked == '-') return tDec;
+    if (current == '+' && peeked == '=') return tPlusEq;
     return NOT_FOUND;
 }
 
