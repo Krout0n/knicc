@@ -160,13 +160,15 @@ exit_code 'int i; int hoge() { int j; j = 10; i = 20;} int main() { int j; j = 1
 exit_code 'int main(){ int i; i = 20; i += 3; return i;}' '23'
 exit_code 'int foo() { return 10; } int main(){ int i; i = 20; i += foo() + 3; return i;}' '33'
 exit_code 'int main() { int i; i = 0; int a; a = 0; for (; i < 10;) { a += i; i++; } return a; }' '45'
+exit_code 'int fib(int n) { if (0 < n) { return n + fib(n-1); } } int main() { return fib(10); }' '55'
+exit_code 'int ten(int x){ if (x < 10) { return ten(x+1); } return x; } int main() { return ten(9); }' '10'
+exit_code 'int fib(int a, int b, int i, int n) {if (i < n) return fib(b, a+b, i+1, n); return a;} int main(){return fib(0, 1, 0, 10); }' '55'
 # exit_code 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; return *p + *(p + 1);  }' '3'
 # using_other 'int main() { int *p; allocate4(&p, 1, 2, 4, 8); int q; q = *(p+3); return q; }' '8'
 # exit_code 'int main() {int *a; int b; a=&b; *a=10; return b;}' '10'
 # exit_code 'int main() { int a[2]; int *p; p = a + 1; *p = 2; return *(a+1); }' '2'
 
 # exit_code 'int main() { int a; int b; a = 1; b = 2; int *p; p = &b; p = p + 1;}' '1' // ローカル変数のアラインメントを利用したかった
-# exit_code 'int ten(int x){ if (x < 10) { return ten(x+1); } return x; } int main() { return ten(9); }' '10'
 # exit_code 'int fib(int a, int b, int i, int n) {if (i < n) return fib(b, a+b, i+1, n); return a;} int main(){return fib(0, 1, 0, 10); }' '34'
 # exit_code 'int fib(int a, int b, int i, int n){ if (n < i) { return a;} return fib(b, a+b, i+1, n); } int main() {return fib(0, 1, 0, 1);}' '34'
 # failng_test 'int inc (a) { a + 1; } int main() { inc(10) }' 正しく落ちた

@@ -9,7 +9,6 @@ Node *expression();
 Node *statement();
 Node *cast_expression();
 
-;
 Map *map;
 Map *global_map;
 
