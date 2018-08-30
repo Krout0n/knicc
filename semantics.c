@@ -16,7 +16,7 @@ Var *new_var(TrueType type, int offset, Node *next, size_t array_size) {
 TrueType type_from_dec(TokenType type) {
     if (type == tDecInt) return TYPE_INT;
     if (type == tDecChar) return TYPE_CHAR;
-    assert(type == TYPE_INT || type == TYPE_CHAR);
+    assert(type == tDecInt || type == tDecChar);
 }
 
 int align_from_type(TrueType type) {

@@ -76,6 +76,15 @@ Node *make_ast_if_stmt(Node *expr, Node *stmt) {
     return n;
 }
 
+Node *make_ast_if_else_stmt(Node *expr, Node *stmt, Node *else_stmt) {
+    Node *n = malloc(sizeof(Node));
+    n->type = IF_ELSE_STMT;
+    n->if_stmt.expression = expr;
+    n->if_stmt.true_stmt = stmt;
+    n->if_stmt.else_stmt = else_stmt;
+    return n;
+}
+
 Node *make_ast_while_stmt(Node *expr, Node *stmt) {
     Node *n = malloc(sizeof(Node));
     n->type = WHILE;
@@ -346,6 +355,11 @@ Node *selection_statement() {
     Node *expr = expression();
     assert(get_token().type == tRParen);
     Node *stmt = statement();
+    if (peek_token().type == tElse) {
+        get_token();
+        Node *else_stmt = statement();
+        return make_ast_if_else_stmt(expr, stmt, else_stmt);
+    }
     return make_ast_if_stmt(expr, stmt);
 }
 

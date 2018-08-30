@@ -155,6 +155,17 @@ void emit_code(Node *n) {
             emit_expr(n->if_stmt.true_stmt);
             printf(".Lend:\n");
             break;
+        case IF_ELSE_STMT:
+            emit_expr(n->if_stmt.expression);
+            printf("  pop %%rax\n");
+            printf("  cmpq $0, %%rax\n");
+            printf("  je .Else\n");
+            emit_expr(n->if_stmt.true_stmt);
+            printf("  jmp .End\n");
+            printf(".Else:\n");
+            emit_expr(n->if_stmt.else_stmt);
+            printf(".End:\n");
+            break;
         case WHILE:
             printf(".Lbegin:\n");
             emit_expr(n->while_stmt.expression);
@@ -206,6 +217,7 @@ void emit_code(Node *n) {
 
 void emit_expr(Node *n) {
     if (n == NULL) return;
+    // printf("%d\n", n->type);
     if (is_binop(n->type)) {
         if (n->type == ADD) {
             if (n->left->type == IDENTIFIER) {
