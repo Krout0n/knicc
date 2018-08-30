@@ -102,6 +102,7 @@ TokenType keyword(char *s) {
     if (strcmp("while", s) == 0) return tWhile;
     if (strcmp("for", s) == 0) return tFor;
     if (strcmp("int", s) == 0) return tDecInt;
+    if (strcmp("char", s) == 0) return tDecChar;
     if (strcmp("return", s) == 0) return tReturn;
     return tIdent;
 }

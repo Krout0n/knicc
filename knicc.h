@@ -39,6 +39,7 @@ typedef enum {
     tReturn,
 
     tDecInt,
+    tDecChar,
     tRef,
 
     _EOF,
@@ -92,8 +93,10 @@ extern void *vec_get(Vector *vec, int index);
 
 typedef enum {
     TYPE_INT,
+    TYPE_CHAR,
     TYPE_ARRAY,
     TYPE_INT_PTR,
+    TYPE_CHAR_ARRAY,
     TYPE_PTR_PTR,
 } TrueType;
 
@@ -120,6 +123,7 @@ extern Map *global_map;
 typedef enum {
     IDENTIFIER,
     INT,
+    CHAR,
 
     ADD,
     SUB,
@@ -214,6 +218,8 @@ typedef struct {
 
 extern Var *new_var(TrueType type, int pos, Node *pointer, size_t array_size);
 extern int add_sub_ptr(TrueType ty);
+extern TrueType type_from_dec(TokenType type);
+extern int align_from_type(TrueType type);
 extern Var *get_first_var(Map *map, Node *n);
 extern void debug_var(char *key, Var *var);
 #endif

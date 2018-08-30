@@ -13,6 +13,18 @@ Var *new_var(TrueType type, int offset, Node *next, size_t array_size) {
     return v;
 }
 
+TrueType type_from_dec(TokenType type) {
+    if (type == tDecInt) return TYPE_INT;
+    if (type == tDecChar) return TYPE_CHAR;
+    assert(type == TYPE_INT || type == TYPE_CHAR);
+}
+
+int align_from_type(TrueType type) {
+    if (type == TYPE_CHAR) return 1;
+    else return 8;
+    assert(type == TYPE_INT || type == TYPE_CHAR);
+}
+
 bool is_unaryop(TokenType type) {
     switch (type) {
         case REF:
@@ -66,6 +78,9 @@ void debug_var(char *key,Var *var) {
             break;
         case TYPE_PTR_PTR:
             s = "TYPE_PTR_PTR";
+            break;
+        case TYPE_CHAR:
+            s = "TYPE_CHAR";
             break;
         case TYPE_ARRAY:
             s = "TYPE_ARRAY";

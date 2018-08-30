@@ -168,9 +168,8 @@ Node *pointer() {
 }
 
 Node *declaration() {
-    TrueType ty = TYPE_INT;
     size_t array_size = 0;
-    assert(get_token().type == tDecInt);
+    TrueType ty = type_from_dec(get_token().type);
     Node *p = pointer();
     Token ident = get_token();
     assert(ident.type == tIdent);
@@ -184,8 +183,9 @@ Node *declaration() {
     } else if (p->pointer.next != NULL || array_size > 0) ty = TYPE_INT_PTR;
     assert(get_token().type == tSemicolon);
     if (find_by_key(map, ident.literal) == NULL) {
-        if (array_size >= 2) offset += array_size * 4;
-        else offset += 8;
+        int align = align_from_type(ty);
+        if (array_size >= 2) offset += array_size * align;
+        else offset += align;
         KeyValue *kv = new_kv(ident.literal, new_var(ty, offset * -1, p, array_size));
         insert_map(map, kv);
     }
@@ -381,7 +381,7 @@ Node *compound_statement() {
     while (peek_token().type != tRBrace) {
         Node *block_item;
         // debug_token(peek_token());
-        if (peek_token().type == tDecInt) block_item = declaration();
+        if (peek_token().type == tDecInt || peek_token().type == tDecChar) block_item = declaration();
         else block_item = statement();
         vec_push(n->compound_stmt.block_item_list, block_item);
     }

@@ -129,7 +129,8 @@ void emit_code(Node *n) {
             if (kv != NULL) {
                 v = kv->value;
                 if (v->type == TYPE_ARRAY) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
-                else printf("  mov %d(%%rbp), %%rax\n", v->offset);
+                else if (v->type == TYPE_INT || v->type == TYPE_INT_PTR) printf("  mov %d(%%rbp), %%rax\n", v->offset);
+                else if (v->type == TYPE_CHAR) printf("  movzbl %d(%%rbp), %%rax\n", v->offset);
             } else printf("  mov %s(%%rip), %%rax\n", n->literal);
             printf("  pushq %%rax\n");
             break;
