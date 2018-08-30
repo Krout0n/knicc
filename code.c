@@ -7,6 +7,7 @@ Map *map;
 Map *global_map;
 
 int func_offset;
+int label_no = 0;
 
 const char *regs[6] = {
     "rdi",
@@ -151,20 +152,22 @@ void emit_code(Node *n) {
             emit_expr(n->if_stmt.expression);
             printf("  pop %%rax\n");
             printf("  cmpq $0, %%rax\n");
-            printf("  je .Lend\n");
+            printf("  je "); emit_label(); printf("\n"); // je .L0
             emit_expr(n->if_stmt.true_stmt);
-            printf(".Lend:\n");
+            emit_label(); printf(":\n"); // .L0:
+            label_no++;
             break;
         case IF_ELSE_STMT:
             emit_expr(n->if_stmt.expression);
             printf("  pop %%rax\n");
             printf("  cmpq $0, %%rax\n");
-            printf("  je .Else\n");
+            printf("  je "); emit_label(); printf("\n"); // je .L0
             emit_expr(n->if_stmt.true_stmt);
-            printf("  jmp .End\n");
-            printf(".Else:\n");
+            printf("  jmp "); emit_label_plus_one(); printf("\n"); // jmp .L1
+            emit_label(); printf(":\n"); // .L0:
+            label_no++;
             emit_expr(n->if_stmt.else_stmt);
-            printf(".End:\n");
+            emit_label(); printf(":\n"); // .L1:
             break;
         case WHILE:
             printf(".Lbegin:\n");
@@ -254,6 +257,14 @@ void emit_lvalue_code(Node *n) {
         else printf("  leaq %s(%%rip), %%rax\n", n->literal);
     }
     printf("  pushq %%rax\n");
+}
+
+void emit_label() {
+    printf(".L%d", label_no);
+}
+
+void emit_label_plus_one() {
+    printf(".L%d", label_no+1);
 }
 
 void print_ast(Node *node) {
