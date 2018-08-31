@@ -50,6 +50,7 @@ using_other() {
 }
 
 exit_code "int main(){ return 1;}" 1
+exit_code 'int main() { 10; return; }' '10'
 exit_code "int main(){10;}" 10
 exit_code "int main(){22;}" 22
 exit_code 'int main(){1+2;}' 3
@@ -93,8 +94,8 @@ exit_code 'int add(int x, int y) { x + y; } int main() { add(1,2); }' '3'
 exit_code 'int foo(int x) { x + 1;} int main() { int a; a =3; foo(a);}' '4'
 exit_code 'int add(int x,int y) { x + y; } int main() { int a; a = 1; int b; b=2; add(a,b);}' '3'
 exit_code 'int local(int x) { int y; y = 20; x + y;} int main() { int a; a = 10; local(a);}' '30'
-exit_code 'int local_assign(int x) { int y; y = x;} int main(){ local_assign(10); }' '10'
-exit_code 'int local_assign(int x) { int y; y = x;} int main(){ int a; a=10; local_assign(a); }' '10'
+exit_code 'int local_assign(int x) { int y; y = x + 1;} int main(){ local_assign(10); }' '11'
+exit_code 'int local_assign(int x) { int y; y = x + 1;} int main(){ int a; a=10; local_assign(a); return a; }' '10'
 exit_code 'int expr(int x) { x+10; } int main() { expr(10+10);} ' '30'
 exit_code 'int main() { return 10 < 20; }' '1'
 exit_code 'int main(){ if (1 < 2) 10; }' '10'
