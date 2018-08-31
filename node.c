@@ -405,8 +405,15 @@ Node *compound_statement() {
 
 Node *jump_statement() {
     get_token();
-    Node *expr = expression();
-    assert(get_token().type == tSemicolon);
+    Node *expr;
+    if (peek_token().type == tSemicolon) {
+        expr = NULL;
+        get_token();
+    }
+    else {
+        expr = expression();
+        assert(get_token().type == tSemicolon);
+    }
     return make_ast_ret_stmt(expr);
 }
 
