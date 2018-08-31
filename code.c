@@ -18,6 +18,15 @@ const char *regs[6] = {
     "r9"
 };
 
+
+void emit_label() {
+    printf(".L%d", label_no);
+}
+
+void emit_label_plus_one() {
+    printf(".L%d", label_no+1);
+}
+
 void emit_global_var(void) {
     for (int i = 0; i < global_map->vec->length; i++) {
         char *key = ((KeyValue *)(vec_get(global_map->vec, i)))->key;
@@ -221,7 +230,14 @@ void emit_code(Node *n) {
 void emit_expr(Node *n) {
     if (n == NULL) return;
     // printf("%d\n", n->type);
-    if (is_binop(n->type)) {
+    if (n->type == COMPOUND_STMT) {
+        Vector *stmts = n->compound_stmt.block_item_list;
+        for (int i = 0; i < stmts->length; i++) {
+            Node *ast = vec_get(stmts, i);
+            printf("\n// %d line\n", i+1);
+            emit_expr(ast);
+        }
+    } else if (is_binop(n->type)) {
         if (n->type == ADD) {
             if (n->left->type == IDENTIFIER) {
                 emit_expr(n->left);
@@ -241,7 +257,6 @@ void emit_expr(Node *n) {
         emit_expr(n->left);
         emit_expr(n->right);
     }
-    // print_ast(n);
     emit_code(n);
 }
 
@@ -257,67 +272,4 @@ void emit_lvalue_code(Node *n) {
         else printf("  leaq %s(%%rip), %%rax\n", n->literal);
     }
     printf("  pushq %%rax\n");
-}
-
-void emit_label() {
-    printf(".L%d", label_no);
-}
-
-void emit_label_plus_one() {
-    printf(".L%d", label_no+1);
-}
-
-void print_ast(Node *node) {
-    switch (node->type) {
-        case ASSIGN:
-            printf("(define ");
-            print_ast(node->left);
-            print_ast(node->right);
-            printf(")");
-            break;
-        case IDENTIFIER:
-            printf("%s ", node->literal);
-            break;
-        case ADD:
-            printf("(+ ");
-            goto print_op;
-        case SUB:
-            printf("(- ");
-            goto print_op;
-        case MULTI:
-            printf("(* ");
-            goto print_op;
-        case LESS:
-            printf("(< ");
-            goto print_op;
-        case MORE:
-            printf("(> ");
-            goto print_op;
-            print_op:
-            print_ast(node->left);
-            printf(" ");
-            print_ast(node->right);
-            printf(")");
-            break;
-        case INT:
-            printf("%d", node->ival);
-            break;
-        case FUNC_CALL:
-            printf("(");
-            printf("%s", node->func_call.func_name);
-            for (int i = 0; i < node->func_call.argc; i++) {
-                printf(" %d", node->func_call.argv[i]->ival);
-            }
-            printf(")\n");
-            break;
-        case IF_STMT:
-            printf("(if ");
-            print_ast(node->if_stmt.expression);
-            print_ast(node->if_stmt.true_stmt);
-            printf(")\n");
-            break;
-        default:
-            debug_token(new_token("err", node->type));
-            perror("should not reach here");
-    }
 }
