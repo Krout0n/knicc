@@ -9,6 +9,7 @@ typedef enum {
     tInt,
     tIdent,
     tSemicolon,
+    tString,
     
     tAdd,
     tSub,

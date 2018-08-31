@@ -25,7 +25,7 @@ Token lex() {
     Token t;
     TokenType type;
     int i = 0;
-    char c = current_char(l);
+    char c = current_char();
     char peeked;
     if (isdigit(c)) {
         while(isdigit(c)) {
@@ -75,6 +75,19 @@ Token lex() {
     } else if (isblank(c)) {
         l->index += 1;
         return lex(l);
+    } else if (c == '"') {
+        l->index += 1;
+        c = current_char();
+        while (c != '"') {
+            t.literal[i] = c;
+            i += 1;
+            l->index += 1;
+            c = current_char();
+        }
+        t.literal[i] = '\0';
+        t.type = tString;
+        l->index += 1;
+        return t;
     } else {
         t.literal[0] = '\0';
         t.type = _EOF;

@@ -67,6 +67,12 @@ char *find_token_name(TokenType t) {
         case tFor:
             s = "for";
             break;
+        case tString:
+            s = "String";
+            break;
+        case tDecInt:
+            s = "int";
+            break;
         default:
             s = "UNEXPECTED TOKEN";
             printf("type: %d\n", t);
