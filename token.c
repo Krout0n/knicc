@@ -125,6 +125,6 @@ void debug_token(Token t) {
 }
 
 bool is_unaryop_token(TokenType type) {
-    if (type == tRef || type == tStar) return true;
+    if (type == tRef || type == tStar || type == tSub) return true;
     return false;
 }

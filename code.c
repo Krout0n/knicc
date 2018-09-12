@@ -5,6 +5,7 @@
 
 Map *map;
 Map *global_map;
+Vector *string_literal_vec;
 
 int func_offset;
 int label_no = 0;
@@ -53,9 +54,9 @@ void emit_if_else_stmt(Node *n) {
 
 void emit_return_stmt(Node *n) {
     emit_expr(n->ret_stmt.expr);
-    printf("  pop %%rax\n");
-    printf("  add $%d, %%rsp\n",func_offset);
-    printf("  leave\n");
+    printf("\n  popq %%rax\n");
+    printf("  movq %%rbp, %%rsp\n");
+    printf("  popq %%rbp\n");
     printf("  ret\n");
 }
 
@@ -110,7 +111,16 @@ void emit_global_var(void) {
     }
 }
 
+void emit_string_literal() {
+    for (int i = 0; i < string_literal_vec->length; i++) {
+        printf(".LC%d:\n", i);
+        printf("  .asciz \"%s\"\n", vec_get(string_literal_vec, i));
+        printf("\n");
+    }
+}
+
 void emit_toplevel(Vector *n) {
+    emit_string_literal();
     printf(".data\n");
     emit_global_var();
     printf(".text\n");
@@ -140,10 +150,9 @@ void emit_func_decl(Node *n) {
 }
 
 void emit_func_ret(Node *n) {
-    printf("\n  pop %%rax\n");
-    printf("  add $%d, %%rsp\n", func_offset);
-    printf("  mov %%rbp, %%rsp\n");
-    printf("  pop %%rbp\n");
+    printf("\n  popq %%rax\n");
+    printf("  movq %%rbp, %%rsp\n");
+    printf("  popq %%rbp\n");
     printf("  ret\n");
 }
 
@@ -158,23 +167,23 @@ void emit_add(Node *n) {
     if (n->left->type == IDENTIFIER) {
         KeyValue *kv = find_by_key(map, n->left->literal);
         if (kv != NULL) {
-            TrueType ty = ((Var *)(kv->value))->type;
-            printf("  pushq $%d\n", add_sub_ptr(ty));
+            Var *v = ((Var *)(kv->value));
+            printf("  pushq $%d\n", add_sub_ptr(v));
             gen_operands();
             printf("  imul %%rdx, %%rax\n");
             printf("  push %%rax\n");
         }
     }
     gen_operands();
-    printf("  add %%rdx, %%rax\n");
-    printf("  push %%rax\n");
+    printf("  addq %%rdx, %%rax\n");
+    printf("  pushq %%rax\n");
 }
 
 void emit_sub(Node *n) {
     emit_expr(n->left);
     emit_expr(n->right);
     gen_operands();
-    printf("  sub %%rax, %%rdx\n");
+    printf("  subq %%rax, %%rdx\n");
     printf("  pushq %%rdx\n");
 }
 
@@ -183,27 +192,33 @@ void emit_multi(Node *n) {
     emit_expr(n->right);
     gen_operands();
     printf("  imul %%rdx, %%rax\n");
-    printf("  push %%rax\n");
+    printf("  pushq %%rax\n");
 }
 
 void emit_assign(Node *n) {
+    Var *v;
     emit_lvalue_code(n->left);
     emit_expr(n->right);
     // 代入を実行
-    printf("  pop %%rbx\n");
-    printf("  pop %%rax\n");
-    printf("  mov %%rbx, (%%rax)\n");
-    printf("  push %%rbx\n");
+    printf("  popq %%rbx\n");
+    printf("  popq %%rax\n");
+    v = get_first_var(map, n);
+    if (v != NULL && v->type == TYPE_CHAR && v->next == NULL) {
+        printf("  movb %%bl, (%%rax)\n");
+    } else {
+        printf("  movq %%rbx, (%%rax)\n");
+    }
+    printf("  pushq %%rbx\n");
 }
 
 void emit_func_call(Node *n) {
     for (int i = 0; i < n->func_call.argc; i++) {
         if (n->func_call.argv[i]->type == INT) {
-            printf("  mov  $%d,  %%%s\n", n->func_call.argv[i]->ival, regs[i]);
+            printf("  movq  $%d,  %%%s\n", n->func_call.argv[i]->ival, regs[i]);
         } else {
             emit_expr(n->func_call.argv[i]);
-            printf("  pop %%rax\n");
-            printf("  mov  %%rax,  %%%s\n", regs[i]);
+            printf("  popq %%rax\n");
+            printf("  movq  %%rax,  %%%s\n", regs[i]);
         }
     }
     printf("  call %s\n", n->func_call.func_name);
@@ -214,9 +229,9 @@ void emit_ident(Node *n) {
     KeyValue *kv = ((KeyValue *)(find_by_key(map, n->literal)));
     if (kv != NULL) {
         Var *v = kv->value;
-        if (v->type == TYPE_ARRAY) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
-        else if (v->type == TYPE_INT || v->type == TYPE_INT_PTR) printf("  mov %d(%%rbp), %%rax\n", v->offset);
-        else if (v->type == TYPE_CHAR) printf("  movzbl %d(%%rbp), %%rax\n", v->offset);
+        if (v->array_size > 0) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
+        else if (v->type == TYPE_INT || v->next != NULL) printf("  movq %d(%%rbp), %%rax\n", v->offset);
+        else if (v->type == TYPE_CHAR) printf("  movzbl %d(%%rbp), %%eax\n", v->offset);
     } else printf("  mov %s(%%rip), %%rax\n", n->literal);
     printf("  pushq %%rax\n");
 }
@@ -229,13 +244,13 @@ void emit_less(Node *n) {
     printf("  cmpq %%rdx, %%rax\n");
     printf("  setl %%al\n");
     printf("  movzbl %%al, %%eax\n");
-    printf("  push %%rax\n");
+    printf("  pushq %%rax\n");
 }
 
 void emit_ref(Node *n) {
     Var *v = get_first_var(map, n);
     printf("  leaq %d(%%rbp),  %%rax\n", v->offset);
-    printf("  push %%rax  \n");
+    printf("  pushq %%rax  \n");
 }
 
 void emit_deref(Node *n) {
@@ -243,8 +258,17 @@ void emit_deref(Node *n) {
     emit_expr(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
     // emit_expr(n->right); segfault
     // printf("  movq %d(%%rbp), %%rax\n", var->offset);
-    printf("  pop %%rax\n");
-    printf("  push (%%rax)  \n");
+    printf("  popq %%rax\n");
+    printf("  pushq (%%rax)  \n");
+}
+
+void emit_string(Node *n) {
+    int i = 0;
+    for (; i < string_literal_vec->length; i++) {
+        if (strcmp(vec_get(string_literal_vec, i), n->literal) == 0) break;
+    }
+    printf("  leaq .LC%d(%%rip), %%rax\n", i);
+    printf("  pushq %%rax\n");
 }
 
 void emit_expr(Node *n) {
@@ -259,7 +283,7 @@ void emit_expr(Node *n) {
     if (n->type == FUNC_CALL) emit_func_call(n);
     if (n->type == REF) emit_ref(n);
     if (n->type == DEREF) emit_deref(n);
-
+    if (n->type == STRING) emit_string(n);
 }
 
 void emit_lvalue_code(Node *n) {
