@@ -11,6 +11,7 @@ Node *cast_expression();
 
 Map *map;
 Map *global_map;
+Vector *string_literal_vec;
 
 int offset = 0;
 
@@ -56,7 +57,7 @@ Node *make_ast_func_call(char *func_name, int argc, Node **argv) {
     return n;
 }
 
-Node *make_ast_func_def(char *func_name) {
+Node *make_ast_func_def(char *func_name, TrueType type) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_DEF;
     n->func_decl.func_name = malloc(sizeof(char) * strlen(func_name));
@@ -64,6 +65,7 @@ Node *make_ast_func_def(char *func_name) {
     n->func_decl.map = init_map();
     n->func_decl.argc = 0;
     n->compound_stmt.block_item_list = init_vector();
+    n->func_decl.ret_type = type;
     return n;
 }
 
@@ -112,6 +114,7 @@ Node *make_ast_compound_statement(void) {
 
 Node *make_ast_pointer(Node *previous) {
     Node *next = malloc(sizeof(Node));
+    if (previous == NULL) previous = malloc(sizeof(Node));
     previous->pointer.next = next;
     return next;
 }
@@ -138,9 +141,23 @@ Node *make_ast_global_var(char *literal) {
     return n;
 }
 
+Node *make_ast_string(char *literal) {
+    Node *n = malloc(sizeof(Node));
+    n->type = STRING;
+    n->literal = malloc(sizeof(char) * strlen(literal));
+    strcpy(n->literal, literal);
+    return n;
+}
+
 Node *primary_expression() {
     Token t = get_token();
     if (t.type == tInt) return make_ast_int(atoi(t.literal));
+    else if (t.type == tString) {
+        char *str = malloc(sizeof(char) * strlen(t.literal));
+        strcpy(str, t.literal);
+        vec_push(string_literal_vec, str);
+        return make_ast_string(str);
+    }
     else if (t.type == tIdent) {
         if (peek_token().type == tLParen) {
             get_token();
@@ -164,6 +181,7 @@ Node *primary_expression() {
 }
 
 Node *pointer() {
+    if (peek_token().type != tStar) return NULL;
     Node *previous = malloc(sizeof(Node));
     Node *ret = previous;
     while (peek_token().type == tStar) {
@@ -188,12 +206,12 @@ Node *declaration() {
         assert(s.type == tInt);
         array_size = atoi(s.literal);
         assert(get_token().type == tRBracket);
-        ty = TYPE_ARRAY;
-    } else if (p->pointer.next != NULL || array_size > 0) ty = TYPE_INT_PTR;
+    }
     assert(get_token().type == tSemicolon);
     if (find_by_key(map, ident.literal) == NULL) {
         int align = align_from_type(ty);
         if (array_size >= 2) offset += array_size * align;
+        else if (p != NULL) offset += 8;
         else offset += align;
         KeyValue *kv = new_kv(ident.literal, new_var(ty, offset * -1, p, array_size));
         insert_map(map, kv);
@@ -224,6 +242,9 @@ Node *unary_expression() {
         TokenType ty = op.type;
         if (op.type == tStar) ty = DEREF;
         if (op.type == tRef) ty = REF;
+        if (op.type == tSub) {
+            return make_ast_op(MULTI, make_ast_int(-1), cast_expression());
+        }
         Node *n = cast_expression();
         return make_ast_unary_op(ty, n);
     }
@@ -435,13 +456,13 @@ Node *statement() {
 }
 
 Node *external_declaration() {
-    assert(get_token().type == tDecInt);
+    TrueType type = type_from_dec(get_token().type);
     Token t = get_token();
     assert(t.type == tIdent);
     char *name = malloc(sizeof(char) * strlen(t.literal));
     strcpy(name, t.literal);
     if (peek_token().type == tLParen) {
-        Node *func_ast = make_ast_func_def(name);
+        Node *func_ast = make_ast_func_def(name, type);
         map = func_ast->func_decl.map;
         assert(get_token().type == tLParen);
         while (peek_token().type != tRParen) {

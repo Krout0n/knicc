@@ -7,6 +7,7 @@
 int main(int argc, char **argv) {
     l = init_lexer();
     global_map = init_map();
+    string_literal_vec = init_vector();
     fgets(l->src, 1000, stdin);
     while (1) {
         Token t = lex();

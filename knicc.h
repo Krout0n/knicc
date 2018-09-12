@@ -89,15 +89,13 @@ extern Vector *init_vector(void);
 extern size_t vec_size(Vector *vec);
 extern void vec_push(Vector *vec, void *item);
 extern void *vec_get(Vector *vec, int index);
+extern Vector *string_literal_vec;
 
 // map.c
 
 typedef enum {
     TYPE_INT,
     TYPE_CHAR,
-    TYPE_ARRAY,
-    TYPE_INT_PTR,
-    TYPE_CHAR_ARRAY,
     TYPE_PTR_PTR,
 } TrueType;
 
@@ -124,7 +122,7 @@ extern Map *global_map;
 typedef enum {
     IDENTIFIER,
     INT,
-    CHAR,
+    STRING,
 
     ADD,
     SUB,
@@ -218,7 +216,7 @@ typedef struct {
 } Var;
 
 extern Var *new_var(TrueType type, int pos, Node *pointer, size_t array_size);
-extern int add_sub_ptr(TrueType ty);
+extern int add_sub_ptr(Var *v);
 extern TrueType type_from_dec(TokenType type);
 extern int align_from_type(TrueType type);
 extern Var *get_first_var(Map *map, Node *n);

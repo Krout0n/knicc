@@ -48,22 +48,23 @@ bool is_binop(TokenType type) {
     }
 }
 
-int add_sub_ptr(TrueType ty) {
-    switch (ty) {
-        case TYPE_INT: return 1;
-        case TYPE_INT_PTR: return 4;
-        case TYPE_PTR_PTR: return 8;
-        case TYPE_ARRAY: return 4;
-        default:
-            printf("WHY YOU CAME !!!\n");
-            assert(false);
+int add_sub_ptr(Var *v) {
+    TrueType t = v->type;
+    // printf("%d, %d\n", v->array_size == 0, v->next == NULL);
+    if (t == TYPE_CHAR) return 1;
+    if (t == TYPE_INT && v->array_size == 0 && v->next == NULL) return 1;
+    else if (t == TYPE_INT) return 4;
+    else {
+        printf("%d\n", t);
+        return 0;
     }
-    return 0;
 }
 
 Var *get_first_var(Map *map, Node *n) {
     if (n->type != IDENTIFIER) return get_first_var(map, n->left);
-    Var *v = (Var *)(find_by_key(map, n->literal)->value);
+    KeyValue *kv = find_by_key(map, n->literal);
+    if (kv == NULL) return NULL;
+    Var *v = (Var *)(kv->value);
     return v;
 }
 
@@ -73,17 +74,11 @@ void debug_var(char *key,Var *var) {
         case TYPE_INT:
             s = "TYPE_INT";
             break;
-        case TYPE_INT_PTR:
-            s = "TYPE_INT_PTR";
-            break;
         case TYPE_PTR_PTR:
             s = "TYPE_PTR_PTR";
             break;
         case TYPE_CHAR:
             s = "TYPE_CHAR";
-            break;
-        case TYPE_ARRAY:
-            s = "TYPE_ARRAY";
             break;
         default:
             printf("WHY YOU CAME: Type: %d, position: %d, array_size: %ld!!!\n", var->type, var->offset, var->array_size);
