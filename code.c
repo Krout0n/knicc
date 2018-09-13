@@ -236,6 +236,24 @@ void emit_ident(Node *n) {
     printf("  pushq %%rax\n");
 }
 
+void emit_or(Node *n) {
+    emit_expr(n->left);
+    emit_expr(n->right);
+    printf("  popq %%rdx\n");
+    printf("  popq %%rax\n");
+    printf("  orl %%edx, %%eax\n");
+    printf("  pushq %%rax\n"); 
+}
+
+void emit_and(Node *n) {
+    emit_expr(n->left);
+    emit_expr(n->right);
+    printf("  popq %%rdx\n");
+    printf("  popq %%rax\n");
+    printf("  andl %%edx, %%eax\n");
+    printf("  pushq %%rax\n"); 
+}
+
 void emit_eq(Node *n) {
     emit_expr(n->left);
     emit_expr(n->right);
@@ -301,6 +319,8 @@ void emit_expr(Node *n) {
     if (n->type == SUB) emit_sub(n);
     if (n->type == MULTI) emit_multi(n);
     if (n->type == ASSIGN) emit_assign(n);
+    if (n->type == OR) emit_or(n);
+    if (n->type == AND) emit_and(n);
     if (n->type == EQ) emit_eq(n);
     if (n->type == NOTEQ) emit_noteq(n);
     if (n->type == LESS) emit_less(n);

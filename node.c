@@ -343,11 +343,27 @@ Node *inclusive_or_expression() {
 
 Node *logical_and_expression() {
     Node *left = inclusive_or_expression();
-    return left;
+    Token t =  peek_token();
+    while (t.type == tAnd) {
+        NodeType type;
+        Token op = get_token();
+        Node *right = inclusive_or_expression();
+        left = make_ast_op(AND, left, right);
+        t = peek_token();
+    }
+    return left;   
 }
 
 Node *logical_or_expression() {
     Node *left = logical_and_expression();
+    Token t =  peek_token();
+    while (t.type == tOr) {
+        NodeType type;
+        Token op = get_token();
+        Node *right = logical_and_expression();
+        left = make_ast_op(OR, left, right);
+        t = peek_token();
+    }
     return left;   
 }
 

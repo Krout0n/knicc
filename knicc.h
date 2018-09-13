@@ -16,6 +16,9 @@ typedef enum {
     tStar,
     tAssign,
     tPlusEq,
+    tOr,
+    tAnd,
+    tInclusive, // not implemented!
     tEq,
     tNot,
     tNotEq,
@@ -130,6 +133,8 @@ typedef enum {
     SUB,
     MULTI,
     ASSIGN,
+    AND,
+    OR,
     EQ,
     NOTEQ,
     LESS,

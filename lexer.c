@@ -19,6 +19,8 @@ TokenType is_two_chars_op(char current, char peeked) {
     if (current == '-' && peeked == '-') return tDec;
     if (current == '+' && peeked == '=') return tPlusEq;
     if (current == '!' && peeked == '=') return tNotEq;
+    if (current == '&' && peeked == '&') return tAnd;
+    if (current == '|' && peeked == '|') return tOr;
     return NOT_FOUND;
 }
 
@@ -49,25 +51,15 @@ Token lex() {
         t.type = keyword(t.literal);
         return t;
     } else if (special_char(c) != NOT_FOUND) {
-        switch (c) {
-            case '+':
-            case '-':
-            case '*':
-            // case '/':
-            case '!':
-            case '=':
-            case '<':
-            case '>':
-                peeked = peek_char(l);
-                type = is_two_chars_op(c, peeked);
-                if (type != NOT_FOUND) {
-                    t.literal[0] = c;
-                    t.literal[1] = peeked;
-                    t.literal[2] = '\0';
-                    t.type = type;
-                    l->index += 2;
-                    return t;
-                }
+        peeked = peek_char(l);
+        type = is_two_chars_op(c, peeked);
+        if (type != NOT_FOUND) {
+            t.literal[0] = c;
+            t.literal[1] = peeked;
+            t.literal[2] = '\0';
+            t.type = type;
+            l->index += 2;
+            return t;
         }
         t.literal[0] = c;
         t.literal[1] = '\0';
