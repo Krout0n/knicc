@@ -81,7 +81,7 @@ char *find_token_name(TokenType t) {
     return s;
 }
 
-TokenType spacial_char(char c) {
+TokenType special_char(char c) {
     switch (c) {
         case '&': return tRef;
         case ';': return tSemicolon;
@@ -98,6 +98,7 @@ TokenType spacial_char(char c) {
         case '>': return tMore;
         case '[': return tLBracket;
         case ']': return tRBracket;
+        case '!': return tNot;
         default: return NOT_FOUND;
     }
 }

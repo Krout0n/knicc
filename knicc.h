@@ -17,6 +17,8 @@ typedef enum {
     tAssign,
     tPlusEq,
     tEq,
+    tNot,
+    tNotEq,
     tLess,
     tLessEq,
     tMore,
@@ -53,7 +55,7 @@ typedef struct {
     TokenType type;
 } Token;
 
-extern TokenType spacial_char(char c);
+extern TokenType special_char(char c);
 extern Token new_token(char *literal, TokenType kind);
 extern bool assert_token(TokenType expected, TokenType got);
 extern void debug_token(Token t);
@@ -129,6 +131,7 @@ typedef enum {
     MULTI,
     ASSIGN,
     EQ,
+    NOTEQ,
     LESS,
     LESSEQ,
     MORE,

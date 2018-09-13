@@ -308,6 +308,16 @@ Node *relational_expression() {
 
 Node *equality_expression() {
     Node *left = relational_expression();
+    Token t =  peek_token();
+    while (t.type == tEq || t.type == tNotEq) {
+        NodeType type;
+        Token op = get_token();
+        if (op.type == tEq) type = EQ;
+        else type = NOTEQ;
+        Node *right = relational_expression();
+        left = make_ast_op(type, left, right);
+        t = peek_token();
+    }
     return left;
 }
 
