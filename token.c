@@ -112,6 +112,7 @@ TokenType keyword(char *s) {
     if (strcmp("int", s) == 0) return tDecInt;
     if (strcmp("char", s) == 0) return tDecChar;
     if (strcmp("return", s) == 0) return tReturn;
+    if (strcmp("struct", s) == 0) return tStruct;
     return tIdent;
 }
 

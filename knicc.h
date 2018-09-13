@@ -46,6 +46,7 @@ typedef enum {
 
     tDecInt,
     tDecChar,
+    tStruct,
     tRef,
 
     _EOF,
@@ -101,6 +102,7 @@ extern Vector *string_literal_vec;
 typedef enum {
     TYPE_INT,
     TYPE_CHAR,
+    STRUCT,
     TYPE_PTR,
 } TrueType;
 
