@@ -74,8 +74,8 @@ void debug_var(char *key,Var *var) {
         case TYPE_INT:
             s = "TYPE_INT";
             break;
-        case TYPE_PTR_PTR:
-            s = "TYPE_PTR_PTR";
+        case TYPE_PTR:
+            s = "TYPE_PTR";
             break;
         case TYPE_CHAR:
             s = "TYPE_CHAR";

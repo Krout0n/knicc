@@ -101,7 +101,7 @@ extern Vector *string_literal_vec;
 typedef enum {
     TYPE_INT,
     TYPE_CHAR,
-    TYPE_PTR_PTR,
+    TYPE_PTR,
 } TrueType;
 
 typedef struct {
