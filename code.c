@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 
 #include "knicc.h"
 
-Map *map;
+Map *local_var_map;
 Map *global_map;
 Vector *string_literal_vec;
 
@@ -114,7 +115,7 @@ void emit_global_var(void) {
 void emit_string_literal() {
     for (int i = 0; i < string_literal_vec->length; i++) {
         printf(".LC%d:\n", i);
-        printf("  .asciz \"%s\"\n", vec_get(string_literal_vec, i));
+        printf("  .asciz \"%s\"\n", (char *)vec_get(string_literal_vec, i));
         printf("\n");
     }
 }
@@ -133,13 +134,13 @@ void emit_toplevel(Vector *n) {
 }
 
 void emit_func_def(Node *n) {
-    printf("%s:\n", n->func_def.func_name);
+    printf("%s:\n", n->func_def.name);
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
-    map = n->func_def.map;
+    local_var_map = n->func_def.map;
     func_offset = n->func_def.offset;
     printf("  sub $%d, %%rsp\n", func_offset);
-    for (int i = 0; i < n->func_def.argc; i++) { // 関数の引数処理
+    for (int i = 0; i < n->func_def.parameters->length; i++) { // 関数の引数処理
         printf("  movq  %%%s, -%d(%%rbp)\n", regs[i], (i+1) * 8);
     }
     for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {
@@ -165,7 +166,7 @@ void emit_add(Node *n) {
     emit_expr(n->left);
     emit_expr(n->right);
     if (n->left->type == IDENTIFIER) {
-        KeyValue *kv = find_by_key(map, n->left->literal);
+        KeyValue *kv = find_by_key(local_var_map, n->left->literal);
         if (kv != NULL) {
             Var *v = ((Var *)(kv->value));
             printf("  pushq $%d\n", add_sub_ptr(v));
@@ -202,7 +203,7 @@ void emit_assign(Node *n) {
     // 代入を実行
     printf("  popq %%rbx\n");
     printf("  popq %%rax\n");
-    v = get_first_var(map, n);
+    v = get_first_var(local_var_map, n);
     if (v != NULL && v->type == TYPE_CHAR && v->next == NULL) {
         printf("  movb %%bl, (%%rax)\n");
     } else {
@@ -221,12 +222,12 @@ void emit_func_call(Node *n) {
             printf("  movq  %%rax,  %%%s\n", regs[i]);
         }
     }
-    printf("  call %s\n", n->func_call.func_name);
+    printf("  call %s\n", n->func_call.name);
     printf("  push %%rax\n");
 }
 
 void emit_ident(Node *n) {
-    KeyValue *kv = ((KeyValue *)(find_by_key(map, n->literal)));
+    KeyValue *kv = ((KeyValue *)(find_by_key(local_var_map, n->literal)));
     if (kv != NULL) {
         Var *v = kv->value;
         if (v->array_size > 0) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
@@ -288,18 +289,18 @@ void emit_less(Node *n) {
 }
 
 void emit_ref(Node *n) {
-    Var *v = get_first_var(map, n);
+    Var *v = get_first_var(local_var_map, n);
     printf("  leaq %d(%%rbp),  %%rax\n", v->offset);
     printf("  pushq %%rax  \n");
 }
 
 void emit_deref(Node *n) {
-    Var *v = get_first_var(map, n);
+    Var *v = get_first_var(local_var_map, n);
     emit_expr(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
     // emit_expr(n->right); segfault
     // printf("  movq %d(%%rbp), %%rax\n", var->offset);
     printf("  popq %%rax\n");
-    printf("  pushq (%%rax)  \n");
+    printf("  pushq (%%rax)\n");
 }
 
 void emit_string(Node *n) {
@@ -335,7 +336,7 @@ void emit_lvalue_code(Node *n) {
     if (n->type == DEREF) {
         emit_expr(n->left);
     } else if (n->type == IDENTIFIER) {
-        KeyValue *kv = ((KeyValue *)(find_by_key(map, n->literal)));
+        KeyValue *kv = ((KeyValue *)(find_by_key(local_var_map, n->literal)));
         if (kv != NULL){
             Var *v = ((Var *)(kv->value));
             printf("  leaq %d(%%rbp), %%rax\n", v->offset);

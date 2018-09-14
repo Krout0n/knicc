@@ -13,8 +13,6 @@ Map *map;
 Map *global_map;
 Vector *string_literal_vec;
 
-int offset = 0;
-
 int how_many_nested_pointer(Node *n, int i) {
     if (n->pointer.next != NULL) {
         return how_many_nested_pointer(n->pointer.next, i+1);
@@ -45,19 +43,22 @@ Node *make_ast_ident(char *literal) {
     return n;
 }
 
-Node *make_ast_var_decl(char *literal) {
+Node *make_ast_var_decl(TypeCategory type, char *name, Node *pointer, size_t array_size) {
     Node *n = malloc(sizeof(Node));
-    n->literal = malloc(sizeof(char) * strlen(literal));
-    strcpy(n->literal, literal);
     n->type = VAR_DECL;
+    n->var_decl.name = malloc(sizeof(char) * strlen(name));
+    strcpy(n->var_decl.name, name);
+    n->var_decl.type = type;
+    n->var_decl.pointer = pointer;
+    n->var_decl.array_size = array_size;
     return n;
 }
 
-Node *make_ast_func_call(char *func_name, int argc, Node **argv) {
+Node *make_ast_func_call(char *name, int argc, Node **argv) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_CALL;
-    n->func_call.func_name = malloc(sizeof(char) * strlen(func_name));
-    strcpy(n->func_call.func_name, func_name);
+    n->func_call.name = malloc(sizeof(char) * strlen(name));
+    strcpy(n->func_call.name, name);
     n->func_call.argc = argc;
     n->func_call.argv = malloc(sizeof(Node) * argc);
     if (n->func_call.argv == NULL) perror("malloc err");
@@ -65,13 +66,13 @@ Node *make_ast_func_call(char *func_name, int argc, Node **argv) {
     return n;
 }
 
-Node *make_ast_func_def(char *func_name, TypeCategory type) {
+Node *make_ast_func_def(char *name, TypeCategory type) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_DEF;
-    n->func_def.func_name = malloc(sizeof(char) * strlen(func_name));
-    strcpy(n->func_def.func_name, func_name);
+    n->func_def.name = malloc(sizeof(char) * strlen(name));
+    strcpy(n->func_def.name, name);
     n->func_def.map = init_map();
-    n->func_def.argc = 0;
+    n->func_def.parameters = init_vector();
     n->compound_stmt.block_item_list = init_vector();
     n->func_def.ret_type = type;
     return n;
@@ -141,12 +142,14 @@ Node *make_ast_ret_stmt(Node *expr) {
     return n;
 }
 
-Node *make_ast_global_var(char *literal) {
+Node *make_ast_global_var(TypeCategory type ,char *name, Node *pointer, size_t array_size) {
     Node *n = malloc(sizeof(Node));
     n->type = GLOBAL_DECL;
-    n->literal = malloc(sizeof(char) * strlen(literal));
-    strcpy(n->literal, literal);
-    return n;
+    n->var_decl.name = malloc(sizeof(char) * strlen(name));
+    strcpy(n->var_decl.name, name);
+    n->var_decl.type = type;
+    n->var_decl.pointer = pointer;
+    n->var_decl.array_size = array_size;
 }
 
 Node *make_ast_string(char *literal) {
@@ -216,15 +219,7 @@ Node *declaration() {
         assert(get_token().type == tRBracket);
     }
     assert(get_token().type == tSemicolon);
-    if (find_by_key(map, ident.literal) == NULL) {
-        int align = align_from_type(ty);
-        if (array_size >= 2) offset += array_size * align;
-        else if (p != NULL) offset += 8;
-        else offset += align;
-        KeyValue *kv = new_kv(ident.literal, new_var(ty, offset * -1, p, array_size));
-        insert_map(map, kv);
-    }
-    return make_ast_var_decl(ident.literal);
+    return make_ast_var_decl(ty, ident.literal, p, array_size);
 }
 
 Node *postfix_expression() {
@@ -353,8 +348,7 @@ Node *logical_and_expression() {
     Node *left = inclusive_or_expression();
     Token t =  peek_token();
     while (t.type == tAnd) {
-        NodeType type;
-        Token op = get_token();
+        get_token();
         Node *right = inclusive_or_expression();
         left = make_ast_op(AND, left, right);
         t = peek_token();
@@ -366,8 +360,7 @@ Node *logical_or_expression() {
     Node *left = logical_and_expression();
     Token t =  peek_token();
     while (t.type == tOr) {
-        NodeType type;
-        Token op = get_token();
+        get_token();
         Node *right = logical_and_expression();
         left = make_ast_op(OR, left, right);
         t = peek_token();
@@ -496,28 +489,21 @@ Node *external_declaration() {
     char *name = malloc(sizeof(char) * strlen(t.literal));
     strcpy(name, t.literal);
     if (peek_token().type == tLParen) {
+        get_token();
         Node *func_ast = make_ast_func_def(name, type);
-        map = func_ast->func_def.map;
-        assert(get_token().type == tLParen);
         while (peek_token().type != tRParen) {
             assert(get_token().type == tDecInt);
             Token arg = get_token();
             assert(arg.type == tIdent);
-            offset += 8;
-            KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, offset * -1, NULL, 0));
-            insert_map(map, kv);
-            func_ast->func_def.argc += 1;
+            vec_push(func_ast->func_def.parameters, make_ast_var_decl(TYPE_INT, arg.literal, NULL, 0));
             if (peek_token().type == tComma) get_token();
         }
         assert(get_token().type == tRParen);
         Node *n = compound_statement();
         vec_push(func_ast->compound_stmt.block_item_list, n);
-        func_ast->func_def.offset = offset;
         return func_ast;
     }
     assert(get_token().type == tSemicolon);
-    Node *global_decl = make_ast_global_var(name);
-    Var *v = new_var(TYPE_INT, 0, NULL, 0);
-    insert_map(global_map, new_kv(name, v));
+    Node *global_decl = make_ast_global_var(type, name, NULL, 0);
     return global_decl;
 }

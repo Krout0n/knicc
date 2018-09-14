@@ -166,14 +166,20 @@ typedef struct Node {
     char *literal;
     struct Node *left;
     struct Node *right;
+    struct {
+        char *name;
+        TypeCategory type;
+        struct Node *pointer;
+        size_t array_size;
+    } var_decl;
     struct { // FUNC_CALL
-        char *func_name;
+        char *name;
         int argc;
         struct Node **argv;
     } func_call;
     struct { // FUNC_DECL
-        char *func_name;
-        int argc;
+        char *name;
+        Vector *parameters; // 仮引数, (Node *)が入っててtypeはVAR_DECL
         Map *map;
         TypeCategory ret_type;
         int offset;
@@ -231,4 +237,5 @@ extern TypeCategory type_from_dec(TokenType type);
 extern int align_from_type(TypeCategory type);
 extern Var *get_first_var(Map *map, Node *n);
 extern void debug_var(char *key, Var *var);
+extern void analyze(Vector *n);
 #endif

@@ -17,8 +17,9 @@ int main(int argc, char **argv) {
     }
     Vector *nodes = init_vector();
     while (peek_token(&l).type != _EOF) {
-        vec_push(nodes, external_declaration(&l));
+        vec_push(nodes, external_declaration());
     }
+    analyze(nodes);
     emit_toplevel(nodes);
     return 0;
 }

@@ -4,6 +4,9 @@
 
 #include "knicc.h"
 
+Map *local_var_map;
+Map *global_map;
+
 Var *new_var(TypeCategory type, int offset, Node *next, size_t array_size) {
     Var *v = malloc(sizeof(Var));
     v->type = type;
@@ -50,13 +53,12 @@ bool is_binop(TokenType type) {
 
 int add_sub_ptr(Var *v) {
     TypeCategory t = v->type;
-    // printf("%d, %d\n", v->array_size == 0, v->next == NULL);
     if (t == TYPE_CHAR) return 1;
     if (t == TYPE_INT && v->array_size == 0 && v->next == NULL) return 1;
     else if (t == TYPE_INT) return 4;
     else {
         printf("%d\n", t);
-        return 0;
+        return 8;
     }
 }
 
@@ -85,4 +87,40 @@ void debug_var(char *key,Var *var) {
             assert(false);
     }
     printf("%s: { type: %s, position: %d, array_size: %ld },\n",key, s, var->offset, var->array_size);
+}
+
+void analyze_func(Node *func_ast) {
+    for (int i = 0; i < func_ast->func_def.parameters->length; i++) {
+        Node *local_ast = vec_get(func_ast->func_def.parameters, i);
+        TypeCategory type = local_ast->var_decl.type;
+        func_ast->func_def.offset += align_from_type(type);
+        int offset = func_ast->func_def.offset;
+        insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, new_var(type, -offset, NULL, 0)));
+    }
+    for (int i = 0; i < func_ast->compound_stmt.block_item_list->length; i++) {
+        Node *asts = vec_get(func_ast->compound_stmt.block_item_list, i);
+        for (int j = 0; j < asts->compound_stmt.block_item_list->length; j++) {
+            Node *local_ast = vec_get(asts->compound_stmt.block_item_list, j);
+            if (local_ast->type != VAR_DECL) continue;
+            TypeCategory type = local_ast->var_decl.type;
+            Node *p = local_ast->var_decl.pointer;
+            size_t array_size = local_ast->var_decl.array_size;
+            int align = align_from_type(type);
+            if (array_size > 0) align *= array_size;
+            func_ast->func_def.offset += align;
+            int offset = func_ast->func_def.offset;
+            insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, new_var(type, -offset, p, array_size)));
+        }
+    }
+}
+
+void analyze(Vector *n) {
+    for (int i = 0; i < n->length; i++) {
+        Node *ast = vec_get(n, i);
+        if (ast->type != FUNC_DEF) {
+            insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, 0, NULL, 0)));
+            continue;
+        }
+        analyze_func(ast);
+    }
 }
