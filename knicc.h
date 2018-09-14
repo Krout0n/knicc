@@ -177,7 +177,7 @@ typedef struct Node {
         Map *map;
         TrueType ret_type;
         int offset;
-    } func_decl;
+    } func_def;
     struct {
         struct Node *expression;
         struct Node *true_stmt;
@@ -209,7 +209,7 @@ extern int how_many_nested_pointer(Node *n, int i);
 
 // code.c
 extern void emit_epilogue(Node *n, int length, int count);
-extern void emit_func_decl(Node *n);
+extern void emit_func_def(Node *n);
 extern void emit_func_ret(Node *n);
 extern void emit_expr(Node *n);
 extern void emit_toplevel(Vector *n);

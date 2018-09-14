@@ -128,18 +128,18 @@ void emit_toplevel(Vector *n) {
     for (int i = 0; i < n->length; i++) {
         Node *ast = vec_get(n, i);
         if (ast->type == GLOBAL_DECL) continue;
-        else emit_func_decl(ast);
+        else emit_func_def(ast);
     }
 }
 
-void emit_func_decl(Node *n) {
-    printf("%s:\n", n->func_decl.func_name);
+void emit_func_def(Node *n) {
+    printf("%s:\n", n->func_def.func_name);
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
-    map = n->func_decl.map;
-    func_offset = n->func_decl.offset;
+    map = n->func_def.map;
+    func_offset = n->func_def.offset;
     printf("  sub $%d, %%rsp\n", func_offset);
-    for (int i = 0; i < n->func_decl.argc; i++) { // 関数の引数処理
+    for (int i = 0; i < n->func_def.argc; i++) { // 関数の引数処理
         printf("  movq  %%%s, -%d(%%rbp)\n", regs[i], (i+1) * 8);
     }
     for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {

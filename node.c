@@ -60,12 +60,12 @@ Node *make_ast_func_call(char *func_name, int argc, Node **argv) {
 Node *make_ast_func_def(char *func_name, TrueType type) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_DEF;
-    n->func_decl.func_name = malloc(sizeof(char) * strlen(func_name));
-    strcpy(n->func_decl.func_name, func_name);
-    n->func_decl.map = init_map();
-    n->func_decl.argc = 0;
+    n->func_def.func_name = malloc(sizeof(char) * strlen(func_name));
+    strcpy(n->func_def.func_name, func_name);
+    n->func_def.map = init_map();
+    n->func_def.argc = 0;
     n->compound_stmt.block_item_list = init_vector();
-    n->func_decl.ret_type = type;
+    n->func_def.ret_type = type;
     return n;
 }
 
@@ -489,7 +489,7 @@ Node *external_declaration() {
     strcpy(name, t.literal);
     if (peek_token().type == tLParen) {
         Node *func_ast = make_ast_func_def(name, type);
-        map = func_ast->func_decl.map;
+        map = func_ast->func_def.map;
         assert(get_token().type == tLParen);
         while (peek_token().type != tRParen) {
             assert(get_token().type == tDecInt);
@@ -498,13 +498,13 @@ Node *external_declaration() {
             offset += 8;
             KeyValue *kv = new_kv(arg.literal, new_var(TYPE_INT, offset * -1, NULL, 0));
             insert_map(map, kv);
-            func_ast->func_decl.argc += 1;
+            func_ast->func_def.argc += 1;
             if (peek_token().type == tComma) get_token();
         }
         assert(get_token().type == tRParen);
         Node *n = compound_statement();
         vec_push(func_ast->compound_stmt.block_item_list, n);
-        func_ast->func_decl.offset = offset;
+        func_ast->func_def.offset = offset;
         return func_ast;
     }
     assert(get_token().type == tSemicolon);
