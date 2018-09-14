@@ -176,6 +176,7 @@ typedef struct Node {
         int argc;
         Map *map;
         TrueType ret_type;
+        int offset;
     } func_decl;
     struct {
         struct Node *expression;
@@ -201,7 +202,6 @@ typedef struct Node {
     struct {
         struct Node *expr;
     } ret_stmt;
-    int offset;
 } Node;
 
 extern Node *external_declaration();

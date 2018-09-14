@@ -137,7 +137,7 @@ void emit_func_decl(Node *n) {
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
     map = n->func_decl.map;
-    func_offset = n->offset;
+    func_offset = n->func_decl.offset;
     printf("  sub $%d, %%rsp\n", func_offset);
     for (int i = 0; i < n->func_decl.argc; i++) { // 関数の引数処理
         printf("  movq  %%%s, -%d(%%rbp)\n", regs[i], (i+1) * 8);

@@ -504,7 +504,7 @@ Node *external_declaration() {
         assert(get_token().type == tRParen);
         Node *n = compound_statement();
         vec_push(func_ast->compound_stmt.block_item_list, n);
-        func_ast->offset = offset;
+        func_ast->func_decl.offset = offset;
         return func_ast;
     }
     assert(get_token().type == tSemicolon);
