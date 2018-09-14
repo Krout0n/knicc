@@ -57,7 +57,7 @@ Node *make_ast_func_call(char *func_name, int argc, Node **argv) {
     return n;
 }
 
-Node *make_ast_func_def(char *func_name, TrueType type) {
+Node *make_ast_func_def(char *func_name, TypeCategory type) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_DEF;
     n->func_def.func_name = malloc(sizeof(char) * strlen(func_name));
@@ -196,7 +196,7 @@ Node *pointer() {
 
 Node *declaration() {
     size_t array_size = 0;
-    TrueType ty = type_from_dec(get_token().type);
+    TypeCategory ty = type_from_dec(get_token().type);
     Node *p = pointer();
     Token ident = get_token();
     assert(ident.type == tIdent);
@@ -482,7 +482,7 @@ Node *statement() {
 }
 
 Node *external_declaration() {
-    TrueType type = type_from_dec(get_token().type);
+    TypeCategory type = type_from_dec(get_token().type);
     Token t = get_token();
     assert(t.type == tIdent);
     char *name = malloc(sizeof(char) * strlen(t.literal));

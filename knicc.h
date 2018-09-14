@@ -98,14 +98,6 @@ extern void *vec_get(Vector *vec, int index);
 extern Vector *string_literal_vec;
 
 // map.c
-
-typedef enum {
-    TYPE_INT,
-    TYPE_CHAR,
-    STRUCT,
-    TYPE_PTR,
-} TrueType;
-
 typedef struct {
 	char *key;
 	void *value;
@@ -160,6 +152,13 @@ typedef enum {
     GLOBAL_DECL,
 } NodeType;
 
+typedef enum {
+    TYPE_INT,
+    TYPE_CHAR,
+    STRUCT,
+    TYPE_PTR,
+} TypeCategory;
+
 typedef struct Node {
     NodeType type;
     int ival;
@@ -175,7 +174,7 @@ typedef struct Node {
         char *func_name;
         int argc;
         Map *map;
-        TrueType ret_type;
+        TypeCategory ret_type;
         int offset;
     } func_def;
     struct {
@@ -219,16 +218,16 @@ extern void print_ast(Node *n);
 
 // semantics.c
 typedef struct {
-    TrueType type;
+    TypeCategory type;
     int offset;
     size_t array_size;
     Node *next;
 } Var;
 
-extern Var *new_var(TrueType type, int pos, Node *pointer, size_t array_size);
+extern Var *new_var(TypeCategory type, int pos, Node *pointer, size_t array_size);
 extern int add_sub_ptr(Var *v);
-extern TrueType type_from_dec(TokenType type);
-extern int align_from_type(TrueType type);
+extern TypeCategory type_from_dec(TokenType type);
+extern int align_from_type(TypeCategory type);
 extern Var *get_first_var(Map *map, Node *n);
 extern void debug_var(char *key, Var *var);
 #endif

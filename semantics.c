@@ -4,7 +4,7 @@
 
 #include "knicc.h"
 
-Var *new_var(TrueType type, int offset, Node *next, size_t array_size) {
+Var *new_var(TypeCategory type, int offset, Node *next, size_t array_size) {
     Var *v = malloc(sizeof(Var));
     v->type = type;
     v->offset = offset;
@@ -13,13 +13,13 @@ Var *new_var(TrueType type, int offset, Node *next, size_t array_size) {
     return v;
 }
 
-TrueType type_from_dec(TokenType type) {
+TypeCategory type_from_dec(TokenType type) {
     if (type == tDecInt) return TYPE_INT;
     if (type == tDecChar) return TYPE_CHAR;
     assert(type == tDecInt || type == tDecChar);
 }
 
-int align_from_type(TrueType type) {
+int align_from_type(TypeCategory type) {
     if (type == TYPE_CHAR) return 1;
     else return 8;
     assert(type == TYPE_INT || type == TYPE_CHAR);
@@ -49,7 +49,7 @@ bool is_binop(TokenType type) {
 }
 
 int add_sub_ptr(Var *v) {
-    TrueType t = v->type;
+    TypeCategory t = v->type;
     // printf("%d, %d\n", v->array_size == 0, v->next == NULL);
     if (t == TYPE_CHAR) return 1;
     if (t == TYPE_INT && v->array_size == 0 && v->next == NULL) return 1;
