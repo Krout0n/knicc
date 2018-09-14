@@ -45,6 +45,14 @@ Node *make_ast_ident(char *literal) {
     return n;
 }
 
+Node *make_ast_var_decl(char *literal) {
+    Node *n = malloc(sizeof(Node));
+    n->literal = malloc(sizeof(char) * strlen(literal));
+    strcpy(n->literal, literal);
+    n->type = VAR_DECL;
+    return n;
+}
+
 Node *make_ast_func_call(char *func_name, int argc, Node **argv) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_CALL;
@@ -216,7 +224,7 @@ Node *declaration() {
         KeyValue *kv = new_kv(ident.literal, new_var(ty, offset * -1, p, array_size));
         insert_map(map, kv);
     }
-    return make_ast_ident(ident.literal);
+    return make_ast_var_decl(ident.literal);
 }
 
 Node *postfix_expression() {

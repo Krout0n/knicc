@@ -120,6 +120,7 @@ extern Map *global_map;
 
 typedef enum {
     IDENTIFIER,
+    VAR_DECL,
     INT,
     STRING,
 
@@ -155,7 +156,7 @@ typedef enum {
 typedef enum {
     TYPE_INT,
     TYPE_CHAR,
-    STRUCT,
+    TYPE_STRUCT,
     TYPE_PTR,
 } TypeCategory;
 

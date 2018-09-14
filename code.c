@@ -314,6 +314,7 @@ void emit_string(Node *n) {
 void emit_expr(Node *n) {
     if (n == NULL) return;
     if (n->type == INT) printf("  pushq $%d\n", n->ival);
+    if (n->type == VAR_DECL) return;
     if (n->type == IDENTIFIER) emit_ident(n);
     if (n->type == ADD) emit_add(n);
     if (n->type == SUB) emit_sub(n);
