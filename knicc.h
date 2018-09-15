@@ -151,6 +151,7 @@ typedef enum {
 
     COMPOUND_STMT,
     GLOBAL_DECL,
+    STRUCT_DECL,
 } NodeType;
 
 typedef enum {
@@ -208,6 +209,10 @@ typedef struct Node {
     struct {
         struct Node *expr;
     } ret_stmt;
+    struct {
+        char *name;
+        Map *members;
+    } struct_decl;
 } Node;
 
 extern Node *external_declaration();

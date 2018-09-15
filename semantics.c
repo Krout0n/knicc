@@ -89,6 +89,15 @@ void debug_var(char *key,Var *var) {
     printf("%s: { type: %s, position: %d, array_size: %ld },\n",key, s, var->offset, var->array_size);
 }
 
+void debug_struct(Node *n) {
+    printf("struct %s {\n", n->struct_decl.name);
+    for (int i = 0; i < n->struct_decl.members->vec->length; i++) {
+        KeyValue *kv = vec_get(n->struct_decl.members->vec, i);
+        printf("  %s: %d, \n", kv->key, kv->value);
+    }
+    printf("}\n");
+}
+
 void analyze_func(Node *func_ast) {
     for (int i = 0; i < func_ast->func_def.parameters->length; i++) {
         Node *local_ast = vec_get(func_ast->func_def.parameters, i);
@@ -101,6 +110,7 @@ void analyze_func(Node *func_ast) {
         Node *asts = vec_get(func_ast->compound_stmt.block_item_list, i);
         for (int j = 0; j < asts->compound_stmt.block_item_list->length; j++) {
             Node *local_ast = vec_get(asts->compound_stmt.block_item_list, j);
+            if (local_ast->type == STRUCT_DECL) debug_struct(local_ast);
             if (local_ast->type != VAR_DECL) continue;
             TypeCategory type = local_ast->var_decl.type;
             Node *p = local_ast->var_decl.pointer;

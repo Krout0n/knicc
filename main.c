@@ -4,10 +4,15 @@
 
 #include "./knicc.h"
 
-int main(int argc, char **argv) {
+void init_global_var() {
     l = init_lexer();
     global_map = init_map();
     string_literal_vec = init_vector();
+    def_struct_map = init_map();
+}
+
+int main(int argc, char **argv) {
+    init_global_var();
     fgets(l->src, 1000, stdin);
     while (1) {
         Token t = lex();

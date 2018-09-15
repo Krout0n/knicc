@@ -160,6 +160,14 @@ Node *make_ast_string(char *literal) {
     return n;
 }
 
+Node *make_ast_struct(char *name) {
+    Node *n = malloc(sizeof(Node));
+    n->type = STRUCT_DECL;
+    n->struct_decl.name = name;
+    n->struct_decl.members = init_map();
+    return n;
+}
+
 Node *primary_expression() {
     Token t = get_token();
     if (t.type == tInt) return make_ast_int(atoi(t.literal));
@@ -437,6 +445,25 @@ Node *iteration_statement() {
     return stmt;
 }
 
+Node *struct_or_union() {
+    get_token();
+    Token ident = get_token();
+    assert(ident.type == tIdent);
+    assert(get_token().type == tLBrace);
+    Node *n = make_ast_struct(ident.literal);
+    while (peek_token().type != tRBrace) {
+        Token t = get_token();
+        TypeCategory type = type_from_dec(t.type);
+        Token member = get_token();
+        assert(member.type = tIdent);
+        assert(get_token().type == tSemicolon);
+        insert_map(n->struct_decl.members, new_kv(member.literal, (TypeCategory *)type));
+    }
+    get_token();
+    assert(get_token().type == tSemicolon);
+    return n;
+}
+
 Node *compound_statement() {
     assert(get_token().type == tLBrace);
     Node *n = make_ast_compound_statement();
@@ -444,6 +471,7 @@ Node *compound_statement() {
         Node *block_item;
         // debug_token(peek_token());
         if (peek_token().type == tDecInt || peek_token().type == tDecChar) block_item = declaration();
+        else if (peek_token().type == tStruct) block_item = struct_or_union();
         else block_item = statement();
         vec_push(n->compound_stmt.block_item_list, block_item);
     }
