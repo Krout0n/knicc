@@ -230,11 +230,25 @@ extern void print_ast(Node *n);
 
 // semantics.c
 typedef struct {
+    char *name;
+    TypeCategory type;
+    int offset; //
+} Member;
+
+typedef struct {
+    char *name; // いらないかもしれないがとりあえず
+    Vector *members; // Member型を格納している
+} UsrDefStruct;
+
+typedef struct {
     TypeCategory type;
     int offset;
     size_t array_size;
     Node *next;
+    char *struct_name;
 } Var;
+
+Map *def_struct_map; // UsrDefStructを格納してる
 
 extern Var *new_var(TypeCategory type, int pos, Node *pointer, size_t array_size);
 extern int add_sub_ptr(Var *v);

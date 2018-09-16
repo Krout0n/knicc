@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -6,6 +7,7 @@
 
 Map *local_var_map;
 Map *global_map;
+Map *def_struct_map;
 
 Var *new_var(TypeCategory type, int offset, Node *next, size_t array_size) {
     Var *v = malloc(sizeof(Var));
@@ -14,6 +16,23 @@ Var *new_var(TypeCategory type, int offset, Node *next, size_t array_size) {
     v->next = next;
     v->array_size = array_size;
     return v;
+}
+
+UsrDefStruct *new_user_def_struct(char *name) {
+    UsrDefStruct *u = malloc(sizeof(UsrDefStruct));
+    u->name = malloc(1 * strlen(name));
+    strcpy(u->name, name);
+    u->members = init_vector();
+    return u;
+}
+
+Member *new_member(char *name, TypeCategory type, int offset) {
+    Member *m = malloc(sizeof(Member));
+    m->name = malloc(1 * strlen(name));
+    strcpy(m->name, name);
+    m->type = type;
+    m->offset = offset;
+    return m;
 }
 
 TypeCategory type_from_dec(TokenType type) {
@@ -98,6 +117,30 @@ void debug_struct(Node *n) {
     printf("}\n");
 }
 
+void debug_analyzed_struct(UsrDefStruct *u) {
+    printf("struct %s {\n", u->name);
+    for (int i = 0; i < u->members->length; i++) {
+        Member *m = vec_get(u->members, i);
+        printf("{ name: %s, type: %d, offset: %d },\n", m->name, m->type, m->offset);
+    }
+    printf("}\n");
+}
+
+void analyze_struct(Node *n) {
+    UsrDefStruct *u = new_user_def_struct(n->struct_decl.name);
+    int align = 0;
+    for (int i = 0; i < n->struct_decl.members->vec->length; i++) {
+        KeyValue *kv = vec_get(n->struct_decl.members->vec, i);
+        char *name = kv->key;
+        TypeCategory type = (int)(kv->value);
+        align += align_from_type(type);
+        Member *member = new_member(name, type, align);
+        vec_push(u->members, member);
+    }
+    debug_analyzed_struct(u);
+    insert_map(def_struct_map, new_kv(u->name, u));
+}
+
 void analyze_func(Node *func_ast) {
     for (int i = 0; i < func_ast->func_def.parameters->length; i++) {
         Node *local_ast = vec_get(func_ast->func_def.parameters, i);
@@ -110,7 +153,7 @@ void analyze_func(Node *func_ast) {
         Node *asts = vec_get(func_ast->compound_stmt.block_item_list, i);
         for (int j = 0; j < asts->compound_stmt.block_item_list->length; j++) {
             Node *local_ast = vec_get(asts->compound_stmt.block_item_list, j);
-            if (local_ast->type == STRUCT_DECL) debug_struct(local_ast);
+            if (local_ast->type == STRUCT_DECL) analyze_struct(local_ast);
             if (local_ast->type != VAR_DECL) continue;
             TypeCategory type = local_ast->var_decl.type;
             Node *p = local_ast->var_decl.pointer;
