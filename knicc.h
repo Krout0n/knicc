@@ -216,7 +216,7 @@ typedef struct Node {
     } struct_decl;
 } Node;
 
-extern Node *external_declaration();
+extern Vector *parse();
 extern int how_many_nested_pointer(Node *n, int i);
 
 // code.c

@@ -20,10 +20,7 @@ int main(int argc, char **argv) {
         // debug_token(t);
         if (t.type == _EOF) break;
     }
-    Vector *nodes = init_vector();
-    while (peek_token(&l).type != _EOF) {
-        vec_push(nodes, external_declaration());
-    }
+    Vector *nodes = parse();
     analyze(nodes);
     emit_toplevel(nodes);
     return 0;

@@ -542,3 +542,11 @@ Node *external_declaration() {
     Node *global_decl = make_ast_global_var(type, name, NULL, 0);
     return global_decl;
 }
+
+Vector *parse() {
+    Vector *nodes = init_vector();
+    while (peek_token().type != _EOF) {
+        vec_push(nodes, external_declaration());
+    }
+    return nodes;
+}
