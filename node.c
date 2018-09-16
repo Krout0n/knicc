@@ -74,6 +74,7 @@ Node *make_ast_func_def(char *name, TypeCategory type) {
     n->func_def.map = init_map();
     n->func_def.parameters = init_vector();
     n->compound_stmt.block_item_list = init_vector();
+    n->func_def.offset = 0;
     n->func_def.ret_type = type;
     return n;
 }
@@ -244,6 +245,12 @@ Node *postfix_expression() {
         get_token();
         return make_ast_op(ASSIGN, n, make_ast_op(SUB, n, make_ast_int(1)));
     }
+    // } else if (peek_token().type == tDot) {
+    //     get_token();
+    //     Token member = get_token();
+    //     assert(member.type == tIdent);
+    //     return make_ast_op();
+    // }
     return n;
 }
 

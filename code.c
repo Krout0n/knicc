@@ -230,9 +230,9 @@ void emit_ident(Node *n) {
     KeyValue *kv = ((KeyValue *)(find_by_key(local_var_map, n->literal)));
     if (kv != NULL) {
         Var *v = kv->value;
-        if (v->array_size > 0) printf("  leaq %d(%%rbp), %%rax\n", v->offset);
-        else if (v->type == TYPE_INT || v->next != NULL) printf("  movq %d(%%rbp), %%rax\n", v->offset);
-        else if (v->type == TYPE_CHAR) printf("  movzbl %d(%%rbp), %%eax\n", v->offset);
+        if (v->array_size > 0) printf("  leaq -%d(%%rbp), %%rax\n", v->offset);
+        else if (v->type == TYPE_INT || v->next != NULL) printf("  movq -%d(%%rbp), %%rax\n", v->offset);
+        else if (v->type == TYPE_CHAR) printf("  movzbl -%d(%%rbp), %%eax\n", v->offset);
     } else printf("  mov %s(%%rip), %%rax\n", n->literal);
     printf("  pushq %%rax\n");
 }
@@ -290,7 +290,7 @@ void emit_less(Node *n) {
 
 void emit_ref(Node *n) {
     Var *v = get_first_var(local_var_map, n);
-    printf("  leaq %d(%%rbp),  %%rax\n", v->offset);
+    printf("  leaq -%d(%%rbp),  %%rax\n", v->offset);
     printf("  pushq %%rax  \n");
 }
 
@@ -339,7 +339,7 @@ void emit_lvalue_code(Node *n) {
         KeyValue *kv = ((KeyValue *)(find_by_key(local_var_map, n->literal)));
         if (kv != NULL){
             Var *v = ((Var *)(kv->value));
-            printf("  leaq %d(%%rbp), %%rax\n", v->offset);
+            printf("  leaq -%d(%%rbp), %%rax\n", v->offset);
         }
         else printf("  leaq %s(%%rip), %%rax\n", n->literal);
     }

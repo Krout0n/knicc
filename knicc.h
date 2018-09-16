@@ -37,6 +37,7 @@ typedef enum {
     tRBracket,
 
     tComma,
+    tDot,
 
     tIf,
     tElse,
@@ -249,8 +250,6 @@ typedef struct {
 } Var;
 
 Map *def_struct_map; // UsrDefStructを格納してる
-
-extern Var *new_var(TypeCategory type, int pos, Node *pointer, size_t array_size);
 extern int add_sub_ptr(Var *v);
 extern TypeCategory type_from_dec(TokenType type);
 extern int align_from_type(TypeCategory type);

@@ -9,10 +9,9 @@ Map *local_var_map;
 Map *global_map;
 Map *def_struct_map;
 
-Var *new_var(TypeCategory type, int offset, Node *next, size_t array_size) {
+Var *new_var(TypeCategory type, Node *next, size_t array_size) {
     Var *v = malloc(sizeof(Var));
     v->type = type;
-    v->offset = offset;
     v->next = next;
     v->array_size = array_size;
     return v;
@@ -43,8 +42,16 @@ TypeCategory type_from_dec(TokenType type) {
 
 int align_from_type(TypeCategory type) {
     if (type == TYPE_CHAR) return 1;
-    else return 8;
+    else return 4;
     assert(type == TYPE_INT || type == TYPE_CHAR);
+}
+
+int align_from_var(Var *v) {
+    if (v->array_size > 1) return v->array_size * align_from_type(v->type);
+    if (v->type == TYPE_CHAR) return 1;
+    if (v->type == TYPE_INT) return 8;
+    else return 8;
+    return 114514;
 }
 
 bool is_unaryop(TokenType type) {
@@ -126,16 +133,20 @@ void debug_analyzed_struct(UsrDefStruct *u) {
     printf("}\n");
 }
 
-void analyze_struct(Node *n) {
+int analyze_struct(Node *n) {
     UsrDefStruct *u = new_user_def_struct(n->struct_decl.name);
-    int align = 0;
+    int offset = 0;
     for (int i = 0; i < n->struct_decl.members->vec->length; i++) {
         KeyValue *kv = vec_get(n->struct_decl.members->vec, i);
         char *name = kv->key;
         TypeCategory type = (int)(kv->value);
-        align += align_from_type(type);
-        Member *member = new_member(name, type, align);
+        if (type == TYPE_INT) {
+            offset += 4 - (offset % 4);
+            offset += align_from_type(type);
+        }
+        Member *member = new_member(name, type, offset);
         vec_push(u->members, member);
+        offset += align_from_type(type);
     }
     debug_analyzed_struct(u);
     insert_map(def_struct_map, new_kv(u->name, u));
@@ -145,33 +156,37 @@ void analyze_func(Node *func_ast) {
     for (int i = 0; i < func_ast->func_def.parameters->length; i++) {
         Node *local_ast = vec_get(func_ast->func_def.parameters, i);
         TypeCategory type = local_ast->var_decl.type;
-        func_ast->func_def.offset += align_from_type(type);
-        int offset = func_ast->func_def.offset;
-        insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, new_var(type, -offset, NULL, 0)));
+        Var *v = new_var(type, NULL, 0);
+        v->offset = func_ast->func_def.offset + align_from_var(v);
+        func_ast->func_def.offset += align_from_var(v);
+        insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, v));
     }
     for (int i = 0; i < func_ast->compound_stmt.block_item_list->length; i++) {
         Node *asts = vec_get(func_ast->compound_stmt.block_item_list, i);
         for (int j = 0; j < asts->compound_stmt.block_item_list->length; j++) {
             Node *local_ast = vec_get(asts->compound_stmt.block_item_list, j);
-            if (local_ast->type == STRUCT_DECL) analyze_struct(local_ast);
+            if (local_ast->type == STRUCT_DECL) {
+                analyze_struct(local_ast);
+                continue;
+            }
             if (local_ast->type != VAR_DECL) continue;
             TypeCategory type = local_ast->var_decl.type;
             Node *p = local_ast->var_decl.pointer;
             size_t array_size = local_ast->var_decl.array_size;
-            int align = align_from_type(type);
-            if (array_size > 0) align *= array_size;
-            func_ast->func_def.offset += align;
-            int offset = func_ast->func_def.offset;
-            insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, new_var(type, -offset, p, array_size)));
+            Var *v = new_var(type, p, array_size);
+            v->offset = func_ast->func_def.offset + align_from_var(v);
+            func_ast->func_def.offset += align_from_var(v);
+            insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, v));
         }
     }
+    // debug_map(func_ast->func_def.map);
 }
 
 void analyze(Vector *n) {
     for (int i = 0; i < n->length; i++) {
         Node *ast = vec_get(n, i);
         if (ast->type != FUNC_DEF) {
-            insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, 0, NULL, 0)));
+            insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, NULL, 0)));
             continue;
         }
         analyze_func(ast);

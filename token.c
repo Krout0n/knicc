@@ -100,6 +100,7 @@ TokenType special_char(char c) {
         case ']': return tRBracket;
         case '!': return tNot;
         case '|': return tInclusive;
+        case '.': return tDot;
         default: return NOT_FOUND;
     }
 }
