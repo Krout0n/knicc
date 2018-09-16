@@ -161,10 +161,10 @@ void analyze_func(Node *func_ast) {
         func_ast->func_def.offset += align_from_var(v);
         insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, v));
     }
-    for (int i = 0; i < func_ast->compound_stmt.block_item_list->length; i++) {
-        Node *asts = vec_get(func_ast->compound_stmt.block_item_list, i);
-        for (int j = 0; j < asts->compound_stmt.block_item_list->length; j++) {
-            Node *local_ast = vec_get(asts->compound_stmt.block_item_list, j);
+    for (int i = 0; i < func_ast->stmts->length; i++) {
+        Node *asts = vec_get(func_ast->stmts, i);
+        for (int j = 0; j < asts->stmts->length; j++) {
+            Node *local_ast = vec_get(asts->stmts, j);
             if (local_ast->type == STRUCT_DECL) {
                 analyze_struct(local_ast);
                 continue;

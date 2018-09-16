@@ -86,7 +86,7 @@ void emit_for_stmt(Node *n) {
 }
 
 void emit_compound_stmt(Node *n) {
-    Vector *stmts = n->compound_stmt.block_item_list;
+    Vector *stmts = n->stmts;
     for (int i = 0; i < stmts->length; i++) {
         Node *ast = vec_get(stmts, i);
         printf("\n// %d line\n", i+1);
@@ -143,8 +143,8 @@ void emit_func_def(Node *n) {
     for (int i = 0; i < n->func_def.parameters->length; i++) { // 関数の引数処理
         printf("  movq  %%%s, -%d(%%rbp)\n", regs[i], (i+1) * 8);
     }
-    for (int i = 0; i < n->compound_stmt.block_item_list->length; i++) {
-        Node *ast = vec_get(n->compound_stmt.block_item_list, i);
+    for (int i = 0; i < n->stmts->length; i++) {
+        Node *ast = vec_get(n->stmts, i);
         emit_stmt(ast);
     }
     emit_func_ret(n);

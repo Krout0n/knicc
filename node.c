@@ -73,7 +73,7 @@ Node *make_ast_func_def(char *name, TypeCategory type) {
     strcpy(n->func_def.name, name);
     n->func_def.map = init_map();
     n->func_def.parameters = init_vector();
-    n->compound_stmt.block_item_list = init_vector();
+    n->stmts = init_vector();
     n->func_def.offset = 0;
     n->func_def.ret_type = type;
     return n;
@@ -118,7 +118,7 @@ Node *make_ast_for_stmt(Node *init_expr, Node *cond_expr, Node *loop_expr, Node 
 Node *make_ast_compound_statement(void) {
     Node *n = malloc(sizeof(Node));
     n->type = COMPOUND_STMT;
-    n->compound_stmt.block_item_list = init_vector();
+    n->stmts = init_vector();
     return n;
 }
 
@@ -480,7 +480,7 @@ Node *compound_statement() {
         if (peek_token().type == tDecInt || peek_token().type == tDecChar) block_item = declaration();
         else if (peek_token().type == tStruct) block_item = struct_or_union();
         else block_item = statement();
-        vec_push(n->compound_stmt.block_item_list, block_item);
+        vec_push(n->stmts, block_item);
     }
     assert(get_token().type == tRBrace);
     return n;
@@ -535,7 +535,7 @@ Node *external_declaration() {
         }
         assert(get_token().type == tRParen);
         Node *n = compound_statement();
-        vec_push(func_ast->compound_stmt.block_item_list, n);
+        vec_push(func_ast->stmts, n);
         return func_ast;
     }
     assert(get_token().type == tSemicolon);

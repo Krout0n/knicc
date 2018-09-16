@@ -195,9 +195,7 @@ typedef struct Node {
         struct Node *expression;
         struct Node *stmt;
     } while_stmt;
-    struct {
-        Vector *block_item_list;
-    } compound_stmt;
+    Vector *stmts;
     struct {
         struct Node *init_expr;
         struct Node *cond_expr;
