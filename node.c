@@ -311,13 +311,17 @@ Node *relational_expression() {
     Node *left = shift_expression();
     Token t = peek_token();
     while (t.type == tLess || t.type == tLessEq || t.type == tMore || t.type == tMoreEq) {
-        Token op = get_token();
+        get_token();
         NodeType type;
+        Node *right;
         if (t.type == tLess) type = LESS;
         if (t.type == tLessEq) type = LESSEQ;
         if (t.type == tMore) type = MORE;
         if (t.type == tMoreEq) type = MOREEQ;
-        Node *right = shift_expression();
+        if (type <= left->type && left->type <= type){  
+            return make_ast_op(AND, left, make_ast_op(type, right, shift_expression()));;
+        }
+        right = shift_expression();
         left = make_ast_op(type, left, right);
         t = peek_token();
     }
