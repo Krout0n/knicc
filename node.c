@@ -501,20 +501,14 @@ Node *jump_statement() {
 }
 
 Node *statement() {
-    Node *expr;
+    Node *stmt;
     Token t = peek_token();
-    if (t.type == tIf) {
-        expr = selection_statement();
-    } else if (t.type == tWhile || t.type == tFor) {
-        expr = iteration_statement();
-    } else if (t.type == tLBrace) {
-        expr = compound_statement();
-    } else if (t.type == tReturn) {
-        expr = jump_statement();
-    } else {
-        expr = expression_statement();
-    }
-    return expr;
+    if (t.type == tIf) stmt = selection_statement();
+    else if (t.type == tWhile || t.type == tFor) stmt = iteration_statement();
+    else if (t.type == tLBrace) stmt = compound_statement();
+    else if (t.type == tReturn) stmt = jump_statement();
+    else stmt = expression_statement();
+    return stmt;
 }
 
 Node *external_declaration() {
