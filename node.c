@@ -20,6 +20,16 @@ int how_many_nested_pointer(Node *n, int i) {
     return i;
 }
 
+NodeType node_type_from_token_type(TokenType t) {
+    if (t == tAdd) return ADD;
+    if (t == tSub) return SUB;
+    if (t == tLess) return LESS;
+    if (t == tLessEq) return LESSEQ;
+    if (t == tMore) return MORE;
+    if (t == tMoreEq) return MOREEQ;
+    assert(false);
+}
+
 Node *make_ast_int(int val) {
     Node *n = malloc(sizeof(Node));
     n->type = INT;
@@ -312,12 +322,8 @@ Node *relational_expression() {
     Token t = peek_token();
     while (t.type == tLess || t.type == tLessEq || t.type == tMore || t.type == tMoreEq) {
         get_token();
-        NodeType type;
+        NodeType type = node_type_from_token_type(t.type);
         Node *right;
-        if (t.type == tLess) type = LESS;
-        if (t.type == tLessEq) type = LESSEQ;
-        if (t.type == tMore) type = MORE;
-        if (t.type == tMoreEq) type = MOREEQ;
         if (type <= left->type && left->type <= type){  
             return make_ast_op(AND, left, make_ast_op(type, right, shift_expression()));;
         }
