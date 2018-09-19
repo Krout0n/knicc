@@ -48,6 +48,7 @@ typedef enum {
     tDecInt,
     tDecChar,
     tStruct,
+    tEnum,
     tRef,
 
     _EOF,
@@ -153,6 +154,7 @@ typedef enum {
     COMPOUND_STMT,
     GLOBAL_DECL,
     STRUCT_DECL,
+    ENUM_DECL,
 } NodeType;
 
 typedef enum {
@@ -212,6 +214,10 @@ typedef struct Node {
         char *name;
         Map *members;
     } struct_decl;
+    struct {
+        char *name;
+        Vector *enumerators;
+    } enum_decl;
 } Node;
 
 extern Vector *parse();
@@ -248,6 +254,7 @@ typedef struct {
 } Var;
 
 Map *def_struct_map; // UsrDefStructを格納してる
+Map *def_enum_map;
 extern int add_sub_ptr(Var *v);
 extern TypeCategory type_from_dec(TokenType type);
 extern int align_from_type(TypeCategory type);

@@ -179,6 +179,16 @@ Node *make_ast_struct(char *name) {
     return n;
 }
 
+Node *make_ast_enum(char *name) {
+    Node *n = malloc(sizeof(Node));
+    n->type = ENUM_DECL;
+    n->enum_decl.name = malloc(strlen(name));
+    strcpy(n->enum_decl.name, name);
+    n->enum_decl.name = name;
+    n->enum_decl.enumerators = init_vector();
+    return n;
+}
+
 Node *primary_expression() {
     Token t = get_token();
     if (t.type == tInt) return make_ast_int(atoi(t.literal));
@@ -481,6 +491,26 @@ Node *struct_or_union() {
     return n;
 }
 
+Node *enum_specifier() {
+    get_token();
+    Token name = get_token();
+    assert(name.type == tIdent);
+    Node *n = make_ast_enum(name.literal);
+    assert(get_token().type == tLBrace);
+    while (peek_token().type == tIdent) {
+        char *enumerator = get_token().literal;
+        char *e = malloc(strlen(enumerator));
+        strcpy(e, enumerator);
+        vec_push(n->enum_decl.enumerators, e);
+        Token comma_or_rblace = peek_token();
+        if (comma_or_rblace.type == tRBrace) break;
+        assert(get_token().type == tComma);
+    }
+    assert(get_token().type == tRBrace);
+    assert(get_token().type == tSemicolon);
+    return n;
+}
+
 Node *compound_statement() {
     assert(get_token().type == tLBrace);
     Node *n = make_ast_compound_statement();
@@ -489,6 +519,7 @@ Node *compound_statement() {
         // debug_token(peek_token());
         if (peek_token().type == tDecInt || peek_token().type == tDecChar) block_item = declaration();
         else if (peek_token().type == tStruct) block_item = struct_or_union();
+        else if (peek_token().type == tEnum) block_item = enum_specifier();
         else block_item = statement();
         vec_push(n->stmts, block_item);
     }

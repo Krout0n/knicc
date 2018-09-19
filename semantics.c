@@ -8,6 +8,11 @@
 Map *local_var_map;
 Map *global_map;
 Map *def_struct_map;
+Map *def_enum_map;
+Node *func_ast;
+
+void analyze_stmt(Node *n);
+void analyze_expr(Node *n);
 
 Var *new_var(TypeCategory type, Node *next, size_t array_size) {
     Var *v = malloc(sizeof(Var));
@@ -133,6 +138,28 @@ void debug_analyzed_struct(UsrDefStruct *u) {
     printf("}\n");
 }
 
+void debug_enum() {
+    printf("enum {\n");
+    for (int i = 0; i < def_enum_map->vec->length; i++) {
+        KeyValue *kv = vec_get(def_enum_map->vec, i);
+        printf("  %s: %d,\n", kv->key, (int)kv->value);
+    }
+    printf("}\n");
+}
+
+void analyze_enum(Node *n) {
+    for (int i = 0; i < n->enum_decl.enumerators->length; i++) {
+        insert_map(def_enum_map, new_kv((char *)vec_get(n->enum_decl.enumerators, i), (int *)i));
+    }
+}
+
+int is_enumerator(char *ident) {
+    for (int i = 0; i < def_enum_map->vec->length; i++) {
+        if (strcmp(ident, ((KeyValue *)vec_get(def_enum_map->vec, i))->key) == 0) return i;
+    }
+    return -1;
+}
+
 int analyze_struct(Node *n) {
     UsrDefStruct *u = new_user_def_struct(n->struct_decl.name);
     int offset = 0;
@@ -152,7 +179,51 @@ int analyze_struct(Node *n) {
     insert_map(def_struct_map, new_kv(u->name, u));
 }
 
-void analyze_func(Node *func_ast) {
+void analyze_var_decl(Node *decl_ast) {
+    TypeCategory type = decl_ast->var_decl.type;
+    Node *p = decl_ast->var_decl.pointer;
+    size_t array_size = decl_ast->var_decl.array_size;
+    Var *v = new_var(type, p, array_size);
+    v->offset = func_ast->func_def.offset + align_from_var(v);
+    func_ast->func_def.offset += align_from_var(v);
+    insert_map(func_ast->func_def.map, new_kv(decl_ast->var_decl.name, v));
+}
+
+
+void analyze_stmt(Node *n) {
+    if (n->type == VAR_DECL) analyze_var_decl(n);
+    else if (n->type == COMPOUND_STMT) {
+      for (int i = 0; i < n->stmts->length; i++) {
+          analyze_stmt(vec_get(n->stmts, i));
+      }
+    }
+    else analyze_expr(n);
+}
+
+void analyze_expr(Node *n) {
+    if (n == NULL) return;
+    if (n->type == IF_ELSE_STMT
+        || n->type == FOR
+        || n->type == WHILE) return;
+    if (n->type == RETURN) analyze_expr(n->ret_stmt.expr);
+    if (n->type == IF_STMT) {
+        analyze_expr(n->if_stmt.expression);
+        analyze_stmt(n->if_stmt.true_stmt);
+    }
+    if (ADD <= n->type && n->type <= MOREEQ) {
+        analyze_expr(n->left);
+        analyze_expr(n->right);
+    }
+    if (n->type == IDENTIFIER) {
+        int num = is_enumerator(n->literal);
+        if (num >= 0) {
+            n->type = INT;
+            n->ival = num;
+        }
+    }
+}
+
+void analyze_func(void) {
     for (int i = 0; i < func_ast->func_def.parameters->length; i++) {
         Node *local_ast = vec_get(func_ast->func_def.parameters, i);
         TypeCategory type = local_ast->var_decl.type;
@@ -165,18 +236,9 @@ void analyze_func(Node *func_ast) {
         Node *asts = vec_get(func_ast->stmts, i);
         for (int j = 0; j < asts->stmts->length; j++) {
             Node *local_ast = vec_get(asts->stmts, j);
-            if (local_ast->type == STRUCT_DECL) {
-                analyze_struct(local_ast);
-                continue;
-            }
-            if (local_ast->type != VAR_DECL) continue;
-            TypeCategory type = local_ast->var_decl.type;
-            Node *p = local_ast->var_decl.pointer;
-            size_t array_size = local_ast->var_decl.array_size;
-            Var *v = new_var(type, p, array_size);
-            v->offset = func_ast->func_def.offset + align_from_var(v);
-            func_ast->func_def.offset += align_from_var(v);
-            insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, v));
+            if (local_ast->type == STRUCT_DECL) analyze_struct(local_ast);
+            else if (local_ast->type == ENUM_DECL) analyze_enum(local_ast);
+            else analyze_stmt(local_ast);
         }
     }
     // debug_map(func_ast->func_def.map);
@@ -189,6 +251,7 @@ void analyze(Vector *n) {
             insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, NULL, 0)));
             continue;
         }
-        analyze_func(ast);
+        func_ast = ast;
+        analyze_func();
     }
 }
