@@ -428,7 +428,9 @@ Node *expression() {
 
 Node *expression_statement() {
     Node *n = expression();
-    assert(get_token().type == tSemicolon);
+    // debug_token(peek_token());
+    // assert(get_token().type == tSemicolon);
+    expect_token(get_token(), tSemicolon);
     return n;
 }
 

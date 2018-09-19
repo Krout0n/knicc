@@ -67,6 +67,7 @@ extern bool assert_token(TokenType expected, TokenType got);
 extern void debug_token(Token t);
 extern bool is_binop(TokenType type);
 extern bool is_unaryop(TokenType type);
+extern void expect_token(Token left, TokenType right);
 
 // lexer.c
 typedef struct {

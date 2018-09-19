@@ -210,6 +210,11 @@ void analyze_expr(Node *n) {
         analyze_expr(n->if_stmt.expression);
         analyze_stmt(n->if_stmt.true_stmt);
     }
+    if (n->type == IF_ELSE_STMT) {
+        analyze_expr(n->if_stmt.expression);
+        analyze_stmt(n->if_stmt.true_stmt);
+        analyze_stmt(n->if_stmt.else_stmt);
+    }
     if (ADD <= n->type && n->type <= MOREEQ) {
         analyze_expr(n->left);
         analyze_expr(n->right);

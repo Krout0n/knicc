@@ -133,3 +133,10 @@ bool is_unaryop_token(TokenType type) {
     if (type == tRef || type == tStar || type == tSub) return true;
     return false;
 }
+
+void expect_token(Token left, TokenType right) {
+    if (left.type == right) return;
+    printf("Parse error: expected=%s, got=%s\n", find_token_name(right), find_token_name(left.type));
+    if (left.type == tIdent) printf("THE IDENT is ... %s\n", left.literal);
+    exit(1);
+}
