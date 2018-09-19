@@ -24,16 +24,14 @@ Var *new_var(TypeCategory type, Node *next, size_t array_size) {
 
 UsrDefStruct *new_user_def_struct(char *name) {
     UsrDefStruct *u = malloc(sizeof(UsrDefStruct));
-    u->name = malloc(1 * strlen(name));
-    strcpy(u->name, name);
+    u->name = name;
     u->members = init_vector();
     return u;
 }
 
 Member *new_member(char *name, TypeCategory type, int offset) {
     Member *m = malloc(sizeof(Member));
-    m->name = malloc(1 * strlen(name));
-    strcpy(m->name, name);
+    m->name = name;
     m->type = type;
     m->offset = offset;
     return m;
@@ -216,11 +214,11 @@ void analyze_expr(Node *n) {
         || n->type == WHILE) return;
     if (n->type == RETURN) analyze_expr(n->ret_stmt.expr);
     if (n->type == IF_STMT) {
-        analyze_expr(n->if_stmt.expression);
+        analyze_expr(n->if_stmt.expr);
         analyze_stmt(n->if_stmt.true_stmt);
     }
     if (n->type == IF_ELSE_STMT) {
-        analyze_expr(n->if_stmt.expression);
+        analyze_expr(n->if_stmt.expr);
         analyze_stmt(n->if_stmt.true_stmt);
         analyze_stmt(n->if_stmt.else_stmt);
     }

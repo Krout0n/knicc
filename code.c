@@ -32,7 +32,7 @@ void emit_label_plus_one() {
 }
 
 void emit_if_stmt(Node *n) {
-    emit_expr(n->if_stmt.expression);
+    emit_expr(n->if_stmt.expr);
     printf("  pop %%rax\n");
     printf("  cmpq $0, %%rax\n");
     printf("  je "); emit_label(); printf("\n"); // je .L0
@@ -41,7 +41,7 @@ void emit_if_stmt(Node *n) {
     label_no++;
 }
 void emit_if_else_stmt(Node *n) {
-    emit_expr(n->if_stmt.expression);
+    emit_expr(n->if_stmt.expr);
     printf("  pop %%rax\n");
     printf("  cmpq $0, %%rax\n");
     printf("  je "); emit_label(); printf("\n"); // je .L0
@@ -63,7 +63,7 @@ void emit_return_stmt(Node *n) {
 
 void emit_while_stmt(Node *n) {
     printf(".Lbegin:\n");
-    emit_expr(n->while_stmt.expression);
+    emit_expr(n->while_stmt.expr);
     printf("  pop %%rax\n");
     printf("  cmpq $0, %%rax\n");
     printf("  je .Lend\n");

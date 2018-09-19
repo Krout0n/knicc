@@ -137,7 +137,7 @@ bool is_unaryop_token(TokenType type) {
 
 void expect_token(Token *left, TokenType right) {
     if (left->type == right) return;
-    printf("Parse error: expected=%s, got=%s\n", find_token_name(right), find_token_name(left->type));
-    if (left->type == tIdent) printf("THE IDENT is ... %s\n", left->literal);
+    fprintf(stderr,"Parse error: expected=%s, got=%s\n", find_token_name(right), find_token_name(left->type));
+    if (left->type == tIdent) fprintf(stderr, "THE IDENT is ... %s\n", left->literal);
     exit(1);
 }

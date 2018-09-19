@@ -190,12 +190,12 @@ typedef struct Node {
         int offset;
     } func_def;
     struct {
-        struct Node *expression;
+        struct Node *expr;
         struct Node *true_stmt;
         struct Node *else_stmt;
     } if_stmt;
     struct {
-        struct Node *expression;
+        struct Node *expr;
         struct Node *stmt;
     } while_stmt;
     Vector *stmts;

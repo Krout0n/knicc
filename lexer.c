@@ -69,18 +69,6 @@ Token *lex() {
         l->index += 1;
         return lex(l);
     } else if (c == '"') {
-        // l->index += 1;
-        // c = peek_char();
-        // while (c != '"') {
-        //     literal[i] = c;
-        //     i += 1;
-        //     l->index += 1;
-        //     c = peek_char();
-        // }
-        // literal[i] = '\0';
-        // type = tString;
-        // l->index += 1;
-        // return new_token(l, i, type);
         l->index += 1;
         c = peek_char();
         while (c != '"') {
@@ -90,7 +78,6 @@ Token *lex() {
             c = peek_char();
         }
         literal[i] = '\0';
-        type = tString;
         l->index += 1;
         return new_token(literal, i, tString);
     } else return new_token("", 1, _EOF);

@@ -89,7 +89,7 @@ Node *make_ast_func_def(char *name, TypeCategory type) {
 Node *make_ast_if_stmt(Node *expr, Node *stmt) {
     Node *n = malloc(sizeof(Node));
     n->type = IF_STMT;
-    n->if_stmt.expression = expr;
+    n->if_stmt.expr = expr;
     n->if_stmt.true_stmt = stmt;
     return n;
 }
@@ -97,7 +97,7 @@ Node *make_ast_if_stmt(Node *expr, Node *stmt) {
 Node *make_ast_if_else_stmt(Node *expr, Node *stmt, Node *else_stmt) {
     Node *n = malloc(sizeof(Node));
     n->type = IF_ELSE_STMT;
-    n->if_stmt.expression = expr;
+    n->if_stmt.expr = expr;
     n->if_stmt.true_stmt = stmt;
     n->if_stmt.else_stmt = else_stmt;
     return n;
@@ -106,7 +106,7 @@ Node *make_ast_if_else_stmt(Node *expr, Node *stmt, Node *else_stmt) {
 Node *make_ast_while_stmt(Node *expr, Node *stmt) {
     Node *n = malloc(sizeof(Node));
     n->type = WHILE;
-    n->while_stmt.expression = expr;
+    n->while_stmt.expr = expr;
     n->while_stmt.stmt = stmt;
     return n;
 }
