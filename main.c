@@ -10,6 +10,7 @@ void init_global_var() {
     string_literal_vec = init_vector();
     def_struct_map = init_map();
     def_enum_map = init_map();
+    global_enum_map = init_map();
 }
 
 int main(int argc, char **argv) {

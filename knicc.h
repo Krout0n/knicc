@@ -163,6 +163,7 @@ typedef enum {
     TYPE_CHAR,
     TYPE_STRUCT,
     TYPE_PTR,
+    TYPE_NOT_FOUND,
 } TypeCategory;
 
 typedef struct Node {
@@ -256,6 +257,8 @@ typedef struct {
 
 Map *def_struct_map; // UsrDefStructを格納してる
 Map *def_enum_map;
+Map *global_enum_map;
+
 extern int add_sub_ptr(Var *v);
 extern TypeCategory type_from_dec(TokenType type);
 extern int align_from_type(TypeCategory type);

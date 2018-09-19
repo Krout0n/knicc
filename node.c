@@ -526,7 +526,7 @@ Node *jump_statement() {
     }
     else {
         expr = expression();
-        assert(get_token()->type == tSemicolon);
+        expect_token(get_token(), tSemicolon);
     }
     return make_ast_ret_stmt(expr);
 }
@@ -543,9 +543,13 @@ Node *statement() {
 }
 
 Node *external_declaration() {
-    TypeCategory type = type_from_dec(get_token()->type);
+    Token *head = peek_token();
+    if (head->type == tEnum) return enum_specifier();
+    TypeCategory type = type_from_dec(head->type);
+    assert(type != TYPE_NOT_FOUND);
+    get_token();
     Token *t = get_token();
-    assert(t->type == tIdent);
+    expect_token(t, tIdent);
     char *name = t->literal;
     if (peek_token()->type == tLParen) {
         get_token();

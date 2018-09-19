@@ -8,6 +8,7 @@
 Map *local_var_map;
 Map *global_map;
 Map *def_struct_map;
+Map *global_enum_map;
 Map *def_enum_map;
 Node *func_ast;
 
@@ -147,8 +148,11 @@ void debug_enum() {
 }
 
 void analyze_enum(Node *n) {
+    Map *map;
+    if (def_enum_map == NULL) map = global_enum_map;
+    else map = def_enum_map;
     for (int i = 0; i < n->enum_decl.enumerators->length; i++) {
-        insert_map(def_enum_map, new_kv((char *)vec_get(n->enum_decl.enumerators, i), (int *)i));
+        insert_map(map, new_kv((char *)vec_get(n->enum_decl.enumerators, i), (int *)i));
     }
 }
 
@@ -230,6 +234,7 @@ void analyze_expr(Node *n) {
 }
 
 void analyze_func(void) {
+    def_enum_map = init_map();
     for (int i = 0; i < func_ast->func_def.parameters->length; i++) {
         Node *local_ast = vec_get(func_ast->func_def.parameters, i);
         TypeCategory type = local_ast->var_decl.type;
@@ -251,13 +256,14 @@ void analyze_func(void) {
 }
 
 void analyze(Vector *n) {
+    def_enum_map = NULL;
     for (int i = 0; i < n->length; i++) {
         Node *ast = vec_get(n, i);
-        if (ast->type != FUNC_DEF) {
-            insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, NULL, 0)));
-            continue;
+        if (ast->type == GLOBAL_DECL) insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, NULL, 0)));
+        if (ast->type == ENUM_DECL) analyze_enum(n);
+        if (ast->type == FUNC_DEF) {
+            func_ast = ast;
+            analyze_func();
         }
-        func_ast = ast;
-        analyze_func();
     }
 }
