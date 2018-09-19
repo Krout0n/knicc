@@ -47,8 +47,7 @@ Node *make_ast_op(int type, Node *left, Node *right) {
 
 Node *make_ast_ident(char *literal) {
     Node *n = malloc(sizeof(Node));
-    n->literal = malloc(sizeof(char) * strlen(literal));
-    strcpy(n->literal, literal);
+    n->literal = literal;
     n->type = IDENTIFIER;
     return n;
 }
@@ -56,8 +55,7 @@ Node *make_ast_ident(char *literal) {
 Node *make_ast_var_decl(TypeCategory type, char *name, Node *pointer, size_t array_size) {
     Node *n = malloc(sizeof(Node));
     n->type = VAR_DECL;
-    n->var_decl.name = malloc(sizeof(char) * strlen(name));
-    strcpy(n->var_decl.name, name);
+    n->var_decl.name = name;
     n->var_decl.type = type;
     n->var_decl.pointer = pointer;
     n->var_decl.array_size = array_size;
@@ -67,8 +65,7 @@ Node *make_ast_var_decl(TypeCategory type, char *name, Node *pointer, size_t arr
 Node *make_ast_func_call(char *name, int argc, Node **argv) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_CALL;
-    n->func_call.name = malloc(sizeof(char) * strlen(name));
-    strcpy(n->func_call.name, name);
+    n->func_call.name = name;
     n->func_call.argc = argc;
     n->func_call.argv = malloc(sizeof(Node) * argc);
     if (n->func_call.argv == NULL) perror("malloc err");
@@ -79,8 +76,7 @@ Node *make_ast_func_call(char *name, int argc, Node **argv) {
 Node *make_ast_func_def(char *name, TypeCategory type) {
     Node *n = malloc(sizeof(Node));
     n->type = FUNC_DEF;
-    n->func_def.name = malloc(sizeof(char) * strlen(name));
-    strcpy(n->func_def.name, name);
+    n->func_def.name = name;
     n->func_def.map = init_map();
     n->func_def.parameters = init_vector();
     n->stmts = init_vector();
@@ -156,8 +152,7 @@ Node *make_ast_ret_stmt(Node *expr) {
 Node *make_ast_global_var(TypeCategory type ,char *name, Node *pointer, size_t array_size) {
     Node *n = malloc(sizeof(Node));
     n->type = GLOBAL_DECL;
-    n->var_decl.name = malloc(sizeof(char) * strlen(name));
-    strcpy(n->var_decl.name, name);
+    n->var_decl.name = name;
     n->var_decl.type = type;
     n->var_decl.pointer = pointer;
     n->var_decl.array_size = array_size;
@@ -166,8 +161,7 @@ Node *make_ast_global_var(TypeCategory type ,char *name, Node *pointer, size_t a
 Node *make_ast_string(char *literal) {
     Node *n = malloc(sizeof(Node));
     n->type = STRING;
-    n->literal = malloc(sizeof(char) * strlen(literal));
-    strcpy(n->literal, literal);
+    n->literal = literal;
     return n;
 }
 
@@ -182,49 +176,46 @@ Node *make_ast_struct(char *name) {
 Node *make_ast_enum(char *name) {
     Node *n = malloc(sizeof(Node));
     n->type = ENUM_DECL;
-    n->enum_decl.name = malloc(strlen(name));
-    strcpy(n->enum_decl.name, name);
     n->enum_decl.name = name;
     n->enum_decl.enumerators = init_vector();
     return n;
 }
 
 Node *primary_expression() {
-    Token t = get_token();
-    if (t.type == tInt) return make_ast_int(atoi(t.literal));
-    else if (t.type == tString) {
-        char *str = malloc(sizeof(char) * strlen(t.literal));
-        strcpy(str, t.literal);
+    Token *t = get_token();
+    if (t->type == tInt) return make_ast_int(atoi(t->literal));
+    else if (t->type == tString) {
+        char *str = t->literal;
         vec_push(string_literal_vec, str);
         return make_ast_string(str);
     }
-    else if (t.type == tIdent) {
-        if (peek_token().type == tLParen) {
+    else if (t->type == tIdent) {
+        if (peek_token()->type == tLParen) {
             get_token();
             Node **argv = malloc(sizeof(Node) * 6);
             int argc = 0;
             while (1) {
-                if (peek_token().type == tRParen) break;
+                if (peek_token()->type == tRParen) break;
                 argv[argc] = expression();
                 argc += 1;
-                if (peek_token().type == tComma) get_token();
+                if (peek_token()->type == tComma) get_token();
             }
-            assert(get_token().type == tRParen);
-            return make_ast_func_call(t.literal, argc, argv);
+            assert(get_token()->type == tRParen);
+            return make_ast_func_call(t->literal, argc, argv);
         }
-        return make_ast_ident(t.literal);
+        return make_ast_ident(t->literal);
     }
-    assert(t.type == tLParen);
+    expect_token(t, tLParen);
     Node *left = expression();
-    assert(get_token().type == tRParen);
+    assert(get_token()->type == tRParen);
     return left;
 }
 
 Node *pointer() {
-    if (peek_token().type != tStar) return NULL;
+    if (peek_token()->type != tStar) return NULL;
     Node *previous = malloc(sizeof(Node));
     Node *ret = previous;
-    while (peek_token().type == tStar) {
+    while (peek_token()->type == tStar) {
         Node *next;
         next = make_ast_pointer(previous);
         previous = next;
@@ -236,36 +227,36 @@ Node *pointer() {
 
 Node *declaration() {
     size_t array_size = 0;
-    TypeCategory ty = type_from_dec(get_token().type);
+    TypeCategory ty = type_from_dec(get_token()->type);
     Node *p = pointer();
-    Token ident = get_token();
-    assert(ident.type == tIdent);
-    if (peek_token().type == tLBracket) {
+    Token *ident = get_token();
+    assert(ident->type == tIdent);
+    if (peek_token()->type == tLBracket) {
         get_token();
-        Token s = get_token();
-        assert(s.type == tInt);
-        array_size = atoi(s.literal);
-        assert(get_token().type == tRBracket);
+        Token *s = get_token();
+        assert(s->type == tInt);
+        array_size = atoi(s->literal);
+        assert(get_token()->type == tRBracket);
     }
-    assert(get_token().type == tSemicolon);
-    return make_ast_var_decl(ty, ident.literal, p, array_size);
+    assert(get_token()->type == tSemicolon);
+    return make_ast_var_decl(ty, ident->literal, p, array_size);
 }
 
 Node *postfix_expression() {
     Node *n = primary_expression();
-    if (peek_token().type == tLBracket) {
+    if (peek_token()->type == tLBracket) {
         get_token();
         Node *expr = expression();
-        assert(get_token().type == tRBracket);
+        assert(get_token()->type == tRBracket);
         return make_ast_unary_op(DEREF, make_ast_op(ADD, n, expr));
-    } else if (peek_token().type == tInc) {
+    } else if (peek_token()->type == tInc) {
         get_token();
         return make_ast_op(ASSIGN, n, make_ast_op(ADD, n, make_ast_int(1)));
-    } else if (peek_token().type == tDec) {
+    } else if (peek_token()->type == tDec) {
         get_token();
         return make_ast_op(ASSIGN, n, make_ast_op(SUB, n, make_ast_int(1)));
     }
-    // } else if (peek_token().type == tDot) {
+    // } else if (peek_token()->type == tDot) {
     //     get_token();
     //     Token member = get_token();
     //     assert(member.type == tIdent);
@@ -275,12 +266,12 @@ Node *postfix_expression() {
 }
 
 Node *unary_expression() {
-    if (is_unaryop_token(peek_token().type)) {
-        Token op = get_token();
-        TokenType ty = op.type;
-        if (op.type == tStar) ty = DEREF;
-        if (op.type == tRef) ty = REF;
-        if (op.type == tSub) {
+    if (is_unaryop_token(peek_token()->type)) {
+        Token *op = get_token();
+        TokenType ty = op->type;
+        if (op->type == tStar) ty = DEREF;
+        if (op->type == tRef) ty = REF;
+        if (op->type == tSub) {
             return make_ast_op(MULTI, make_ast_int(-1), cast_expression());
         }
         Node *n = cast_expression();
@@ -297,9 +288,9 @@ Node *cast_expression() {
 
 Node *multiplicative_expression() {
     Node *left = cast_expression();
-    Token t = peek_token();
-    while (t.type == tStar /* || t.type == DIV || t.type == MOD */) {
-        Token op = get_token();
+    Token *t = peek_token();
+    while (t->type == tStar /* || t->type == DIV || t->type == MOD */) {
+        Token *op = get_token();
         Node *right = cast_expression();
         left = make_ast_op(MULTI, left, right);
         t = peek_token();
@@ -309,11 +300,11 @@ Node *multiplicative_expression() {
 
 Node *additive_expression() {
     Node *left = multiplicative_expression();
-    Token t = peek_token();
-    while (t.type == tAdd || t.type == tSub) {
-        Token op = get_token();
+    Token *t = peek_token();
+    while (t->type == tAdd || t->type == tSub) {
+        Token *op = get_token();
         NodeType ty;
-        if (op.type == tAdd) ty = ADD;
+        if (op->type == tAdd) ty = ADD;
         else ty = SUB;
         Node *right = multiplicative_expression();
         left = make_ast_op(ty, left, right);
@@ -329,10 +320,10 @@ Node *shift_expression() {
 
 Node *relational_expression() {
     Node *left = shift_expression();
-    Token t = peek_token();
-    while (t.type == tLess || t.type == tLessEq || t.type == tMore || t.type == tMoreEq) {
+    Token *t = peek_token();
+    while (t->type == tLess || t->type == tLessEq || t->type == tMore || t->type == tMoreEq) {
         get_token();
-        NodeType type = node_type_from_token_type(t.type);
+        NodeType type = node_type_from_token_type(t->type);
         Node *right;
         if (type <= left->type && left->type <= type){  
             return make_ast_op(AND, left, make_ast_op(type, right, shift_expression()));;
@@ -346,11 +337,11 @@ Node *relational_expression() {
 
 Node *equality_expression() {
     Node *left = relational_expression();
-    Token t =  peek_token();
-    while (t.type == tEq || t.type == tNotEq) {
+    Token *t =  peek_token();
+    while (t->type == tEq || t->type == tNotEq) {
         NodeType type;
-        Token op = get_token();
-        if (op.type == tEq) type = EQ;
+        Token *op = get_token();
+        if (op->type == tEq) type = EQ;
         else type = NOTEQ;
         Node *right = relational_expression();
         left = make_ast_op(type, left, right);
@@ -381,8 +372,8 @@ Node *inclusive_or_expression() {
 
 Node *logical_and_expression() {
     Node *left = inclusive_or_expression();
-    Token t =  peek_token();
-    while (t.type == tAnd) {
+    Token *t =  peek_token();
+    while (t->type == tAnd) {
         get_token();
         Node *right = inclusive_or_expression();
         left = make_ast_op(AND, left, right);
@@ -393,8 +384,8 @@ Node *logical_and_expression() {
 
 Node *logical_or_expression() {
     Node *left = logical_and_expression();
-    Token t =  peek_token();
-    while (t.type == tOr) {
+    Token *t =  peek_token();
+    while (t->type == tOr) {
         get_token();
         Node *right = logical_and_expression();
         left = make_ast_op(OR, left, right);
@@ -410,12 +401,12 @@ Node *conditional_expression() {
 
 Node *assignment_expression() {
     Node *left = conditional_expression();
-    Token t = peek_token();
-    while (t.type == tAssign || t.type == tPlusEq) {
+    Token *t = peek_token();
+    while (t->type == tAssign || t->type == tPlusEq) {
         get_token();
         Node *right = shift_expression();
-        if (t.type == tAssign) left = make_ast_op(ASSIGN, left, right);
-        else if (t.type == tPlusEq) left = make_ast_op(ASSIGN, left, make_ast_op(ADD, left, right));
+        if (t->type == tAssign) left = make_ast_op(ASSIGN, left, right);
+        else if (t->type == tPlusEq) left = make_ast_op(ASSIGN, left, make_ast_op(ADD, left, right));
         t = peek_token();
     }
     return left;
@@ -429,18 +420,18 @@ Node *expression() {
 Node *expression_statement() {
     Node *n = expression();
     // debug_token(peek_token());
-    // assert(get_token().type == tSemicolon);
+    // assert(get_token()->type == tSemicolon);
     expect_token(get_token(), tSemicolon);
     return n;
 }
 
 Node *selection_statement() {
-    assert(get_token().type == tIf);
-    assert(get_token().type == tLParen);
+    assert(get_token()->type == tIf);
+    assert(get_token()->type == tLParen);
     Node *expr = expression();
-    assert(get_token().type == tRParen);
+    assert(get_token()->type == tRParen);
     Node *stmt = statement();
-    if (peek_token().type == tElse) {
+    if (peek_token()->type == tElse) {
         get_token();
         Node *else_stmt = statement();
         return make_ast_if_else_stmt(expr, stmt, else_stmt);
@@ -450,24 +441,24 @@ Node *selection_statement() {
 
 Node *iteration_statement() {
     Node *stmt;
-    Token t = get_token();
-    assert(get_token().type == tLParen);
-    if (t.type == tWhile) {
+    Token *t = get_token();
+    assert(get_token()->type == tLParen);
+    if (t->type == tWhile) {
         Node *expr = expression();
-        assert(get_token().type == tRParen);
+        assert(get_token()->type == tRParen);
         Node *_stmt = statement();
         stmt = make_ast_while_stmt(expr, _stmt);
-    } else if (t.type == tFor) {
+    } else if (t->type == tFor) {
         Node *init, *cond, *loop;
-        if (peek_token().type != tSemicolon) init = expression();
+        if (peek_token()->type != tSemicolon) init = expression();
         else init = NULL;
-        assert(get_token().type == tSemicolon);
-        if (peek_token().type != tSemicolon) cond = expression();
+        assert(get_token()->type == tSemicolon);
+        if (peek_token()->type != tSemicolon) cond = expression();
         else cond = make_ast_int(1);
-        assert(get_token().type == tSemicolon);
-        if (peek_token().type != tRParen) loop = expression();
+        assert(get_token()->type == tSemicolon);
+        if (peek_token()->type != tRParen) loop = expression();
         else loop = NULL;
-        assert(get_token().type == tRParen);
+        assert(get_token()->type == tRParen);
         Node *_stmt = statement();
         stmt = make_ast_for_stmt(init, cond, loop, _stmt);
     }
@@ -476,113 +467,109 @@ Node *iteration_statement() {
 
 Node *struct_or_union() {
     get_token();
-    Token ident = get_token();
-    assert(ident.type == tIdent);
-    assert(get_token().type == tLBrace);
-    Node *n = make_ast_struct(ident.literal);
-    while (peek_token().type != tRBrace) {
-        Token t = get_token();
-        TypeCategory type = type_from_dec(t.type);
-        Token member = get_token();
-        assert(member.type = tIdent);
-        assert(get_token().type == tSemicolon);
-        insert_map(n->struct_decl.members, new_kv(member.literal, (TypeCategory *)type));
+    Token *ident = get_token();
+    assert(ident->type == tIdent);
+    assert(get_token()->type == tLBrace);
+    Node *n = make_ast_struct(ident->literal);
+    while (peek_token()->type != tRBrace) {
+        Token *t = get_token();
+        TypeCategory type = type_from_dec(t->type);
+        Token *member = get_token();
+        assert(member->type = tIdent);
+        assert(get_token()->type == tSemicolon);
+        insert_map(n->struct_decl.members, new_kv(member->literal, (TypeCategory *)type));
     }
     get_token();
-    assert(get_token().type == tSemicolon);
+    assert(get_token()->type == tSemicolon);
     return n;
 }
 
 Node *enum_specifier() {
     get_token();
-    Token name = get_token();
-    assert(name.type == tIdent);
-    Node *n = make_ast_enum(name.literal);
-    assert(get_token().type == tLBrace);
-    while (peek_token().type == tIdent) {
-        char *enumerator = get_token().literal;
-        char *e = malloc(strlen(enumerator));
-        strcpy(e, enumerator);
-        vec_push(n->enum_decl.enumerators, e);
-        Token comma_or_rblace = peek_token();
-        if (comma_or_rblace.type == tRBrace) break;
-        assert(get_token().type == tComma);
+    Token *name = get_token();
+    assert(name->type == tIdent);
+    Node *n = make_ast_enum(name->literal);
+    assert(get_token()->type == tLBrace);
+    while (peek_token()->type == tIdent) {
+        vec_push(n->enum_decl.enumerators, get_token()->literal);
+        Token *comma_or_rblace = peek_token();
+        if (comma_or_rblace->type == tRBrace) break;
+        assert(get_token()->type == tComma);
     }
-    assert(get_token().type == tRBrace);
-    assert(get_token().type == tSemicolon);
+    assert(get_token()->type == tRBrace);
+    assert(get_token()->type == tSemicolon);
     return n;
 }
 
 Node *compound_statement() {
-    assert(get_token().type == tLBrace);
+    assert(get_token()->type == tLBrace);
     Node *n = make_ast_compound_statement();
-    while (peek_token().type != tRBrace) {
+    while (peek_token()->type != tRBrace) {
         Node *block_item;
         // debug_token(peek_token());
-        if (peek_token().type == tDecInt || peek_token().type == tDecChar) block_item = declaration();
-        else if (peek_token().type == tStruct) block_item = struct_or_union();
-        else if (peek_token().type == tEnum) block_item = enum_specifier();
+        if (peek_token()->type == tDecInt || peek_token()->type == tDecChar) block_item = declaration();
+        else if (peek_token()->type == tStruct) block_item = struct_or_union();
+        else if (peek_token()->type == tEnum) block_item = enum_specifier();
         else block_item = statement();
         vec_push(n->stmts, block_item);
     }
-    assert(get_token().type == tRBrace);
+    assert(get_token()->type == tRBrace);
     return n;
 }
 
 Node *jump_statement() {
     get_token();
     Node *expr;
-    if (peek_token().type == tSemicolon) {
+    if (peek_token()->type == tSemicolon) {
         expr = NULL;
         get_token();
     }
     else {
         expr = expression();
-        assert(get_token().type == tSemicolon);
+        assert(get_token()->type == tSemicolon);
     }
     return make_ast_ret_stmt(expr);
 }
 
 Node *statement() {
     Node *stmt;
-    Token t = peek_token();
-    if (t.type == tIf) stmt = selection_statement();
-    else if (t.type == tWhile || t.type == tFor) stmt = iteration_statement();
-    else if (t.type == tLBrace) stmt = compound_statement();
-    else if (t.type == tReturn) stmt = jump_statement();
+    Token *t = peek_token();
+    if (t->type == tIf) stmt = selection_statement();
+    else if (t->type == tWhile || t->type == tFor) stmt = iteration_statement();
+    else if (t->type == tLBrace) stmt = compound_statement();
+    else if (t->type == tReturn) stmt = jump_statement();
     else stmt = expression_statement();
     return stmt;
 }
 
 Node *external_declaration() {
-    TypeCategory type = type_from_dec(get_token().type);
-    Token t = get_token();
-    assert(t.type == tIdent);
-    char *name = malloc(sizeof(char) * strlen(t.literal));
-    strcpy(name, t.literal);
-    if (peek_token().type == tLParen) {
+    TypeCategory type = type_from_dec(get_token()->type);
+    Token *t = get_token();
+    assert(t->type == tIdent);
+    char *name = t->literal;
+    if (peek_token()->type == tLParen) {
         get_token();
         Node *func_ast = make_ast_func_def(name, type);
-        while (peek_token().type != tRParen) {
-            assert(get_token().type == tDecInt);
-            Token arg = get_token();
-            assert(arg.type == tIdent);
-            vec_push(func_ast->func_def.parameters, make_ast_var_decl(TYPE_INT, arg.literal, NULL, 0));
-            if (peek_token().type == tComma) get_token();
+        while (peek_token()->type != tRParen) {
+            assert(get_token()->type == tDecInt);
+            Token *arg = get_token();
+            assert(arg->type == tIdent);
+            vec_push(func_ast->func_def.parameters, make_ast_var_decl(TYPE_INT, arg->literal, NULL, 0));
+            if (peek_token()->type == tComma) get_token();
         }
-        assert(get_token().type == tRParen);
+        assert(get_token()->type == tRParen);
         Node *n = compound_statement();
         vec_push(func_ast->stmts, n);
         return func_ast;
     }
-    assert(get_token().type == tSemicolon);
+    assert(get_token()->type == tSemicolon);
     Node *global_decl = make_ast_global_var(type, name, NULL, 0);
     return global_decl;
 }
 
 Vector *parse() {
     Vector *nodes = init_vector();
-    while (peek_token().type != _EOF) {
+    while (peek_token()->type != _EOF) {
         vec_push(nodes, external_declaration());
     }
     return nodes;

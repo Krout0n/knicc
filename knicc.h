@@ -57,33 +57,33 @@ typedef enum {
 } TokenType;
 
 typedef struct {
-    char literal[256];
+    char *literal;
     TokenType type;
 } Token;
 
 extern TokenType special_char(char c);
-extern Token new_token(char *literal, TokenType kind);
+extern Token *new_token(char *literal, int length, TokenType kind);
 extern bool assert_token(TokenType expected, TokenType got);
-extern void debug_token(Token t);
+extern void debug_token(Token *t);
 extern bool is_binop(TokenType type);
 extern bool is_unaryop(TokenType type);
-extern void expect_token(Token left, TokenType right);
+extern void expect_token(Token *left, TokenType right);
 
 // lexer.c
 typedef struct {
     char src[1000];
     int index;
-    Token tokens[1000];
+    Token *tokens[1000];
     int token_index;
     int length;
 } Lexer;
 
-extern Token lex();
-extern void store_token(Token t);
+extern Token *lex();
+extern void store_token(Token *t);
 extern TokenType keyword(char *s);
 extern Lexer *init_lexer();
-extern Token get_token();
-extern Token peek_token();
+extern Token *get_token();
+extern Token *peek_token();
 extern bool is_unaryop_token(TokenType type);
 extern Lexer *l;
 

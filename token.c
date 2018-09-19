@@ -118,15 +118,16 @@ TokenType keyword(char *s) {
     return tIdent;
 }
 
-Token new_token(char *literal, TokenType kind) {
-    Token t;
-    strcpy(t.literal, literal);
-    t.type = kind;
+Token *new_token(char *literal, int length, TokenType kind) {
+    Token *t = malloc(sizeof(Token));
+    t->literal = malloc(length);
+    strcpy(t->literal, literal);
+    t->type = kind;
     return t;
 }
 
-void debug_token(Token t) {
-    printf("Token.type: %s, literal: %s\n", find_token_name(t.type), t.literal);
+void debug_token(Token *t) {
+    printf("Token.type: %s, literal: %s\n", find_token_name(t->type), t->literal);
 }
 
 bool is_unaryop_token(TokenType type) {
@@ -134,9 +135,9 @@ bool is_unaryop_token(TokenType type) {
     return false;
 }
 
-void expect_token(Token left, TokenType right) {
-    if (left.type == right) return;
-    printf("Parse error: expected=%s, got=%s\n", find_token_name(right), find_token_name(left.type));
-    if (left.type == tIdent) printf("THE IDENT is ... %s\n", left.literal);
+void expect_token(Token *left, TokenType right) {
+    if (left->type == right) return;
+    printf("Parse error: expected=%s, got=%s\n", find_token_name(right), find_token_name(left->type));
+    if (left->type == tIdent) printf("THE IDENT is ... %s\n", left->literal);
     exit(1);
 }

@@ -5,11 +5,11 @@
 
 Lexer *l;
 
-char current_char() {
+char peek_char() {
     return l->src[l->index];
 }
 
-char peek_char() {
+char peek_more_char() {
     return l->src[l->index + 1];
 }
 
@@ -24,71 +24,79 @@ TokenType is_two_chars_op(char current, char peeked) {
     return NOT_FOUND;
 }
 
-Token lex() {
-    Token t;
+Token *lex() {
+    char literal[30];
     TokenType type;
     int i = 0;
-    char c = current_char();
+    char c = peek_char();
     char peeked;
     if (isdigit(c)) {
         while(isdigit(c)) {
-            t.literal[i] = c;
+            literal[i] = c;
             i++;
             l->index += 1;
             c = l->src[l->index];
         }
-        t.literal[i] = '\0';
-        t.type = tInt;
-        return t;
+        literal[i] = '\0';
+        type = tInt;
+        return new_token(literal, i, type);
     } else if (isalpha(c)) {
         while(isdigit(c) || isalpha(c) || c == '_') {
-            t.literal[i] = c;
+            literal[i] = c;
             i++;
             l->index += 1;
-            c = l->src[l->index];
+            c = peek_char();
         }
-        t.literal[i] = '\0';
-        t.type = keyword(t.literal);
-        return t;
+        literal[i] = '\0';
+        type = keyword(literal);
+        return new_token(literal, i, type);
     } else if (special_char(c) != NOT_FOUND) {
-        peeked = peek_char(l);
+        peeked = peek_more_char(l);
         type = is_two_chars_op(c, peeked);
         if (type != NOT_FOUND) {
-            t.literal[0] = c;
-            t.literal[1] = peeked;
-            t.literal[2] = '\0';
-            t.type = type;
+            literal[0] = c;
+            literal[1] = peeked;
+            literal[2] = '\0';
             l->index += 2;
-            return t;
+            return new_token(literal, 3, type);
         }
-        t.literal[0] = c;
-        t.literal[1] = '\0';
-        t.type = special_char(c);
-        l->index += 1;    
+        literal[0] = c;
+        literal[1] = '\0';
+        type = special_char(c);
+        l->index += 1;
+        return new_token(literal, 2, type);
     } else if (isblank(c)) {
         l->index += 1;
         return lex(l);
     } else if (c == '"') {
+        // l->index += 1;
+        // c = peek_char();
+        // while (c != '"') {
+        //     literal[i] = c;
+        //     i += 1;
+        //     l->index += 1;
+        //     c = peek_char();
+        // }
+        // literal[i] = '\0';
+        // type = tString;
+        // l->index += 1;
+        // return new_token(l, i, type);
         l->index += 1;
-        c = current_char();
+        c = peek_char();
         while (c != '"') {
-            t.literal[i] = c;
+            literal[i] = c;
             i += 1;
             l->index += 1;
-            c = current_char();
+            c = peek_char();
         }
-        t.literal[i] = '\0';
-        t.type = tString;
+        literal[i] = '\0';
+        type = tString;
         l->index += 1;
-        return t;
-    } else {
-        t.literal[0] = '\0';
-        t.type = _EOF;
-    }
-    return t;
+        return new_token(literal, i, tString);
+    } else return new_token("", 1, _EOF);
 }
 
-void store_token(Token t) {
+void store_token(Token *t) {
     l->tokens[l->length] = t;
     l->length += 1;
 }
@@ -105,16 +113,16 @@ void debug_lexer() {
     printf("LEXER current: %d, length: %d\n", l->token_index, l->index);
 }
 
-Token get_token() {
+Token *get_token() {
     if (l->length <= l->token_index) {
         perror("get_token: LENGTH OVER");
     }
-    Token t = l->tokens[l->token_index];
+    Token *t = l->tokens[l->token_index];
     l->token_index += 1;
     return t;
 }
 
-Token peek_token() {
+Token *peek_token() {
     if (l->length <= l->token_index) {
         perror("peek_token: LENGTH OVER");
     }

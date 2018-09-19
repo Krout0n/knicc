@@ -42,6 +42,7 @@ Member *new_member(char *name, TypeCategory type, int offset) {
 TypeCategory type_from_dec(TokenType type) {
     if (type == tDecInt) return TYPE_INT;
     if (type == tDecChar) return TYPE_CHAR;
+    // printf("%d\n", type)
     assert(type == tDecInt || type == tDecChar);
 }
 
@@ -160,7 +161,7 @@ int is_enumerator(char *ident) {
     return -1;
 }
 
-int analyze_struct(Node *n) {
+void analyze_struct(Node *n) {
     UsrDefStruct *u = new_user_def_struct(n->struct_decl.name);
     int offset = 0;
     for (int i = 0; i < n->struct_decl.members->vec->length; i++) {
@@ -200,6 +201,14 @@ void analyze_stmt(Node *n) {
     else analyze_expr(n);
 }
 
+void replace_to_int_or_pass(Node *n) {
+    int num = is_enumerator(n->literal);
+    if (num >= 0) {
+        n->type = INT;
+        n->ival = num;
+    }
+}
+
 void analyze_expr(Node *n) {
     if (n == NULL) return;
     if (n->type == IF_ELSE_STMT
@@ -219,13 +228,7 @@ void analyze_expr(Node *n) {
         analyze_expr(n->left);
         analyze_expr(n->right);
     }
-    if (n->type == IDENTIFIER) {
-        int num = is_enumerator(n->literal);
-        if (num >= 0) {
-            n->type = INT;
-            n->ival = num;
-        }
-    }
+    if (n->type == IDENTIFIER) replace_to_int_or_pass(n);
 }
 
 void analyze_func(void) {

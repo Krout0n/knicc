@@ -16,10 +16,10 @@ int main(int argc, char **argv) {
     init_global_var();
     fgets(l->src, 1000, stdin);
     while (1) {
-        Token t = lex();
+        Token *t = lex();
         store_token(t);
         // debug_token(t);
-        if (t.type == _EOF) break;
+        if (t->type == _EOF) break;
     }
     Vector *nodes = parse();
     analyze(nodes);
