@@ -271,6 +271,8 @@ void emit_boolean_op(Node *n) {
     if (n->type == NOTEQ) m = "setne";
     if (n->type == LESS) m = "setl";
     if (n->type == LESSEQ) m = "setle";
+    if (n->type == MORE) m = "setg";
+    if (n->type == MOREEQ) m = "setge";
     printf("  cmpq %%rax, %%rdx\n");
     printf("  %s %%al\n", m);
     printf("  movzbl %%al, %%eax\n");

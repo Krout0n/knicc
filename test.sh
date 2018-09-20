@@ -234,6 +234,8 @@ exit_code 'int main() {if (1) { if (0) return 0; else if (0) return 1; else retu
 exit_code 'int main() {if (1) { if (0) return 0; else if (1) return 1; else return 2; } else if (0) return 20; else return 30;}' '1'
 exit_code 'int main() {if (0) { if (0) return 0; else if (1) return 1; else return 2; } else if (1) return 20; else return 30;}' '20'
 exit_code 'int main() { int a; a = 0; int i; for (i = 1; i <= 10; i++) a+= i; return a;}' '55'
+exit_code 'int main() { int a; a = 0; int i; for (i = 10; i > 0; i--) a += i; return a;}' '55'
+exit_code 'int main() { int a; a = 0; int i; for (i = 10; i >= -10; i--) a += i; return a;}' '0'
 exit_code 'int main() { struct Point { int x; int y; }; struct Point p; p.x = 1; p.y = 2; return p.x + p.y; }' '3'
 # exit_code 'int main() { int x[3]; x = {1,10,20}; return x[1] + x[2]; }'  '30'
 # exit_code 'int main() {if (1) { if (0) return 0; else if (0) return 1; else return 2; } else if (0) return 20; else retrn 30;}' '2'
