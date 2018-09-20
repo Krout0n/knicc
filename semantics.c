@@ -171,6 +171,19 @@ void analyze_var_decl(Node *decl_ast) {
     insert_map(func_ast->func_def.map, new_kv(decl_ast->var_decl.name, v));
 }
 
+void replace_to_int_or_pass(Node *n) {
+    int num = is_enumerator(n->literal);
+    if (num >= 0) {
+        n->type = INT;
+        n->ival = num;
+    }
+}
+
+void analyze_func_call(Node *n) {
+    for (int i = 0; i < n->func_call.argc; i++) {
+        analyze_expr(n->func_call.argv[i]);
+    }
+}
 
 void analyze_stmt(Node *n) {
     if (n->type == VAR_DECL) analyze_var_decl(n);
@@ -188,28 +201,20 @@ void analyze_stmt(Node *n) {
           analyze_stmt(vec_get(n->stmts, i));
       }
     }
+    if (n->type == FOR) {
+        analyze_expr(n->for_stmt.init_expr);
+        analyze_expr(n->for_stmt.cond_expr);
+        analyze_expr(n->for_stmt.loop_expr);
+        analyze_stmt(n->for_stmt.stmt);
+    }
     else analyze_expr(n);
-}
-
-void replace_to_int_or_pass(Node *n) {
-    int num = is_enumerator(n->literal);
-    if (num >= 0) {
-        n->type = INT;
-        n->ival = num;
-    }
-}
-
-void analyze_func_call(Node *n) {
-    for (int i = 0; i < n->func_call.argc; i++) {
-        analyze_expr(n->func_call.argv[i]);
-    }
 }
 
 void analyze_expr(Node *n) {
     if (n == NULL) return;
-    if (n->type == FOR
-        || n->type == WHILE) return;
+    if (n->type == WHILE) return;
     if (n->type == RETURN) analyze_expr(n->ret_stmt.expr);
+    if (n->type == DEREF || n->type == REF) analyze_expr(n->left);
     if (ADD <= n->type && n->type <= MOREEQ) {
         analyze_expr(n->left);
         analyze_expr(n->right);
