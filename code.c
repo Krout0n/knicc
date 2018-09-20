@@ -299,6 +299,17 @@ void emit_less(Node *n) {
     printf("  pushq %%rax\n");
 }
 
+void emit_lesseq(Node *n) {
+    emit_expr(n->left);
+    emit_expr(n->right);
+    printf("  popq %%rdx\n");
+    printf("  popq %%rax\n");
+    printf("  cmpq %%rdx, %%rax\n");
+    printf("  setle %%al\n");
+    printf("  movzbl %%al, %%eax\n");
+    printf("  pushq %%rax\n");
+}
+
 void emit_ref(Node *n) {
     Var *v = get_first_var(local_var_map, n);
     printf("  leaq -%d(%%rbp),  %%rax\n", v->offset);
@@ -339,6 +350,7 @@ void emit_expr(Node *n) {
     if (n->type == EQ) emit_eq(n);
     if (n->type == NOTEQ) emit_noteq(n);
     if (n->type == LESS) emit_less(n);
+    if (n->type == LESSEQ) emit_lesseq(n);
     if (n->type == FUNC_CALL) emit_func_call(n);
     if (n->type == REF) emit_ref(n);
     if (n->type == DEREF) emit_deref(n);
