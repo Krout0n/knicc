@@ -560,9 +560,10 @@ Node *external_declaration() {
         while (peek_token()->type != tRParen) {
             TypeCategory type = type_from_dec(get_token()->type);
             assert(type != TYPE_NOT_FOUND);
+            Node *p = pointer();
             Token *arg = get_token();
             assert(arg->type == tIdent);
-            vec_push(func_ast->func_def.parameters, make_ast_var_decl(type, arg->literal, NULL, 0));
+            vec_push(func_ast->func_def.parameters, make_ast_var_decl(type, arg->literal, p, 0));
             if (peek_token()->type == tComma) get_token();
         }
         assert(get_token()->type == tRParen);
