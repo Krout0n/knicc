@@ -23,6 +23,9 @@ int how_many_nested_pointer(Node *n, int i) {
 NodeType node_type_from_token_type(TokenType t) {
     if (t == tAdd) return ADD;
     if (t == tSub) return SUB;
+    if (t == tStar) return MULTI;
+    if (t == tSlash) return DIV;
+    if (t == tPercent) return MOD;
     if (t == tLess) return LESS;
     if (t == tLessEq) return LESSEQ;
     if (t == tMore) return MORE;
@@ -289,10 +292,10 @@ Node *cast_expression() {
 Node *multiplicative_expression() {
     Node *left = cast_expression();
     Token *t = peek_token();
-    while (t->type == tStar /* || t->type == DIV || t->type == MOD */) {
+    while (t->type == tStar || t->type == tSlash || t->type == tPercent) {
         Token *op = get_token();
         Node *right = cast_expression();
-        left = make_ast_op(MULTI, left, right);
+        left = make_ast_op(node_type_from_token_type(op->type), left, right);
         t = peek_token();
     }
     return left;

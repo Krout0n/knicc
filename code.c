@@ -196,6 +196,22 @@ void emit_multi(Node *n) {
     printf("  pushq %%rax\n");
 }
 
+void emit_div(Node *n) {
+    emit_expr(n->left);
+    emit_expr(n->right);
+    printf("  pop %%rcx\n");
+    printf("  pop %%rax\n");
+    printf("  cltd\n");
+    printf("  idivq %%rcx\n");
+    printf("  pushq %%rax\n");
+}
+
+void emit_mod(Node *n) {
+    emit_div(n);
+    printf("  popq %%rax\n");
+    printf("  pushq %%rdx\n");
+}
+
 void emit_assign(Node *n) {
     Var *v;
     emit_lvalue_code(n->left);
@@ -320,6 +336,8 @@ void emit_expr(Node *n) {
     if (n->type == ADD) emit_add(n);
     if (n->type == SUB) emit_sub(n);
     if (n->type == MULTI) emit_multi(n);
+    if (n->type == DIV) emit_div(n);
+    if (n->type == MOD) emit_mod(n);
     if (n->type == ASSIGN) emit_assign(n);
     if (n->type == OR) emit_or(n);
     if (n->type == AND) emit_and(n);

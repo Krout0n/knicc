@@ -88,6 +88,8 @@ TokenType special_char(char c) {
         case '+': return tAdd;
         case '-': return tSub;
         case '*': return tStar;
+        case '/': return tSlash;
+        case '%': return tPercent;
         case '=': return tAssign;
         case '(': return tLParen;
         case ')': return tRParen;
