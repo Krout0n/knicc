@@ -41,8 +41,7 @@ Member *new_member(char *name, TypeCategory type, int offset) {
 TypeCategory type_from_dec(TokenType type) {
     if (type == tDecInt) return TYPE_INT;
     if (type == tDecChar) return TYPE_CHAR;
-    // printf("%d\n", type)
-    assert(type == tDecInt || type == tDecChar);
+    return TYPE_NOT_FOUND;
 }
 
 int align_from_type(TypeCategory type) {
@@ -57,29 +56,6 @@ int align_from_var(Var *v) {
     if (v->type == TYPE_INT) return 8;
     else return 8;
     return 114514;
-}
-
-bool is_unaryop(TokenType type) {
-    switch (type) {
-        case REF:
-        case DEREF:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_binop(TokenType type) {
-    switch (type) {
-        case ADD:
-        case SUB:
-        case MULTI:
-        case LESS:
-        case MORE:
-            return true;
-        default:
-            return false;
-    }
 }
 
 int add_sub_ptr(Var *v) {
@@ -157,6 +133,9 @@ void analyze_enum(Node *n) {
 }
 
 int is_enumerator(char *ident) {
+    for (int i = 0; i < global_enum_map->vec->length; i++) {
+        if (strcmp(ident, ((KeyValue *)vec_get(global_enum_map->vec, i))->key) == 0) return i;
+    }
     for (int i = 0; i < def_enum_map->vec->length; i++) {
         if (strcmp(ident, ((KeyValue *)vec_get(def_enum_map->vec, i))->key) == 0) return i;
     }
@@ -220,6 +199,12 @@ void replace_to_int_or_pass(Node *n) {
     }
 }
 
+void analyze_func_call(Node *n) {
+    for (int i = 0; i < n->func_call.argc; i++) {
+        analyze_expr(n->func_call.argv[i]);
+    }
+}
+
 void analyze_expr(Node *n) {
     if (n == NULL) return;
     if (n->type == FOR
@@ -230,6 +215,7 @@ void analyze_expr(Node *n) {
         analyze_expr(n->right);
     }
     if (n->type == IDENTIFIER) replace_to_int_or_pass(n);
+    if (n->type == FUNC_CALL) analyze_func_call(n);
 }
 
 void analyze_func(void) {
@@ -259,7 +245,7 @@ void analyze(Vector *n) {
     for (int i = 0; i < n->length; i++) {
         Node *ast = vec_get(n, i);
         if (ast->type == GLOBAL_DECL) insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, NULL, 0)));
-        if (ast->type == ENUM_DECL) analyze_enum(n);
+        if (ast->type == ENUM_DECL) analyze_enum(ast);
         if (ast->type == FUNC_DEF) {
             func_ast = ast;
             analyze_func();

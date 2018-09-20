@@ -128,7 +128,7 @@ void emit_toplevel(Vector *n) {
     printf(".global main\n");
     for (int i = 0; i < n->length; i++) {
         Node *ast = vec_get(n, i);
-        if (ast->type == GLOBAL_DECL) continue;
+        if (ast->type == GLOBAL_DECL || ast->type == ENUM_DECL) continue;
         else emit_func_def(ast);
     }
 }

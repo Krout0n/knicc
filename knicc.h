@@ -65,8 +65,6 @@ extern TokenType special_char(char c);
 extern Token *new_token(char *literal, int length, TokenType kind);
 extern bool assert_token(TokenType expected, TokenType got);
 extern void debug_token(Token *t);
-extern bool is_binop(TokenType type);
-extern bool is_unaryop(TokenType type);
 extern void expect_token(Token *left, TokenType right);
 
 // lexer.c
