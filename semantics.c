@@ -229,11 +229,7 @@ void analyze_func(void) {
     def_enum_map = init_map();
     for (int i = 0; i < func_ast->func_def.parameters->length; i++) {
         Node *local_ast = vec_get(func_ast->func_def.parameters, i);
-        TypeCategory type = local_ast->var_decl.type;
-        Var *v = new_var(type, NULL, 0);
-        v->offset = func_ast->func_def.offset + align_from_var(v);
-        func_ast->func_def.offset += align_from_var(v);
-        insert_map(func_ast->func_def.map, new_kv(local_ast->var_decl.name, v));
+        analyze_var_decl(local_ast);
     }
     for (int i = 0; i < func_ast->stmts->length; i++) {
         Node *asts = vec_get(func_ast->stmts, i);
