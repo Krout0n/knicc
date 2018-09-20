@@ -196,6 +196,7 @@ typedef struct Node {
         struct Node *expr;
         struct Node *true_stmt;
         struct Node *else_stmt;
+        int label_no;
     } if_stmt;
     struct {
         struct Node *expr;

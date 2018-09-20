@@ -9,7 +9,7 @@ Map *global_map;
 Vector *string_literal_vec;
 
 int func_offset;
-int label_no = 0;
+int label_no;
 
 const char *regs[6] = {
     "rdi",
@@ -27,30 +27,25 @@ void emit_label() {
     printf(".L%d", label_no);
 }
 
-void emit_label_plus_one() {
-    printf(".L%d", label_no+1);
-}
-
-void emit_if_stmt(Node *n) {
+void emit_if_stmt(Node *n) {;
     emit_expr(n->if_stmt.expr);
     printf("  pop %%rax\n");
     printf("  cmpq $0, %%rax\n");
-    printf("  je "); emit_label(); printf("\n"); // je .L0
+    printf("  je .L%d\n", n->if_stmt.label_no);
+    label_no = n->if_stmt.label_no;
     emit_stmt(n->if_stmt.true_stmt);
-    emit_label(); printf(":\n"); // .L0:
-    label_no++;
+    printf("  .L%d:\n", n->if_stmt.label_no);
 }
 void emit_if_else_stmt(Node *n) {
     emit_expr(n->if_stmt.expr);
     printf("  pop %%rax\n");
     printf("  cmpq $0, %%rax\n");
-    printf("  je "); emit_label(); printf("\n"); // je .L0
+    printf("  je .L%d\n", n->if_stmt.label_no);
     emit_stmt(n->if_stmt.true_stmt);
-    printf("  jmp "); emit_label_plus_one(); printf("\n"); // jmp .L1
-    emit_label(); printf(":\n"); // .L0:
-    label_no++;
+    printf("  jmp .L%d\n", n->if_stmt.label_no+1);
+    printf("  .L%d:\n", n->if_stmt.label_no);
     emit_stmt(n->if_stmt.else_stmt);
-    emit_label(); printf(":\n"); // .L1:
+    printf("  .L%d:\n", n->if_stmt.label_no+1);
 }
 
 void emit_return_stmt(Node *n) {
