@@ -134,9 +134,14 @@ void emit_func_def(Node *n) {
     printf("  movq %%rsp, %%rbp\n");
     local_var_map = n->func_def.map;
     func_offset = n->func_def.offset;
-    printf("  sub $%d, %%rsp\n", func_offset);
+    printf("  subq $%d, %%rsp\n", func_offset);
     for (int i = 0; i < n->func_def.parameters->length; i++) { // 関数の引数処理
-        printf("  movq  %%%s, -%d(%%rbp)\n", regs[i], (i+1) * 8);
+        Node *arg = (Node *)vec_get(n->func_def.parameters, i);
+        Var *v = (Var *)((KeyValue *)find_by_key(n->func_def.map, arg->var_decl.name)->value);
+        if (v->type == TYPE_CHAR) {
+            printf("  movq %%%s, %%rax\n", regs[i]);
+            printf("  movb %%al, -%d(%%rbp)\n", v->offset);            
+        } else printf("  movq %%%s, -%d(%%rbp)\n", regs[i], v->offset);
     }
     for (int i = 0; i < n->stmts->length; i++) {
         Node *ast = vec_get(n->stmts, i);
@@ -282,7 +287,7 @@ void emit_boolean_op(Node *n) {
 void emit_ref(Node *n) {
     Var *v = get_first_var(local_var_map, n);
     printf("  leaq -%d(%%rbp),  %%rax\n", v->offset);
-    printf("  pushq %%rax  \n");
+    printf("  pushq %%rax\n");
 }
 
 void emit_deref(Node *n) {

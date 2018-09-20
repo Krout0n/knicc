@@ -225,7 +225,8 @@ void analyze_expr(Node *n) {
     if (n->type == FUNC_CALL) analyze_func_call(n);
 }
 
-void analyze_func(void) {
+void analyze_func(Node *f) {
+    func_ast = f;
     def_enum_map = init_map();
     for (int i = 0; i < func_ast->func_def.parameters->length; i++) {
         Node *local_ast = vec_get(func_ast->func_def.parameters, i);
@@ -249,9 +250,6 @@ void analyze(Vector *n) {
         Node *ast = vec_get(n, i);
         if (ast->type == GLOBAL_DECL) insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, NULL, 0)));
         if (ast->type == ENUM_DECL) analyze_enum(ast);
-        if (ast->type == FUNC_DEF) {
-            func_ast = ast;
-            analyze_func();
-        }
+        if (ast->type == FUNC_DEF) analyze_func(ast);
     }
 }
