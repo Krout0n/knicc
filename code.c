@@ -225,13 +225,9 @@ void emit_assign(Node *n) {
 
 void emit_func_call(Node *n) {
     for (int i = 0; i < n->func_call.argc; i++) {
-        if (n->func_call.argv[i]->type == INT) {
-            printf("  movq  $%d,  %%%s\n", n->func_call.argv[i]->ival, regs[i]);
-        } else {
-            emit_expr(n->func_call.argv[i]);
-            printf("  popq %%rax\n");
-            printf("  movq  %%rax,  %%%s\n", regs[i]);
-        }
+        emit_expr(n->func_call.argv[i]);
+        printf("  popq %%rax\n");
+        printf("  movq  %%rax,  %%%s\n", regs[i]);
     }
     printf("  call %s\n", n->func_call.name);
     printf("  push %%rax\n");
@@ -266,46 +262,17 @@ void emit_and(Node *n) {
     printf("  pushq %%rax\n"); 
 }
 
-void emit_eq(Node *n) {
+void emit_boolean_op(Node *n) {
     emit_expr(n->left);
     emit_expr(n->right);
-    printf("  popq %%rdx\n");
-    printf("  popq %%rax\n");
-    printf("  cmpq %%rdx, %%rax\n");
-    printf("  sete %%al\n");
-    printf("  movzbl %%al, %%eax\n");
-    printf("  pushq %%rax\n");
-}
-
-void emit_noteq(Node *n) {
-    emit_expr(n->left);
-    emit_expr(n->right);
-    printf("  popq %%rdx\n");
-    printf("  popq %%rax\n");
-    printf("  cmpq %%rdx, %%rax\n");
-    printf("  setne %%al\n");
-    printf("  movzbl %%al, %%eax\n");
-    printf("  pushq %%rax\n");
-}
-
-void emit_less(Node *n) {
-    emit_expr(n->left);
-    emit_expr(n->right);
-    printf("  popq %%rdx\n");
-    printf("  popq %%rax\n");
-    printf("  cmpq %%rdx, %%rax\n");
-    printf("  setl %%al\n");
-    printf("  movzbl %%al, %%eax\n");
-    printf("  pushq %%rax\n");
-}
-
-void emit_lesseq(Node *n) {
-    emit_expr(n->left);
-    emit_expr(n->right);
-    printf("  popq %%rdx\n");
-    printf("  popq %%rax\n");
-    printf("  cmpq %%rdx, %%rax\n");
-    printf("  setle %%al\n");
+    gen_operands();
+    char *m;
+    if (n->type == EQ) m = "sete";
+    if (n->type == NOTEQ) m = "setne";
+    if (n->type == LESS) m = "setl";
+    if (n->type == LESSEQ) m = "setle";
+    printf("  cmpq %%rax, %%rdx\n");
+    printf("  %s %%al\n", m);
     printf("  movzbl %%al, %%eax\n");
     printf("  pushq %%rax\n");
 }
@@ -347,10 +314,7 @@ void emit_expr(Node *n) {
     if (n->type == ASSIGN) emit_assign(n);
     if (n->type == OR) emit_or(n);
     if (n->type == AND) emit_and(n);
-    if (n->type == EQ) emit_eq(n);
-    if (n->type == NOTEQ) emit_noteq(n);
-    if (n->type == LESS) emit_less(n);
-    if (n->type == LESSEQ) emit_lesseq(n);
+    if (EQ <= n->type && n->type <= MOREEQ) emit_boolean_op(n);
     if (n->type == FUNC_CALL) emit_func_call(n);
     if (n->type == REF) emit_ref(n);
     if (n->type == DEREF) emit_deref(n);
