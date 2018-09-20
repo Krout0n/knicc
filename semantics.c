@@ -138,10 +138,10 @@ void debug_analyzed_struct(UsrDefStruct *u) {
     printf("}\n");
 }
 
-void debug_enum() {
+void debug_enum(Map *m) {
     printf("enum {\n");
-    for (int i = 0; i < def_enum_map->vec->length; i++) {
-        KeyValue *kv = vec_get(def_enum_map->vec, i);
+    for (int i = 0; i < m->vec->length; i++) {
+        KeyValue *kv = vec_get(m->vec, i);
         printf("  %s: %d,\n", kv->key, (int)kv->value);
     }
     printf("}\n");
@@ -195,7 +195,16 @@ void analyze_var_decl(Node *decl_ast) {
 
 void analyze_stmt(Node *n) {
     if (n->type == VAR_DECL) analyze_var_decl(n);
-    else if (n->type == COMPOUND_STMT) {
+    if (n->type == IF_STMT) {
+        analyze_expr(n->if_stmt.expr);
+        analyze_stmt(n->if_stmt.true_stmt);
+    }
+    if (n->type == IF_ELSE_STMT) {
+        analyze_expr(n->if_stmt.expr);
+        analyze_stmt(n->if_stmt.true_stmt);
+        analyze_stmt(n->if_stmt.else_stmt);
+    }
+    if (n->type == COMPOUND_STMT) {
       for (int i = 0; i < n->stmts->length; i++) {
           analyze_stmt(vec_get(n->stmts, i));
       }
@@ -213,19 +222,9 @@ void replace_to_int_or_pass(Node *n) {
 
 void analyze_expr(Node *n) {
     if (n == NULL) return;
-    if (n->type == IF_ELSE_STMT
-        || n->type == FOR
+    if (n->type == FOR
         || n->type == WHILE) return;
     if (n->type == RETURN) analyze_expr(n->ret_stmt.expr);
-    if (n->type == IF_STMT) {
-        analyze_expr(n->if_stmt.expr);
-        analyze_stmt(n->if_stmt.true_stmt);
-    }
-    if (n->type == IF_ELSE_STMT) {
-        analyze_expr(n->if_stmt.expr);
-        analyze_stmt(n->if_stmt.true_stmt);
-        analyze_stmt(n->if_stmt.else_stmt);
-    }
     if (ADD <= n->type && n->type <= MOREEQ) {
         analyze_expr(n->left);
         analyze_expr(n->right);

@@ -1,5 +1,3 @@
-make compiler
-
 exit_code() {
   expr=$1
   expected=$2
@@ -49,6 +47,12 @@ using_other() {
   rm -rf a.out
 }
 
+# exit_code "int main() { 3 * 2; }" '6'
+# # exit_code 'int main() { int i; i = 3 * 2; return i; return 5;}' '6'
+# exit_code 'int main() { 3*2; }' '6'
+# exit_code 'int main() { return 3*2; }' '6'
+# exit_code 'int main() { 3 * 2; }' '6'
+# exit_code 'int main() { return 3 * 2; }' '6'
 exit_code "int main(){ return 1;}" 1
 exit_code 'int main() { 10; return; }' '10'
 exit_code "int main(){10;}" 10
@@ -217,8 +221,8 @@ exit_code 'int main() { enum Numbers { ZERO, ONE, TWO, THREE }; return TWO + THR
 exit_code 'int main() { enum Numbers { ZERO, ONE, TWO}; if (ONE < TWO) return 10; return 20;}' '10'
 exit_code 'int main() { if (10 < 20) { int i; i = 9; return i + 1;} return 9; }' '10'
 exit_code 'int main() { if (1) { int i; i = 3*2; return i;} return 5; }' '6'
-exit_code 'int main() { enum N { ZERO, ONE, TWO, THREE }; if (1) { int i; i = 3 * 2; return i;} return 5;}' '6'
 exit_code 'int main() { enum N { ZERO, ONE, TWO, THREE }; if (1) { int i; i = ONE + TWO; return i;} else return 5;}' '3'
+exit_code 'enum Num {ZERO, ONE, TWO}; int main() { return ONE + TWO; }' '3'
 exit_code 'int main() { struct Point { int x; int y; }; struct Point p; p.x = 1; p.y = 2; return p.x + p.y; }' '3'
 # exit_code 'int main() { int x[3]; x = {1,10,20}; return x[1] + x[2]; }'  '30'
 # exit_code 'int main() {if (1) { if (0) return 0; else if (0) return 1; else return 2; } else if (0) return 20; else retrn 30;}' '2'

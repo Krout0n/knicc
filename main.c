@@ -9,7 +9,6 @@ void init_global_var() {
     global_map = init_map();
     string_literal_vec = init_vector();
     def_struct_map = init_map();
-    def_enum_map = init_map();
     global_enum_map = init_map();
 }
 

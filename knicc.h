@@ -256,7 +256,6 @@ typedef struct {
 } Var;
 
 Map *def_struct_map; // UsrDefStructを格納してる
-Map *def_enum_map;
 Map *global_enum_map;
 
 extern int add_sub_ptr(Var *v);
