@@ -8,7 +8,6 @@ Map *local_var_map;
 Map *global_map;
 Vector *string_literal_vec;
 
-int func_offset;
 const char *regs[6] = {
     "rdi",
     "rsi",
@@ -137,8 +136,7 @@ void emit_func_def(Node *n) {
     printf("  pushq %%rbp\n");
     printf("  movq %%rsp, %%rbp\n");
     local_var_map = n->func_def.map;
-    func_offset = n->func_def.offset;
-    printf("  subq $%d, %%rsp\n", func_offset);
+    printf("  subq $%d, %%rsp\n", n->func_def.offset);
     for (int i = 0; i < n->func_def.parameters->length; i++) { // 関数の引数処理
         Node *arg = (Node *)vec_get(n->func_def.parameters, i);
         Var *v = (Var *)((KeyValue *)find_by_key(n->func_def.map, arg->var_decl.name)->value);
@@ -203,8 +201,8 @@ void emit_multi(Node *n) {
 void emit_div(Node *n) {
     emit_expr(n->left);
     emit_expr(n->right);
-    printf("  pop %%rcx\n");
-    printf("  pop %%rax\n");
+    printf("  popq %%rcx\n");
+    printf("  popq %%rax\n");
     printf("  cltd\n");
     printf("  idivq %%rcx\n");
     printf("  pushq %%rax\n");
@@ -304,11 +302,12 @@ void emit_deref(Node *n) {
 }
 
 void emit_string(Node *n) {
-    int i = 0;
-    for (; i < string_literal_vec->length; i++) {
-        if (strcmp(vec_get(string_literal_vec, i), n->literal) == 0) break;
+    for (int i = 0; i < string_literal_vec->length; i++) {
+        if (strcmp(vec_get(string_literal_vec, i), n->literal) == 0) {
+            printf("  leaq .LC%d(%%rip), %%rax\n", i);
+            break;
+        }
     }
-    printf("  leaq .LC%d(%%rip), %%rax\n", i);
     printf("  pushq %%rax\n");
 }
 
