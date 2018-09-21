@@ -206,6 +206,7 @@ typedef struct Node {
     struct {
         struct Node *expr;
         struct Node *stmt;
+        int label_no;
     } while_stmt;
     Vector *stmts;
     struct {

@@ -50,14 +50,14 @@ void emit_return_stmt(Node *n) {
 }
 
 void emit_while_stmt(Node *n) {
-    printf(".Lbegin:\n");
+    printf(".L%d:\n", n->while_stmt.label_no);
     emit_expr(n->while_stmt.expr);
     printf("  pop %%rax\n");
     printf("  cmpq $0, %%rax\n");
-    printf("  je .Lend\n");
+    printf("  je .L%d\n", n->while_stmt.label_no + 1);
     emit_stmt(n->while_stmt.stmt); 
-    printf("  jmp .Lbegin\n");
-    printf(".Lend:\n");
+    printf("  jmp .L%d\n", n->while_stmt.label_no);
+    printf("  .L%d:\n", n->while_stmt.label_no + 1);
 }
 
 void emit_for_stmt(Node *n) {

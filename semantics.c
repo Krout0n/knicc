@@ -199,7 +199,11 @@ Node *analyze_continue(Node *n) {
 
 void analyze_stmt(Node *n) {
     if (n->type == VAR_DECL) analyze_var_decl(n);
-    else if (n->type == IF_STMT) {
+    else if (n->type == COMPOUND_STMT) {
+      for (int i = 0; i < n->stmts->length; i++) {
+          analyze_stmt(vec_get(n->stmts, i));
+      }
+    } else if (n->type == IF_STMT) {
         analyze_expr(n->if_stmt.expr);
         analyze_stmt(n->if_stmt.true_stmt);
         n->if_stmt.label_no = label_no;
@@ -210,10 +214,11 @@ void analyze_stmt(Node *n) {
         analyze_stmt(n->if_stmt.else_stmt);
         n->if_stmt.label_no = label_no;
         label_no += 3;
-    } else if (n->type == COMPOUND_STMT) {
-      for (int i = 0; i < n->stmts->length; i++) {
-          analyze_stmt(vec_get(n->stmts, i));
-      }
+    } else if (n->type == WHILE) {
+        analyze_expr(n->while_stmt.expr);
+        analyze_stmt(n->while_stmt.stmt);
+        n->while_stmt.label_no = label_no;
+        label_no += 2;
     } else if (n->type == FOR) {
         analyze_expr(n->for_stmt.init_expr);
         analyze_expr(n->for_stmt.cond_expr);
@@ -227,7 +232,6 @@ void analyze_stmt(Node *n) {
     } else if (n->type == BREAK) analyze_break(n);
     else if (n->type == CONTINUE) analyze_continue(n);
     else if (n->type == RETURN) analyze_expr(n->ret_stmt.expr);
-    else if (n->type == WHILE) return;
     else analyze_expr(n);
 }
 
