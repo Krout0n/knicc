@@ -42,12 +42,6 @@ Member *new_member(char *name, TypeCategory type, int offset) {
     return m;
 }
 
-TypeCategory type_from_dec(TokenType type) {
-    if (type == tDecInt) return TYPE_INT;
-    if (type == tDecChar) return TYPE_CHAR;
-    return TYPE_NOT_FOUND;
-}
-
 int align_from_type(TypeCategory type) {
     if (type == TYPE_CHAR) return 1;
     else return 4;

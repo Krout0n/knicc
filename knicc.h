@@ -275,7 +275,6 @@ Map *def_struct_map; // UsrDefStructを格納してる
 Map *global_enum_map;
 
 extern int add_sub_ptr(Var *v);
-extern TypeCategory type_from_dec(TokenType type);
 extern int align_from_type(TypeCategory type);
 extern Var *get_first_var(Map *map, Node *n);
 extern void debug_var(char *key, Var *var);

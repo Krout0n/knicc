@@ -255,8 +255,8 @@ Node *pointer() {
 }
 
 Node *declaration() {
+    TypeCategory ty = type_specifier(get_token()->type);
     size_t array_size = 0;
-    TypeCategory ty = type_from_dec(get_token()->type);
     Node *p = pointer();
     Token *ident = get_token();
     assert(ident->type == tIdent);
@@ -267,7 +267,6 @@ Node *declaration() {
         array_size = atoi(s->literal);
         assert(get_token()->type == tRBracket);
     }
-    // assert(get_token()->type == tSemicolon);
     if (peek_token()->type == tSemicolon) {
         get_token();
         make_ast_var_decl(ty, ident->literal, p, array_size);
@@ -513,7 +512,7 @@ Node *struct_or_union() {
     Node *n = make_ast_struct(ident->literal);
     while (peek_token()->type != tRBrace) {
         Token *t = get_token();
-        TypeCategory type = type_from_dec(t->type);
+        TypeCategory type = type_specifier(t->type);
         Token *member = get_token();
         assert(member->type = tIdent);
         assert(get_token()->type == tSemicolon);
@@ -587,7 +586,7 @@ Node *statement() {
 Node *external_declaration() {
     Token *head = peek_token();
     if (head->type == tEnum) return enum_specifier();
-    TypeCategory type = type_from_dec(head->type);
+    TypeCategory type = type_specifier(head->type);
     assert(type != TYPE_NOT_FOUND);
     get_token();
     Token *t = get_token();
@@ -597,7 +596,7 @@ Node *external_declaration() {
         get_token();
         Node *func_ast = make_ast_func_def(name, type);
         while (peek_token()->type != tRParen) {
-            TypeCategory type = type_from_dec(get_token()->type);
+            TypeCategory type = type_specifier(get_token()->type);
             assert(type != TYPE_NOT_FOUND);
             Node *p = pointer();
             Token *arg = get_token();
