@@ -145,6 +145,8 @@ typedef enum {
     MORE,
     MOREEQ,
 
+    INITIALIZE,
+
     IF_STMT,
     IF_ELSE_STMT,
     WHILE,
@@ -184,6 +186,7 @@ typedef struct Node {
         TypeCategory type;
         struct Node *pointer;
         size_t array_size;
+        struct Node *expr; // initialize
     } var_decl;
     struct { // FUNC_CALL
         char *name;
@@ -236,6 +239,7 @@ typedef struct Node {
 
 extern Vector *parse();
 extern int how_many_nested_pointer(Node *n, int i);
+extern Node *make_ast_ident(char *literal);
 
 // code.c
 extern void emit_epilogue(Node *n, int length, int count);

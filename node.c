@@ -193,6 +193,23 @@ Node *make_ast_label(NodeType type) {
     return n;
 }
 
+Node *make_ast_initialize(TypeCategory type, char *name, Node *p, size_t array_size, Node *expr) {
+    Node *n = malloc(sizeof(Node));
+    n->type = INITIALIZE;
+    n->var_decl.name = name;
+    n->var_decl.type = type;
+    n->var_decl.pointer = p;
+    n->var_decl.array_size = array_size;
+    n->var_decl.expr = expr;
+    return n;
+}
+
+TypeCategory type_specifier(TokenType t) {
+    if (t == tDecInt) return TYPE_INT;
+    if (t == tDecChar) return TYPE_CHAR;
+    return TYPE_NOT_FOUND;
+}
+
 Node *primary_expression() {
     Token *t = get_token();
     if (t->type == tInt) return make_ast_int(atoi(t->literal));
@@ -250,8 +267,16 @@ Node *declaration() {
         array_size = atoi(s->literal);
         assert(get_token()->type == tRBracket);
     }
-    assert(get_token()->type == tSemicolon);
-    return make_ast_var_decl(ty, ident->literal, p, array_size);
+    // assert(get_token()->type == tSemicolon);
+    if (peek_token()->type == tSemicolon) {
+        get_token();
+        make_ast_var_decl(ty, ident->literal, p, array_size);
+    } else if (peek_token()->type == tAssign) {
+        get_token();
+        Node *expr = expression();
+        expect_token(get_token(), tSemicolon);
+        return make_ast_initialize(ty, ident->literal, p, array_size, expr);
+    }
 }
 
 Node *postfix_expression() {
@@ -462,9 +487,12 @@ Node *iteration_statement() {
         stmt = make_ast_while_stmt(expr, _stmt);
     } else if (t->type == tFor) {
         Node *init, *cond, *loop;
-        if (peek_token()->type != tSemicolon) init = expression();
-        else init = NULL;
-        assert(get_token()->type == tSemicolon);
+        if (peek_token()->type == tSemicolon) {
+            init = NULL;
+            get_token();
+        }
+        else if (type_specifier(peek_token()->type) != TYPE_NOT_FOUND) init = declaration();
+        else init = expression_statement();
         if (peek_token()->type != tSemicolon) cond = expression();
         else cond = make_ast_int(1);
         assert(get_token()->type == tSemicolon);

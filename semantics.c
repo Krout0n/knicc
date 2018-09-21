@@ -197,8 +197,17 @@ Node *analyze_continue(Node *n) {
     n->continue_label_no = nested[index-1] + 2;
 }
 
+void analyze_initialize(Node *n) {
+    analyze_var_decl(n);
+    n->type = ASSIGN;
+    n->left = make_ast_ident(n->var_decl.name);
+    n->right = n->var_decl.expr;
+}
+
 void analyze_stmt(Node *n) {
+    if (n == NULL) return;
     if (n->type == VAR_DECL) analyze_var_decl(n);
+    else if (n->type == INITIALIZE) analyze_initialize(n);
     else if (n->type == COMPOUND_STMT) {
       for (int i = 0; i < n->stmts->length; i++) {
           analyze_stmt(vec_get(n->stmts, i));
@@ -220,7 +229,7 @@ void analyze_stmt(Node *n) {
         n->while_stmt.label_no = label_no;
         label_no += 2;
     } else if (n->type == FOR) {
-        analyze_expr(n->for_stmt.init_expr);
+        analyze_stmt(n->for_stmt.init_expr); // initializerの可能性もあるのでstmtにしてる
         analyze_expr(n->for_stmt.cond_expr);
         analyze_expr(n->for_stmt.loop_expr);
         n->for_stmt.label_no = label_no;
