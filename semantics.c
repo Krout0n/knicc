@@ -13,6 +13,8 @@ Map *def_enum_map;
 Node *func_ast;
 
 int label_no = 0;
+int nested[100];
+int index = 0;
 
 void analyze_stmt(Node *n);
 void analyze_expr(Node *n);
@@ -187,6 +189,10 @@ void analyze_func_call(Node *n) {
     }
 }
 
+Node *analyze_break(Node *n) {
+    n->break_no = nested[index-1] + 1;
+}
+
 void analyze_stmt(Node *n) {
     if (n->type == VAR_DECL) analyze_var_decl(n);
     else if (n->type == IF_STMT) {
@@ -208,21 +214,27 @@ void analyze_stmt(Node *n) {
         analyze_expr(n->for_stmt.init_expr);
         analyze_expr(n->for_stmt.cond_expr);
         analyze_expr(n->for_stmt.loop_expr);
+        n->for_stmt.label_no = label_no;
+        label_no += 2;
+        nested[index] = n->for_stmt.label_no;
+        index++;
         analyze_stmt(n->for_stmt.stmt);
-    } else analyze_expr(n);
+        index--;
+    } else if (n->type == BREAK) analyze_break(n);
+    else if (n->type == RETURN) analyze_expr(n->ret_stmt.expr);
+    else if (n->type == WHILE) return;
+    else analyze_expr(n);
 }
 
 void analyze_expr(Node *n) {
     if (n == NULL) return;
-    if (n->type == WHILE) return;
-    if (n->type == RETURN) analyze_expr(n->ret_stmt.expr);
     if (n->type == DEREF || n->type == REF) analyze_expr(n->left);
+    if (n->type == IDENTIFIER) replace_to_int_or_pass(n);
+    if (n->type == FUNC_CALL) analyze_func_call(n);
     if (ADD <= n->type && n->type <= MOREEQ) {
         analyze_expr(n->left);
         analyze_expr(n->right);
     }
-    if (n->type == IDENTIFIER) replace_to_int_or_pass(n);
-    if (n->type == FUNC_CALL) analyze_func_call(n);
 }
 
 void analyze_func(Node *f) {

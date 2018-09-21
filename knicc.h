@@ -46,6 +46,7 @@ typedef enum {
     tWhile,
     tFor,
     tReturn,
+    tBreak,
 
     tDecInt,
     tDecChar,
@@ -148,6 +149,7 @@ typedef enum {
     WHILE,
     FOR,
     RETURN,
+    BREAK,
 
     DEREF,
     REF,
@@ -209,6 +211,7 @@ typedef struct Node {
         struct Node *cond_expr;
         struct Node *loop_expr;
         struct Node *stmt;
+        int label_no;
     } for_stmt;
     struct {
         struct Node *next;
@@ -224,6 +227,7 @@ typedef struct Node {
         char *name;
         Vector *enumerators;
     } enum_decl;
+    int break_no;
 } Node;
 
 extern Vector *parse();

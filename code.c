@@ -9,8 +9,6 @@ Map *global_map;
 Vector *string_literal_vec;
 
 int func_offset;
-int label_no;
-
 const char *regs[6] = {
     "rdi",
     "rsi",
@@ -23,16 +21,11 @@ const char *regs[6] = {
 void emit_stmt(Node *n);
 void emit_expr(Node *n);
 
-void emit_label() {
-    printf(".L%d", label_no);
-}
-
 void emit_if_stmt(Node *n) {;
     emit_expr(n->if_stmt.expr);
     printf("  pop %%rax\n");
     printf("  cmpq $0, %%rax\n");
     printf("  je .L%d\n", n->if_stmt.label_no);
-    label_no = n->if_stmt.label_no;
     emit_stmt(n->if_stmt.true_stmt);
     printf("  .L%d:\n", n->if_stmt.label_no);
 }
@@ -69,15 +62,15 @@ void emit_while_stmt(Node *n) {
 
 void emit_for_stmt(Node *n) {
     emit_expr(n->for_stmt.init_expr);
-    printf(".Lbegin:\n");
+    printf(".L%d:\n", n->for_stmt.label_no);
     emit_expr(n->for_stmt.cond_expr);
     printf("  pop %%rax\n");
     printf("  cmpq $0, %%rax\n");
-    printf("  je .Lend\n");
+    printf("  je .L%d\n", n->for_stmt.label_no + 1);
     emit_stmt(n->for_stmt.stmt);
     emit_expr(n->for_stmt.loop_expr);
-    printf("  jmp .Lbegin\n");
-    printf(".Lend:\n");
+    printf("  jmp .L%d\n", n->for_stmt.label_no);
+    printf(".L%d:\n", n->for_stmt.label_no + 1);
 }
 
 void emit_compound_stmt(Node *n) {
@@ -89,6 +82,10 @@ void emit_compound_stmt(Node *n) {
     }
 }
 
+void emit_break(Node *n) {
+    printf("  jmp .L%d\n", n->break_no);
+}
+
 void emit_stmt(Node *n) {
     if (n->type == COMPOUND_STMT) emit_compound_stmt(n);
     else if (n->type == WHILE) emit_while_stmt(n);
@@ -96,6 +93,7 @@ void emit_stmt(Node *n) {
     else if (n->type == IF_STMT) emit_if_stmt(n);
     else if (n->type == IF_ELSE_STMT) emit_if_else_stmt(n);
     else if (n->type == RETURN) emit_return_stmt(n);
+    else if (n->type == BREAK) emit_break(n);
     else emit_expr(n);
 }
 
