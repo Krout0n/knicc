@@ -32,6 +32,7 @@ NodeType node_type_from_token_type(TokenType t) {
     if (t == tMoreEq) return MOREEQ;
     if (t == tReturn) return RETURN;
     if (t == tBreak) return BREAK;
+    if (t == tContinue) return CONTINUE;
     assert(false);
 }
 
@@ -186,9 +187,9 @@ Node *make_ast_enum(char *name) {
     return n;
 }
 
-Node *make_ast_break() {
+Node *make_ast_label(NodeType type) {
     Node *n = malloc(sizeof(Node));
-    n->type = BREAK;
+    n->type = type;
     return n;
 }
 
@@ -513,7 +514,7 @@ Node *enum_specifier() {
 }
 
 Node *compound_statement() {
-    assert(get_token()->type == tLBrace);
+    expect_token(get_token(), tLBrace);
     Node *n = make_ast_compound_statement();
     while (peek_token()->type != tRBrace) {
         Node *block_item;
@@ -530,12 +531,10 @@ Node *compound_statement() {
 
 Node *jump_statement() {
     TokenType type = node_type_from_token_type(get_token()->type);
-    if (type == BREAK) {
+    if (type == BREAK || type == CONTINUE) {
         expect_token(get_token(), tSemicolon);
-        Node *n = malloc(sizeof(Node));
-        n->type = BREAK;
-        return n;
-    }
+        return make_ast_label(type);
+    } 
     Node *expr;
     if (peek_token()->type == tSemicolon) {
         expr = NULL;
@@ -552,7 +551,7 @@ Node *statement() {
     if (t->type == tIf) stmt = selection_statement();
     else if (t->type == tWhile || t->type == tFor) stmt = iteration_statement();
     else if (t->type == tLBrace) stmt = compound_statement();
-    else if (t->type == tReturn || t->type == tBreak) stmt = jump_statement();
+    else if (t->type == tReturn || t->type == tBreak || t->type == tContinue) stmt = jump_statement();
     else stmt = expression_statement();
     return stmt;
 }

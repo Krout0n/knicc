@@ -193,6 +193,10 @@ Node *analyze_break(Node *n) {
     n->break_no = nested[index-1] + 1;
 }
 
+Node *analyze_continue(Node *n) {
+    n->continue_label_no = nested[index-1] + 2;
+}
+
 void analyze_stmt(Node *n) {
     if (n->type == VAR_DECL) analyze_var_decl(n);
     else if (n->type == IF_STMT) {
@@ -215,12 +219,13 @@ void analyze_stmt(Node *n) {
         analyze_expr(n->for_stmt.cond_expr);
         analyze_expr(n->for_stmt.loop_expr);
         n->for_stmt.label_no = label_no;
-        label_no += 2;
+        label_no += 3;
         nested[index] = n->for_stmt.label_no;
         index++;
         analyze_stmt(n->for_stmt.stmt);
         index--;
     } else if (n->type == BREAK) analyze_break(n);
+    else if (n->type == CONTINUE) analyze_continue(n);
     else if (n->type == RETURN) analyze_expr(n->ret_stmt.expr);
     else if (n->type == WHILE) return;
     else analyze_expr(n);

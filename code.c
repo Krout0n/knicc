@@ -68,6 +68,7 @@ void emit_for_stmt(Node *n) {
     printf("  cmpq $0, %%rax\n");
     printf("  je .L%d\n", n->for_stmt.label_no + 1);
     emit_stmt(n->for_stmt.stmt);
+    printf("  .L%d:\n", n->for_stmt.label_no + 2);
     emit_expr(n->for_stmt.loop_expr);
     printf("  jmp .L%d\n", n->for_stmt.label_no);
     printf(".L%d:\n", n->for_stmt.label_no + 1);
@@ -86,6 +87,10 @@ void emit_break(Node *n) {
     printf("  jmp .L%d\n", n->break_no);
 }
 
+void emit_continue(Node *n) {
+    printf("  jmp .L%d\n", n->continue_label_no);
+}
+
 void emit_stmt(Node *n) {
     if (n->type == COMPOUND_STMT) emit_compound_stmt(n);
     else if (n->type == WHILE) emit_while_stmt(n);
@@ -94,6 +99,7 @@ void emit_stmt(Node *n) {
     else if (n->type == IF_ELSE_STMT) emit_if_else_stmt(n);
     else if (n->type == RETURN) emit_return_stmt(n);
     else if (n->type == BREAK) emit_break(n);
+    else if (n->type == CONTINUE) emit_continue(n);
     else emit_expr(n);
 }
 

@@ -47,6 +47,7 @@ typedef enum {
     tFor,
     tReturn,
     tBreak,
+    tContinue,
 
     tDecInt,
     tDecChar,
@@ -150,6 +151,7 @@ typedef enum {
     FOR,
     RETURN,
     BREAK,
+    CONTINUE,
 
     DEREF,
     REF,
@@ -228,6 +230,7 @@ typedef struct Node {
         Vector *enumerators;
     } enum_decl;
     int break_no;
+    int continue_label_no;
 } Node;
 
 extern Vector *parse();
