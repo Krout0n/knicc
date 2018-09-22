@@ -593,6 +593,7 @@ Node *external_declaration() {
     Token *t = get_token();
     expect_token(t, tIdent);
     char *name = t->literal;
+    int array_size = 0;
     if (peek_token()->type == tLParen) {
         get_token();
         Node *func_ast = make_ast_func_def(name, type);
@@ -609,9 +610,13 @@ Node *external_declaration() {
         Node *n = compound_statement();
         vec_push(func_ast->stmts, n);
         return func_ast;
+    } else if (peek_token()->type == tLBracket) {
+        get_token();
+        array_size = atoi(get_token()->literal);
+        expect_token(get_token(), tRBracket);
     }
     assert(get_token()->type == tSemicolon);
-    Node *global_decl = make_ast_global_var(type, name, NULL, 0);
+    Node *global_decl = make_ast_global_var(type, name, p, array_size);
     return global_decl;
 }
 

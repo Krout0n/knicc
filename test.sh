@@ -53,6 +53,9 @@ using_other() {
 # exit_code 'int main() { return 3*2; }' '6'
 # exit_code 'int main() { 3 * 2; }' '6'
 # exit_code 'int main() { return 3 * 2; }' '6'
+exit_code 'int i; int main() { i = 10; return i;}' '10'
+exit_code 'int a[5]; int main() { a[2] = 10; return a[2];}' '10'
+exit_code 'int a[5]; int main() { for (int i = 0; i < 5; i++) { a[i] = i; } return a[3];}' '3'
 exit_code "int main(){ return 1;}" 1
 exit_code 'int main() { 10; return; }' '10'
 exit_code "int main(){10;}" 10
@@ -247,6 +250,7 @@ exit_code 'int main() { int i = 10; return i;}' '10'
 exit_code 'int main() { for (int i = 0; i < 100; i++) { continue; } return i;}' '100'
 exit_code 'int foo() { return 10;} int main() { int ten = foo(); return ten;}' '10'
 exit_code 'int *foo() { int a = 20; return &a;} int main() { return *foo(); }' '20'
+exit_code 'int a[5]; int main() { for (int i = 0; i < 5; i++) { a[i] = i; } return a[3];}' '3'
 exit_code 'int main() { struct Point { int x; int y; }; struct Point p; p.x = 1; p.y = 2; return p.x + p.y; }' '3'
 # exit_code 'int main() { int x[3]; x = {1,10,20}; return x[1] + x[2]; }'  '30'
 # exit_code 'int main() {if (1) { if (0) return 0; else if (0) return 1; else return 2; } else if (0) return 20; else retrn 30;}' '2'
