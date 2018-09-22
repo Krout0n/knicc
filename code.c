@@ -293,7 +293,6 @@ void emit_ref(Node *n) {
 }
 
 void emit_deref(Node *n) {
-    Var *v = get_first_var(local_var_map, n);
     emit_expr(n->left); // スタックのトップに p+12 とかのアドレスが乗ってる
     // emit_expr(n->right); segfault
     // printf("  movq %d(%%rbp), %%rax\n", var->offset);

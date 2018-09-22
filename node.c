@@ -589,6 +589,7 @@ Node *external_declaration() {
     TypeCategory type = type_specifier(head->type);
     assert(type != TYPE_NOT_FOUND);
     get_token();
+    Node *p = pointer();
     Token *t = get_token();
     expect_token(t, tIdent);
     char *name = t->literal;
