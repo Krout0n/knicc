@@ -238,7 +238,6 @@ typedef struct Node {
 } Node;
 
 extern Vector *parse();
-extern int how_many_nested_pointer(Node *n, int i);
 extern Node *make_ast_ident(char *literal);
 
 // code.c

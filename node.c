@@ -9,16 +9,8 @@ Node *expression();
 Node *statement();
 Node *cast_expression();
 
-Map *map;
 Map *global_map;
 Vector *string_literal_vec;
-
-int how_many_nested_pointer(Node *n, int i) {
-    if (n->pointer.next != NULL) {
-        return how_many_nested_pointer(n->pointer.next, i+1);
-    }
-    return i;
-}
 
 NodeType node_type_from_token_type(TokenType t) {
     if (t == tAdd) return ADD;

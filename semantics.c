@@ -169,6 +169,7 @@ void analyze_var_decl(Node *decl_ast) {
     insert_map(func_ast->func_def.map, new_kv(decl_ast->var_decl.name, v));
 }
 
+// enumやマクロで定義されてたidentだった場合，値をintに書き換える
 void replace_to_int_or_pass(Node *n) {
     int num = is_enumerator(n->literal);
     if (num >= 0) {
