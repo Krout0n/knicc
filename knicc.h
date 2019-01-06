@@ -51,6 +51,7 @@ typedef enum {
 
     tDecInt,
     tDecChar,
+    tTypedef,
     tStruct,
     tEnum,
     tRef,
