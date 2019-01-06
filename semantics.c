@@ -21,9 +21,10 @@ void analyze_expr(Node *n);
 
 Var *new_var(TypeCategory type, Node *next, size_t array_size) {
     Var *v = malloc(sizeof(Var));
-    v->type = type;
-    v->next = next;
     v->array_size = array_size;
+    if (next != NULL) v->is_pointer = true;
+    else v->is_pointer = false;
+    v->type = type;
     return v;
 }
 
@@ -50,20 +51,19 @@ int align_from_type(TypeCategory type) {
 
 int align_from_var(Var *v) {
     if (v->array_size > 1) return v->array_size * align_from_type(v->type);
+    if (v->is_pointer) return 8;
     if (v->type == TYPE_CHAR) return 1;
-    if (v->type == TYPE_INT) return 8;
+    if (v->type == TYPE_INT) return 4;
     else return 8;
-    return 114514;
 }
 
 int add_sub_ptr(Var *v) {
     TypeCategory t = v->type;
-    if (t == TYPE_CHAR) return 1;
-    if (t == TYPE_INT && v->array_size == 0 && v->next == NULL) return 1;
-    else if (t == TYPE_INT) return 4;
+    if (v->array_size > 0 || v->is_pointer) return align_from_type(t);
+    if (t == TYPE_CHAR || t == TYPE_INT) return 1;
     else {
-        printf("%d\n", t);
-        return 8;
+        printf("114514\n");
+        return 114514;
     }
 }
 
@@ -91,7 +91,7 @@ void debug_var(char *key,Var *var) {
             printf("WHY YOU CAME: Type: %d, position: %d, array_size: %ld!!!\n", var->type, var->offset, var->array_size);
             assert(false);
     }
-    printf("%s: { type: %s, position: %d, array_size: %ld },\n",key, s, var->offset, var->array_size);
+    printf("%s: { type: %s, position: %d, array_size: %ld, is_pointer: %d },\n",key, s, var->offset, var->array_size, var->is_pointer);
 }
 
 void debug_struct(Node *n) {
@@ -274,6 +274,7 @@ void analyze(Vector *n) {
     for (int i = 0; i < n->length; i++) {
         Node *ast = vec_get(n, i);
         if (ast->type == GLOBAL_DECL) insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, NULL, 0)));
+        if (ast->type == STRUCT_DECL) analyze_struct(ast);
         if (ast->type == ENUM_DECL) analyze_enum(ast);
         if (ast->type == FUNC_DEF) analyze_func(ast);
     }

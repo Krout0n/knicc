@@ -8,7 +8,7 @@ Map *local_var_map;
 Map *global_map;
 Vector *string_literal_vec;
 
-const char *regs[6] = {
+const char *regs64[6] = {
     "rdi",
     "rsi",
     "rdx",
@@ -17,12 +17,21 @@ const char *regs[6] = {
     "r9"
 };
 
+const char *regs32[6] = {
+    "edi",
+    "esi",
+    "edx",
+    "ecx",
+    "e8",
+    "e9"
+};
+
 void emit_stmt(Node *n);
 void emit_expr(Node *n);
 
 void emit_if_stmt(Node *n) {;
     emit_expr(n->if_stmt.expr);
-    printf("  pop %%rax\n");
+    printf("  popq %%rax\n");
     printf("  cmpq $0, %%rax\n");
     printf("  je .L%d\n", n->if_stmt.label_no);
     emit_stmt(n->if_stmt.true_stmt);
@@ -30,7 +39,7 @@ void emit_if_stmt(Node *n) {;
 }
 void emit_if_else_stmt(Node *n) {
     emit_expr(n->if_stmt.expr);
-    printf("  pop %%rax\n");
+    printf("  popq %%rax\n");
     printf("  cmpq $0, %%rax\n");
     printf("  je .L%d\n", n->if_stmt.label_no);
     emit_stmt(n->if_stmt.true_stmt);
@@ -51,7 +60,7 @@ void emit_return_stmt(Node *n) {
 void emit_while_stmt(Node *n) {
     printf(".L%d:\n", n->while_stmt.label_no);
     emit_expr(n->while_stmt.expr);
-    printf("  pop %%rax\n");
+    printf("  popq %%rax\n");
     printf("  cmpq $0, %%rax\n");
     printf("  je .L%d\n", n->while_stmt.label_no + 1);
     emit_stmt(n->while_stmt.stmt); 
@@ -63,7 +72,7 @@ void emit_for_stmt(Node *n) {
     emit_expr(n->for_stmt.init_expr);
     printf(".L%d:\n", n->for_stmt.label_no);
     emit_expr(n->for_stmt.cond_expr);
-    printf("  pop %%rax\n");
+    printf("  popq %%rax\n");
     printf("  cmpq $0, %%rax\n");
     printf("  je .L%d\n", n->for_stmt.label_no + 1);
     emit_stmt(n->for_stmt.stmt);
@@ -140,10 +149,11 @@ void emit_func_def(Node *n) {
     for (int i = 0; i < n->func_def.parameters->length; i++) { // 関数の引数処理
         Node *arg = (Node *)vec_get(n->func_def.parameters, i);
         Var *v = (Var *)((KeyValue *)find_by_key(n->func_def.map, arg->var_decl.name)->value);
-        if (v->type == TYPE_CHAR) {
-            printf("  movq %%%s, %%rax\n", regs[i]);
+        if (v->is_pointer) printf("  movq %%%s, -%d(%%rbp)\n", regs64[i], v->offset);
+        else if (v->type == TYPE_CHAR) {
+            printf("  movq %%%s, %%rax\n", regs64[i]);
             printf("  movb %%al, -%d(%%rbp)\n", v->offset);            
-        } else printf("  movq %%%s, -%d(%%rbp)\n", regs[i], v->offset);
+        } else printf("  movl %%%s, -%d(%%rbp)\n", regs32[i], v->offset);
     }
     for (int i = 0; i < n->stmts->length; i++) {
         Node *ast = vec_get(n->stmts, i);
@@ -222,11 +232,11 @@ void emit_assign(Node *n) {
     printf("  popq %%rbx\n");
     printf("  popq %%rax\n");
     v = get_first_var(local_var_map, n);
-    if (v != NULL && v->type == TYPE_CHAR && v->next == NULL) {
-        printf("  movb %%bl, (%%rax)\n");
-    } else {
-        printf("  movq %%rbx, (%%rax)\n");
-    }
+    if (v != NULL){
+        if (v->is_pointer)  printf("  movq %%rbx, (%%rax)\n");
+        else if (v->type == TYPE_INT) printf("  movl %%ebx, (%%rax)\n");
+        else if (v->type == TYPE_CHAR) printf("  movb %%bl, (%%rax)\n");
+    } else printf("  movq %%rbx, (%%rax)\n");
     printf("  pushq %%rbx\n");
 }
 
@@ -234,7 +244,7 @@ void emit_func_call(Node *n) {
     for (int i = 0; i < n->func_call.argc; i++) {
         emit_expr(n->func_call.argv[i]);
         printf("  popq %%rax\n");
-        printf("  movq  %%rax,  %%%s\n", regs[i]);
+        printf("  movq  %%rax,  %%%s\n", regs64[i]);
     }
     printf("  call %s\n", n->func_call.name);
     printf("  push %%rax\n");
@@ -245,9 +255,10 @@ void emit_ident(Node *n) {
     if (kv != NULL) {
         Var *v = kv->value;
         if (v->array_size > 0) printf("  leaq -%d(%%rbp), %%rax\n", v->offset);
-        else if (v->type == TYPE_INT || v->next != NULL) printf("  movq -%d(%%rbp), %%rax\n", v->offset);
+        else if (v->is_pointer) printf("  movq -%d(%%rbp), %%rax\n", v->offset);
+        else if (v->type == TYPE_INT) printf("  movl -%d(%%rbp), %%eax\n", v->offset);
         else if (v->type == TYPE_CHAR) printf("  movzbl -%d(%%rbp), %%eax\n", v->offset);
-    } else printf("  mov %s(%%rip), %%rax\n", n->literal);
+    } else printf("  movq %s(%%rip), %%rax\n", n->literal);
     printf("  pushq %%rax\n");
 }
 

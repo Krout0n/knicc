@@ -265,9 +265,9 @@ typedef struct {
 
 typedef struct {
     TypeCategory type;
+    bool is_pointer;
     int offset;
     size_t array_size;
-    Node *next;
     char *struct_name;
 } Var;
 
