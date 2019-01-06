@@ -104,12 +104,9 @@ void emit_stmt(Node *n) {
 
 void emit_global_var(void) {
     for (int i = 0; i < global_map->vec->length; i++) {
-        KeyValue *kv = (KeyValue *)(vec_get(global_map->vec, i)); 
-        char *key = kv->key;
-        Var *v = kv->value;
+        char *key = ((KeyValue *)(vec_get(global_map->vec, i)))->key;
         printf("%s:\n", key);
-        if (v->array_size > 0) printf("  .zero %d\n", align_from_type(v->type) * v->array_size);
-        else printf("  .zero  4\n");
+        printf("  .zero 4\n");
     }
 }
 
@@ -171,14 +168,10 @@ void emit_add(Node *n) {
     emit_expr(n->left);
     emit_expr(n->right);
     if (n->left->type == IDENTIFIER) {
-        KeyValue *gkv = find_by_key(global_map, n->left->literal); 
         KeyValue *kv = find_by_key(local_var_map, n->left->literal);
-        Var *v = NULL;
-        if (gkv != NULL) v = gkv->value;
-        else if (kv != NULL) v = kv->value;
-        if (v != NULL) {
-            // printf("  pushq $%d\n", add_sub_ptr(v));
-            printf("  pushq $%d\n", 8);
+        if (kv != NULL) {
+            Var *v = ((Var *)(kv->value));
+            printf("  pushq $%d\n", add_sub_ptr(v));
             gen_operands();
             printf("  imul %%rdx, %%rax\n");
             printf("  push %%rax\n");
@@ -248,17 +241,13 @@ void emit_func_call(Node *n) {
 }
 
 void emit_ident(Node *n) {
-    KeyValue *kv = find_by_key(local_var_map, n->literal);
+    KeyValue *kv = ((KeyValue *)(find_by_key(local_var_map, n->literal)));
     if (kv != NULL) {
         Var *v = kv->value;
         if (v->array_size > 0) printf("  leaq -%d(%%rbp), %%rax\n", v->offset);
         else if (v->type == TYPE_INT || v->next != NULL) printf("  movq -%d(%%rbp), %%rax\n", v->offset);
         else if (v->type == TYPE_CHAR) printf("  movzbl -%d(%%rbp), %%eax\n", v->offset);
-    } else {
-        Var *v = find_by_key(global_map, n->literal)->value;
-        if (v->array_size > 0) printf("  leaq %s(%%rip), %%rax\n", n->literal);
-        else printf("  movq %s(%%rip), %%rax\n", n->literal);
-    }
+    } else printf("  mov %s(%%rip), %%rax\n", n->literal);
     printf("  pushq %%rax\n");
 }
 
@@ -346,7 +335,6 @@ void emit_lvalue_code(Node *n) {
         emit_expr(n->left);
     } else if (n->type == IDENTIFIER) {
         KeyValue *kv = ((KeyValue *)(find_by_key(local_var_map, n->literal)));
-        KeyValue *gkv = find_by_key(global_map, n->literal);
         if (kv != NULL){
             Var *v = ((Var *)(kv->value));
             printf("  leaq -%d(%%rbp), %%rax\n", v->offset);

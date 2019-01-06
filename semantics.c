@@ -44,7 +44,7 @@ Member *new_member(char *name, TypeCategory type, int offset) {
 
 int align_from_type(TypeCategory type) {
     if (type == TYPE_CHAR) return 1;
-    else return 8;
+    else return 4;
     assert(type == TYPE_INT || type == TYPE_CHAR);
 }
 
@@ -265,15 +265,15 @@ void analyze_func(Node *f) {
             else analyze_stmt(local_ast);
         }
     }
+    // debug_map(func_ast->func_def.map);
 }
 
 void analyze(Vector *n) {
     def_enum_map = NULL;
     for (int i = 0; i < n->length; i++) {
         Node *ast = vec_get(n, i);
-        if (ast->type == GLOBAL_DECL) insert_map(global_map, new_kv(ast->var_decl.name, new_var(ast->var_decl.type, ast->var_decl.pointer, ast->var_decl.array_size)));
+        if (ast->type == GLOBAL_DECL) insert_map(global_map, new_kv(ast->var_decl.name, new_var(TYPE_INT, NULL, 0)));
         if (ast->type == ENUM_DECL) analyze_enum(ast);
         if (ast->type == FUNC_DEF) analyze_func(ast);
     }
-    // debug_map(global_map);
 }
