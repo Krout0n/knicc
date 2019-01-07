@@ -24,13 +24,13 @@ void insert_map(Map *map, KeyValue *kv) {
 }
 
 KeyValue *find_by_key(Map *map, char *key) {
-	int i = 0;
-	KeyValue *kv;
 	Vector *vec = map->vec;
-	while(i < vec_size(vec)) {
-		kv = vec_get(vec, i);
-		if (strcmp(kv->key, key) == 0) return kv;
-		i += 1;
+	for (int i = 0; i < vec_size(vec); i++) {
+		KeyValue *kv = vec_get(vec, i);
+		if (strcmp(kv->key, key) == 0) {
+			// printf("satisfied: %s, %s\n", kv->key, key);
+			return kv;
+		}
 	}
 	return NULL;
 }

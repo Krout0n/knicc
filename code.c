@@ -7,6 +7,7 @@
 Map *local_var_map;
 Map *global_map;
 Vector *string_literal_vec;
+Map *def_struct_map;
 
 const char *regs64[6] = {
     "rdi",
@@ -135,7 +136,7 @@ void emit_toplevel(Vector *n) {
     printf(".global main\n");
     for (int i = 0; i < n->length; i++) {
         Node *ast = vec_get(n, i);
-        if (ast->type == GLOBAL_DECL || ast->type == ENUM_DECL) continue;
+        if (ast->type == GLOBAL_DECL || ast->type == ENUM_DECL || ast->type == STRUCT_DECL) continue;
         else emit_func_def(ast);
     }
 }
@@ -255,7 +256,7 @@ void emit_ident(Node *n) {
     if (kv != NULL) {
         Var *v = kv->value;
         if (v->array_size > 0) printf("  leaq -%d(%%rbp), %%rax\n", v->offset);
-        else if (v->is_pointer) printf("  movq -%d(%%rbp), %%rax\n", v->offset);
+        else if (v->is_pointer || v->type == TYPE_DEFINED) printf("  movq -%d(%%rbp), %%rax\n", v->offset);
         else if (v->type == TYPE_INT) printf("  movl -%d(%%rbp), %%eax\n", v->offset);
         else if (v->type == TYPE_CHAR) printf("  movzbl -%d(%%rbp), %%eax\n", v->offset);
     } else printf("  movq %s(%%rip), %%rax\n", n->literal);
@@ -321,6 +322,13 @@ void emit_string(Node *n) {
     printf("  pushq %%rax\n");
 }
 
+void emit_dot(Node *n) {
+    // KeyValue *kv = find_by_key(def_struct_map, n->left);
+    // UsrDefStruct *u = (UsrDefStruct *)(kv);
+    // printf("%s\n", u->name);
+    printf("OK!!");
+}
+
 void emit_expr(Node *n) {
     if (n == NULL) return;
     if (n->type == INT) printf("  pushq $%d\n", n->ival);
@@ -339,6 +347,7 @@ void emit_expr(Node *n) {
     if (n->type == REF) emit_ref(n);
     if (n->type == DEREF) emit_deref(n);
     if (n->type == STRING) emit_string(n);
+    if (n->type == DOT) emit_dot(n);
 }
 
 void emit_lvalue_code(Node *n) {
@@ -351,6 +360,8 @@ void emit_lvalue_code(Node *n) {
             printf("  leaq -%d(%%rbp), %%rax\n", v->offset);
         }
         else printf("  leaq %s(%%rip), %%rax\n", n->literal);
+    } else if (n->type == DOT) {
+        emit_expr(n->left);
     }
     printf("  pushq %%rax\n");
 }

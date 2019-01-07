@@ -147,13 +147,9 @@ void analyze_struct(Node *n) {
         KeyValue *kv = vec_get(n->struct_decl.members->vec, i);
         char *name = kv->key;
         TypeCategory type = (int)(kv->value);
-        if (type == TYPE_INT) {
-            offset += 4 - (offset % 4);
-            offset += align_from_type(type);
-        }
+        offset += 4;
         Member *member = new_member(name, type, offset);
         vec_push(u->members, member);
-        offset += align_from_type(type);
     }
     debug_analyzed_struct(u);
     insert_map(def_struct_map, new_kv(u->name, u));

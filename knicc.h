@@ -165,6 +165,7 @@ typedef enum {
     COMPOUND_STMT,
     GLOBAL_DECL,
     STRUCT_DECL,
+    DOT,
     ENUM_DECL,
 } NodeType;
 
@@ -173,6 +174,7 @@ typedef enum {
     TYPE_CHAR,
     TYPE_STRUCT,
     TYPE_PTR,
+    TYPE_DEFINED,
     TYPE_NOT_FOUND,
 } TypeCategory;
 

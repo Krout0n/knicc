@@ -9,7 +9,7 @@ Node *expression();
 Node *statement();
 Node *cast_expression();
 
-Map *global_map;
+Map *type_defined_map; // <literal, int?>
 Vector *string_literal_vec;
 
 NodeType node_type_from_token_type(TokenType t) {
@@ -154,6 +154,7 @@ Node *make_ast_global_var(TypeCategory type ,char *name, Node *pointer, size_t a
     n->var_decl.type = type;
     n->var_decl.pointer = pointer;
     n->var_decl.array_size = array_size;
+    return n;
 }
 
 Node *make_ast_string(char *literal) {
@@ -163,10 +164,10 @@ Node *make_ast_string(char *literal) {
     return n;
 }
 
-Node *make_ast_struct(char *name) {
-    Node *n = malloc(sizeof(Node));
+Node *make_ast_struct() {
+    Node *n = calloc(1, sizeof(Node));
     n->type = STRUCT_DECL;
-    n->struct_decl.name = name;
+    n->struct_decl.name = NULL;
     n->struct_decl.members = init_map();
     return n;
 }
@@ -196,9 +197,10 @@ Node *make_ast_initialize(TypeCategory type, char *name, Node *p, size_t array_s
     return n;
 }
 
-TypeCategory type_specifier(TokenType t) {
+TypeCategory type_specifier(TokenType t, char *literal) {
     if (t == tDecInt) return TYPE_INT;
     if (t == tDecChar) return TYPE_CHAR;
+    if (t == tIdent && find_by_key(type_defined_map, literal) != NULL) return TYPE_DEFINED;
     return TYPE_NOT_FOUND;
 }
 
@@ -241,17 +243,17 @@ Node *pointer() {
         next = make_ast_pointer(previous);
         previous = next;
         get_token();
-        // printf("NESTED!\n");
     }
     return ret;
 }
 
 Node *declaration() {
-    TypeCategory ty = type_specifier(get_token()->type);
+    Token *typ_tok = get_token();
+    TypeCategory ty = type_specifier(typ_tok->type, typ_tok->literal);
     size_t array_size = 0;
     Node *p = pointer();
     Token *ident = get_token();
-    assert(ident->type == tIdent);
+    expect_token(ident, tIdent);
     if (peek_token()->type == tLBracket) {
         get_token();
         Token *s = get_token();
@@ -261,12 +263,16 @@ Node *declaration() {
     }
     if (peek_token()->type == tSemicolon) {
         get_token();
-        make_ast_var_decl(ty, ident->literal, p, array_size);
+        return make_ast_var_decl(ty, ident->literal, p, array_size);
     } else if (peek_token()->type == tAssign) {
         get_token();
         Node *expr = expression();
         expect_token(get_token(), tSemicolon);
         return make_ast_initialize(ty, ident->literal, p, array_size, expr);
+    } else {
+        printf("NANNYA OMAE\n");
+        debug_token(peek_token());
+        return NULL;
     }
 }
 
@@ -283,13 +289,12 @@ Node *postfix_expression() {
     } else if (peek_token()->type == tDec) {
         get_token();
         return make_ast_op(ASSIGN, n, make_ast_op(SUB, n, make_ast_int(1)));
+    } else if (peek_token()->type == tDot) {
+        get_token();
+        Token *member = get_token();
+        assert(member->type == tIdent);
+        return make_ast_op(DOT, n, make_ast_ident(member->literal));
     }
-    // } else if (peek_token()->type == tDot) {
-    //     get_token();
-    //     Token member = get_token();
-    //     assert(member.type == tIdent);
-    //     return make_ast_op();
-    // }
     return n;
 }
 
@@ -482,7 +487,7 @@ Node *iteration_statement() {
             init = NULL;
             get_token();
         }
-        else if (type_specifier(peek_token()->type) != TYPE_NOT_FOUND) init = declaration();
+        else if (type_specifier(peek_token()->type, peek_token()->literal) != TYPE_NOT_FOUND) init = declaration();
         else init = expression_statement();
         if (peek_token()->type != tSemicolon) cond = expression();
         else cond = make_ast_int(1);
@@ -498,20 +503,22 @@ Node *iteration_statement() {
 
 Node *struct_or_union() {
     get_token();
-    Token *ident = get_token();
-    assert(ident->type == tIdent);
     assert(get_token()->type == tLBrace);
-    Node *n = make_ast_struct(ident->literal);
+    Node *n = make_ast_struct();
     while (peek_token()->type != tRBrace) {
         Token *t = get_token();
-        TypeCategory type = type_specifier(t->type);
+        TypeCategory type = type_specifier(t->type, NULL);
         Token *member = get_token();
         assert(member->type = tIdent);
         assert(get_token()->type == tSemicolon);
         insert_map(n->struct_decl.members, new_kv(member->literal, (TypeCategory *)type));
     }
     get_token();
+    char *struct_name = get_token()->literal;
+    n->struct_decl.name = calloc(strlen(struct_name), sizeof(char));
+    strcpy(n->struct_decl.name, struct_name);
     assert(get_token()->type == tSemicolon);
+    insert_map(type_defined_map, new_kv(n->struct_decl.name, (int *)calloc(1, sizeof(int))));
     return n;
 }
 
@@ -537,10 +544,11 @@ Node *compound_statement() {
     Node *n = make_ast_compound_statement();
     while (peek_token()->type != tRBrace) {
         Node *block_item;
-        // debug_token(peek_token());
-        if (peek_token()->type == tDecInt || peek_token()->type == tDecChar) block_item = declaration();
-        else if (peek_token()->type == tStruct) block_item = struct_or_union();
-        else if (peek_token()->type == tEnum) block_item = enum_specifier();
+        Token *peeked = peek_token();
+        if (peeked->type == tDecInt || peeked->type == tDecChar) block_item = declaration();
+        else if (peeked->type == tIdent && find_by_key(type_defined_map, peeked->literal) != NULL) block_item = declaration();
+        else if (peeked->type == tStruct) block_item = struct_or_union();
+        else if (peeked->type == tEnum) block_item = enum_specifier();
         else block_item = statement();
         vec_push(n->stmts, block_item);
     }
@@ -549,7 +557,7 @@ Node *compound_statement() {
 }
 
 Node *jump_statement() {
-    TokenType type = node_type_from_token_type(get_token()->type);
+    NodeType type = node_type_from_token_type(get_token()->type);
     if (type == BREAK || type == CONTINUE) {
         expect_token(get_token(), tSemicolon);
         return make_ast_label(type);
@@ -578,7 +586,13 @@ Node *statement() {
 Node *external_declaration() {
     Token *head = peek_token();
     if (head->type == tEnum) return enum_specifier();
-    TypeCategory type = type_specifier(head->type);
+    if (head->type == tTypedef) {
+        get_token();
+        Token *storage = peek_token();
+        if (storage->type == tEnum) return enum_specifier();
+        if (storage->type == tStruct) return struct_or_union();
+    }
+    TypeCategory type = type_specifier(head->type, NULL);
     assert(type != TYPE_NOT_FOUND);
     get_token();
     Node *p = pointer();
@@ -589,7 +603,7 @@ Node *external_declaration() {
         get_token();
         Node *func_ast = make_ast_func_def(name, type);
         while (peek_token()->type != tRParen) {
-            TypeCategory type = type_specifier(get_token()->type);
+            TypeCategory type = type_specifier(get_token()->type, NULL);
             assert(type != TYPE_NOT_FOUND);
             Node *p = pointer();
             Token *arg = get_token();
@@ -603,12 +617,13 @@ Node *external_declaration() {
         return func_ast;
     }
     assert(get_token()->type == tSemicolon);
-    Node *global_decl = make_ast_global_var(type, name, NULL, 0);
+    Node *global_decl = make_ast_global_var(type, name, p, 0);
     return global_decl;
 }
 
 Vector *parse() {
     Vector *nodes = init_vector();
+    type_defined_map = init_map();
     while (peek_token()->type != _EOF) {
         vec_push(nodes, external_declaration());
     }
