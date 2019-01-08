@@ -187,6 +187,7 @@ typedef struct Node {
     struct {
         char *name;
         TypeCategory type;
+        char *type_literal;
         struct Node *pointer;
         size_t array_size;
         struct Node *expr; // initialize
@@ -270,7 +271,7 @@ typedef struct {
     bool is_pointer;
     int offset;
     size_t array_size;
-    char *struct_name;
+    Map *members;
 } Var;
 
 Map *def_struct_map; // UsrDefStructを格納してる

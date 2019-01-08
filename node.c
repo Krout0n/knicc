@@ -50,9 +50,11 @@ Node *make_ast_ident(char *literal) {
     return n;
 }
 
-Node *make_ast_var_decl(TypeCategory type, char *name, Node *pointer, size_t array_size) {
+Node *make_ast_var_decl(TypeCategory type, char *type_literal, char *name, Node *pointer, size_t array_size) {
     Node *n = malloc(sizeof(Node));
     n->type = VAR_DECL;
+    n->var_decl.type_literal = calloc(strlen(type_literal), sizeof(char));
+    strcpy(n->var_decl.type_literal, type_literal);
     n->var_decl.name = name;
     n->var_decl.type = type;
     n->var_decl.pointer = pointer;
@@ -263,7 +265,7 @@ Node *declaration() {
     }
     if (peek_token()->type == tSemicolon) {
         get_token();
-        return make_ast_var_decl(ty, ident->literal, p, array_size);
+        return make_ast_var_decl(ty, typ_tok->literal, ident->literal, p, array_size);
     } else if (peek_token()->type == tAssign) {
         get_token();
         Node *expr = expression();
@@ -603,12 +605,13 @@ Node *external_declaration() {
         get_token();
         Node *func_ast = make_ast_func_def(name, type);
         while (peek_token()->type != tRParen) {
-            TypeCategory type = type_specifier(get_token()->type, NULL);
+            Token *typ_tok = get_token();
+            TypeCategory type = type_specifier(typ_tok->type, typ_tok->literal);
             assert(type != TYPE_NOT_FOUND);
             Node *p = pointer();
             Token *arg = get_token();
             assert(arg->type == tIdent);
-            vec_push(func_ast->func_def.parameters, make_ast_var_decl(type, arg->literal, p, 0));
+            vec_push(func_ast->func_def.parameters, make_ast_var_decl(type, typ_tok->literal, arg->literal, p, 0));
             if (peek_token()->type == tComma) get_token();
         }
         assert(get_token()->type == tRParen);
