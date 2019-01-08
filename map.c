@@ -39,13 +39,3 @@ KeyValue *last_inserted(Map *map) {
 	Vector *vec = map->vec;
 	return (KeyValue *) vec_get(vec, vec_size(vec)-1);
 }
-
-void debug_map(Map *map) {
-	printf("Map: {\n");
-	for (int i = 0; i < map->vec->length; i++) {
-		KeyValue *kv = ((KeyValue *)(vec_get(map->vec, i)));
-		printf("  ");
-		debug_var(kv->key, kv->value);
-	}
-	printf("}\n");
-}

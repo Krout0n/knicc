@@ -98,10 +98,6 @@ Lexer *init_lexer() {
     return l;
 }
 
-void debug_lexer() {
-    printf("LEXER current: %d, length: %d\n", l->token_index, l->index);
-}
-
 Token *get_token() {
     if (l->length <= l->token_index) {
         perror("get_token: LENGTH OVER");

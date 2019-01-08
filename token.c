@@ -131,10 +131,6 @@ Token *new_token(char *literal, int length, TokenType kind) {
     return t;
 }
 
-void debug_token(Token *t) {
-    printf("Token.type: %s, literal: %s\n", find_token_name(t->type), t->literal);
-}
-
 bool is_unaryop_token(TokenType type) {
     if (type == tRef || type == tStar || type == tSub) return true;
     return false;

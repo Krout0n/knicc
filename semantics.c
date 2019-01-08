@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "knicc.h"
+#include "./knicc.h"
 
 Map *local_var_map;
 Map *global_map;
@@ -31,7 +31,7 @@ Var *new_var(TypeCategory type, Node *next, size_t array_size) {
 UsrDefStruct *new_user_def_struct(char *name) {
     UsrDefStruct *u = malloc(sizeof(UsrDefStruct));
     u->name = name;
-    u->members = init_vector();
+    u->members = init_map();
     return u;
 }
 
@@ -75,52 +75,6 @@ Var *get_first_var(Map *map, Node *n) {
     return v;
 }
 
-void debug_var(char *key,Var *var) {
-    char *s;
-    switch (var->type) {
-        case TYPE_INT:
-            s = "TYPE_INT";
-            break;
-        case TYPE_PTR:
-            s = "TYPE_PTR";
-            break;
-        case TYPE_CHAR:
-            s = "TYPE_CHAR";
-            break;
-        default:
-            printf("WHY YOU CAME: Type: %d, position: %d, array_size: %ld!!!\n", var->type, var->offset, var->array_size);
-            assert(false);
-    }
-    printf("%s: { type: %s, position: %d, array_size: %ld, is_pointer: %d },\n",key, s, var->offset, var->array_size, var->is_pointer);
-}
-
-void debug_struct(Node *n) {
-    printf("struct %s {\n", n->struct_decl.name);
-    for (int i = 0; i < n->struct_decl.members->vec->length; i++) {
-        KeyValue *kv = vec_get(n->struct_decl.members->vec, i);
-        printf("  %s: %d, \n", kv->key, kv->value);
-    }
-    printf("}\n");
-}
-
-void debug_analyzed_struct(UsrDefStruct *u) {
-    printf("struct %s {\n", u->name);
-    for (int i = 0; i < u->members->length; i++) {
-        Member *m = vec_get(u->members, i);
-        printf("{ name: %s, type: %d, offset: %d },\n", m->name, m->type, m->offset);
-    }
-    printf("}\n");
-}
-
-void debug_enum(Map *m) {
-    printf("enum {\n");
-    for (int i = 0; i < m->vec->length; i++) {
-        KeyValue *kv = vec_get(m->vec, i);
-        printf("  %s: %d,\n", kv->key, (int)kv->value);
-    }
-    printf("}\n");
-}
-
 void analyze_enum(Node *n) {
     Map *map;
     if (def_enum_map == NULL) map = global_enum_map;
@@ -147,11 +101,11 @@ void analyze_struct(Node *n) {
         KeyValue *kv = vec_get(n->struct_decl.members->vec, i);
         char *name = kv->key;
         TypeCategory type = (int)(kv->value);
-        offset += 4;
         Member *member = new_member(name, type, offset);
         vec_push(u->members, member);
+        offset += 4;
     }
-    debug_analyzed_struct(u);
+    // debug_analyzed_struct(u);
     insert_map(def_struct_map, new_kv(u->name, u));
 }
 
@@ -160,6 +114,11 @@ void analyze_var_decl(Node *decl_ast) {
     Node *p = decl_ast->var_decl.pointer;
     size_t array_size = decl_ast->var_decl.array_size;
     Var *v = new_var(type, p, array_size);
+    if (v->type == TYPE_DEFINED) {
+        char *type_literal = decl_ast->var_decl.type_literal;
+        v->members = init_map();
+        printf("%p: \n", find_by_key(def_struct_map, type_literal));
+    }
     v->offset = func_ast->func_def.offset + align_from_var(v);
     func_ast->func_def.offset += align_from_var(v);
     insert_map(func_ast->func_def.map, new_kv(decl_ast->var_decl.name, v));
@@ -180,11 +139,11 @@ void analyze_func_call(Node *n) {
     }
 }
 
-Node *analyze_break(Node *n) {
+void analyze_break(Node *n) {
     n->break_no = nested[index-1] + 1;
 }
 
-Node *analyze_continue(Node *n) {
+void analyze_continue(Node *n) {
     n->continue_label_no = nested[index-1] + 2;
 }
 
