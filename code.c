@@ -185,7 +185,7 @@ void emit_add(Node *n) {
             printf("  pushq $%d\n", add_sub_ptr(v));
             gen_operands();
             printf("  imul %%rdx, %%rax\n");
-            printf("  push %%rax\n");
+            printf("  pushq %%rax\n");
         }
     }
     gen_operands();
@@ -237,6 +237,7 @@ void emit_assign(Node *n) {
         if (v->is_pointer)  printf("  movq %%rbx, (%%rax)\n");
         else if (v->type == TYPE_INT) printf("  movl %%ebx, (%%rax)\n");
         else if (v->type == TYPE_CHAR) printf("  movb %%bl, (%%rax)\n");
+        else printf("  movl %%ebx, (%%rax)\n");
     } else printf("  movq %%rbx, (%%rax)\n");
     printf("  pushq %%rbx\n");
 }
@@ -248,15 +249,15 @@ void emit_func_call(Node *n) {
         printf("  movq  %%rax,  %%%s\n", regs64[i]);
     }
     printf("  call %s\n", n->func_call.name);
-    printf("  push %%rax\n");
+    printf("  pushq %%rax\n");
 }
 
 void emit_ident(Node *n) {
     KeyValue *kv = ((KeyValue *)(find_by_key(local_var_map, n->literal)));
     if (kv != NULL) {
         Var *v = kv->value;
-        if (v->array_size > 0) printf("  leaq -%d(%%rbp), %%rax\n", v->offset);
-        else if (v->is_pointer || v->type == TYPE_DEFINED) printf("  movq -%d(%%rbp), %%rax\n", v->offset);
+        if (v->array_size > 0 || v->type == TYPE_STRUCT) printf("  leaq -%d(%%rbp), %%rax\n", v->offset);
+        else if (v->is_pointer) printf("  movq -%d(%%rbp), %%rax\n", v->offset);
         else if (v->type == TYPE_INT) printf("  movl -%d(%%rbp), %%eax\n", v->offset);
         else if (v->type == TYPE_CHAR) printf("  movzbl -%d(%%rbp), %%eax\n", v->offset);
     } else printf("  movq %s(%%rip), %%rax\n", n->literal);
@@ -323,10 +324,12 @@ void emit_string(Node *n) {
 }
 
 void emit_dot(Node *n) {
-    // KeyValue *kv = find_by_key(def_struct_map, n->left);
-    // UsrDefStruct *u = (UsrDefStruct *)(kv);
-    // printf("%s\n", u->name);
-    printf("OK!!");
+    emit_expr(n->left);
+    printf("popq %%rbx\n");
+    Var *v = get_first_var(local_var_map, n->left);
+    printf("  addq  $%d, %%rax\n", get_offset_member(v, n->right));
+    printf("  movl (%%rax), %%eax\n");
+    printf("  pushq %%rax\n");
 }
 
 void emit_expr(Node *n) {
@@ -361,7 +364,9 @@ void emit_lvalue_code(Node *n) {
         }
         else printf("  leaq %s(%%rip), %%rax\n", n->literal);
     } else if (n->type == DOT) {
-        emit_expr(n->left);
+        emit_ref(n->left);
+        Var *v = get_first_var(local_var_map, n->left);
+        printf("  addq  $%d, %%rax\n", get_offset_member(v, n->right));
     }
     printf("  pushq %%rax\n");
 }

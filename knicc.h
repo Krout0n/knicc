@@ -272,14 +272,16 @@ typedef struct {
     int offset;
     size_t array_size;
     Map *members;
+    char *type_literal;
 } Var;
 
 Map *def_struct_map; // UsrDefStructを格納してる
 Map *global_enum_map;
 
 extern int add_sub_ptr(Var *v);
-extern int align_from_type(TypeCategory type);
+extern int offset_from_type(TypeCategory type);
 extern Var *get_first_var(Map *map, Node *n);
 extern void debug_var(char *key, Var *var);
 extern void analyze(Vector *n);
+extern int get_offset_member(Var *v, Node *n);
 #endif

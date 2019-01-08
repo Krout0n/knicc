@@ -31,7 +31,7 @@ Var *new_var(TypeCategory type, Node *next, size_t array_size) {
 UsrDefStruct *new_user_def_struct(char *name) {
     UsrDefStruct *u = malloc(sizeof(UsrDefStruct));
     u->name = name;
-    u->members = init_map();
+    u->members = init_vector();
     return u;
 }
 
@@ -43,14 +43,14 @@ Member *new_member(char *name, TypeCategory type, int offset) {
     return m;
 }
 
-int align_from_type(TypeCategory type) {
+int offset_from_type(TypeCategory type) {
     if (type == TYPE_CHAR) return 1;
     else return 4;
     assert(type == TYPE_INT || type == TYPE_CHAR);
 }
 
 int align_from_var(Var *v) {
-    if (v->array_size > 1) return v->array_size * align_from_type(v->type);
+    if (v->array_size > 1) return v->array_size * offset_from_type(v->type);
     if (v->is_pointer) return 8;
     if (v->type == TYPE_CHAR) return 1;
     if (v->type == TYPE_INT) return 4;
@@ -59,12 +59,20 @@ int align_from_var(Var *v) {
 
 int add_sub_ptr(Var *v) {
     TypeCategory t = v->type;
-    if (v->array_size > 0 || v->is_pointer) return align_from_type(t);
+    if (v->array_size > 0 || v->is_pointer) return offset_from_type(t);
     if (t == TYPE_CHAR || t == TYPE_INT) return 1;
     else {
         printf("114514\n");
         return 114514;
     }
+}
+
+int get_offset_member(Var *v, Node *n) {
+    if (v->type == TYPE_STRUCT) {
+        Member *m = find_by_key(v->members, n->literal)->value;
+        return m->offset;
+    }
+    return 42;
 }
 
 Var *get_first_var(Map *map, Node *n) {
@@ -115,9 +123,16 @@ void analyze_var_decl(Node *decl_ast) {
     size_t array_size = decl_ast->var_decl.array_size;
     Var *v = new_var(type, p, array_size);
     if (v->type == TYPE_DEFINED) {
+        v->type = TYPE_STRUCT;
         char *type_literal = decl_ast->var_decl.type_literal;
+        v->type_literal = calloc(strlen(type_literal), sizeof(char));
+        strcpy(v->type_literal, type_literal);
         v->members = init_map();
-        printf("%p: \n", find_by_key(def_struct_map, type_literal));
+        UsrDefStruct *u = (UsrDefStruct *)find_by_key(def_struct_map, type_literal)->value;
+        for (int i = 0; i < u->members->length; i++) {
+            Member *m = vec_get(u->members, i);
+            insert_map(v->members, new_kv(m->name, m));
+        }
     }
     v->offset = func_ast->func_def.offset + align_from_var(v);
     func_ast->func_def.offset += align_from_var(v);
