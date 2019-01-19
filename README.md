@@ -1,6 +1,6 @@
 # knicc
 
-This is my toy C compiler. When you want to play this compiler, look at `test.sh` for valid syntaxes.
+This is my toy C compiler. When you want to play this compiler, look at `test.sh` for knowing what valid syntaxes are.
 
 ### How to play
 
